@@ -1,0 +1,14 @@
+syntax: glob
+main.pdf
+*.bbl
+*.blg
+*.log
+*.aux
+*.out
+*.gz
+*.kate-swp
+*.fls
+*.fdb_latexmk
+*.kilepr
+*.synctex.gz
+*.vtc
