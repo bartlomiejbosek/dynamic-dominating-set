@@ -1,16 +1,23 @@
 \documentclass[11pt]{amsart}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[english]{babel}
 \usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{hyperref}
+\usepackage{cleveref}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{claim}[theorem]{Claim}
 \newtheorem{corollary}[theorem]{Corollary}
-\theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
+
+\DeclareMathOperator{\degen}{degen}
+\DeclareMathOperator{\WReach}{WReach}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\dist}{dist}
 
 \title[Fully Dominating Set in Graphs of Bounded Degeneracy]{Fully Dynamic Randomized Data Structure for Approximate Dominating Set in Graphs of Bounded Degeneracy}
 
@@ -38,187 +45,362 @@
 
 \begin{document}
 
-\begin{abstract}
-We present a fully dynamic data structure maintaining a dominating set $D_t$ in an evolving undirected graph $G_t=(V,E_t)$ such that $|D_t|\le (\alpha+1)^2\cdot \gamma(G_t)$, where $\alpha$ is a constant upper bound on the degeneracy of all graph states, and $\gamma(G_t)$ denotes the size of a minimum dominating set. Each edge update has amortized expected cost $O(\alpha^3+\alpha^2\log n)$, while a query returns the maintained set $D_t$ in time proportional to $|D_t|$. The construction is modular: (i) we deterministically maintain an orientation with bounded out-degree using the classical scheme for sparse graphs \cite{BrodalFagerberg99}, which limits local changes per update; (ii) over the family of \emph{out-stars} we build a dynamic hypergraph of rank $r\le \alpha+1$ and maintain a maximal matching in it using the method of Assadi and Solomon \cite{AssadiSolomon21}. We prove independently two combinatorial facts crucial for correctness and size guarantees: (A) for any ordering $\sigma$, the union of sets from a maximal matching in the family $\mathrm{WReach}_1[G,\sigma]$ is a dominating set and has size at most $(\Delta^{\mathrm{left}}_\sigma+1)^2\cdot \gamma(G)$; (B) a completely analogous property holds for the family of out-stars with respect to any orientation, which allows us to relate the size of $D_t$ with the parameter $\Delta^+(G_t)\le \alpha$. The whole structure works against an oblivious adversary, according to the analysis model from \cite{AssadiSolomon21}. We do not use any additional assumptions such as $n\le f(\alpha)$; initialization \textsc{Init} creates an empty graph in time $O(1)$.
-\end{abstract}
-
 \maketitle
+
+\begin{abstract}
+We present the first fully dynamic data structure maintaining a constant approximation of the minimum dominating set in graphs of bounded degeneracy.
+For a dynamic graph with degeneracy bounded by $\alpha$, our structure maintains a dominating set of size at most $(c \alpha + 1)^2 \cdot \gamma(G_t)$, where $\gamma(G_t)$ is the size of the minimum dominating set, and $c$ is a constant.
+Edge insertion and deletion operations take expected amortized time $O(\alpha^2 \log n)$, and the structure occupies $O(\alpha n + m)$ space.
+The key technique is the reduction of the problem to maintaining a maximal matching in a hypergraph of low rank, combined with a dynamic acyclic orientation.
+\end{abstract}
 
 \section{Introduction}
 
-Maintaining an approximate dominating set in the fully dynamic model is a natural test of maturity for methods on sparse graphs: on one hand, the problem is classically hard to approximate, on the other hand—graphs of finite degeneracy ($\alpha<\infty$) provide rich local structure. In this work we combine a deterministic module for edge orientation in graphs of bounded arboricity (and consequently degeneracy) \cite{BrodalFagerberg99} with a local, randomized scheme for maintaining maximal matching in a rank-$r$ hypergraph \cite{AssadiSolomon21}. Main idea: each vertex $v$ generates a hyperedge $S(v)=\{v\}\cup N^+(v)$ (out-star in the current orientation), and we maintain a maximal matching $\mathcal{M}_t$ in this family. The returned set $D_t$ is the union $\bigcup_{S\in \mathcal{M}_t}S$. We prove that $D_t$ always dominates $G_t$, and moreover $|D_t|\le (1+\Delta^+(G_t))^2\cdot \gamma(G_t)$. Since we maintain $\Delta^+(G_t)=O(\alpha)$, we obtain the desired bound $(\alpha+1)^2$.
+The minimum dominating set problem is one of the fundamental problems in graph theory.
+In the dynamic version, where the graph evolves through edge insertions and deletions, efficiently maintaining an approximate solution remains a challenge.
+For general graphs, strong lower bounds on time complexity are known. Therefore, it is natural to consider classes of graphs with special structure.
+We focus on graphs of bounded degeneracy, a class containing planar graphs, graphs of bounded genus, and graphs with excluded minors.
+For graphs with constant degeneracy $\alpha$, efficient static approximation algorithms are known \cite{LenzenWattenhofer10}.
+We present the first fully dynamic data structure for this problem.
 
-\subsection*{Adversary and randomness model}
-We use analysis in the \emph{oblivious adversary} model—the sequence of updates does not depend on the algorithm's coin tosses; this is the standard condition required for time and approximation guarantees in \cite{AssadiSolomon21}. We explicitly note this in the specification and analysis.
+\paragraph{Main Result.} We construct a fully dynamic data structure that, for graphs with degeneracy at most $\alpha$, maintains a dominating set of size at most $(c \alpha + 1)^2 \cdot \gamma(G_t)$ with expected amortized update time $O(\alpha^2 \log n)$ and space complexity $O(\alpha n + m)$.
 
-\section{Preliminaries and Notation}
+\paragraph{Techniques.} We utilize three components: a dynamic acyclic orientation with bounded out-degree \cite{BrodalFagerberg99}, a reduction to maximal matching in a hypergraph, and a dynamic matching algorithm \cite{AssadiSolomon21}.
+The first component relies on the result by Brodal and Fagerberg from 1999 regarding dynamic representations of sparse graphs.
+The second utilizes combinatorial properties of reachable sets, generalizing the approach of Lenzen and Wattenhofer \cite{LenzenWattenhofer10}.
+The third uses the algorithm by Assadi and Solomon from 2021 for dynamic matching in hypergraphs.
 
-We work on simple graphs $G=(V,E)$. For $v\in V$ we denote by $N(v)$ the neighborhood, by $N[v]=N(v)\cup\{v\}$ the closed neighborhood. A set $D\subseteq V$ is \emph{dominating} when $N[v]\cap D\neq\emptyset$ for every $v$. Let $\gamma(G)$ denote the size of a minimum dominating set.
+\section{Preliminaries}
 
-\subsection*{Degeneracy}
-The degeneracy of a graph is the smallest number $\alpha$ such that every induced subgraph has a vertex of degree at most $\alpha$. Equivalently: there exists a linear ordering $\sigma$ on $V$ with maximum \emph{left degree} $\Delta^{\mathrm{left}}_\sigma\le \alpha$, i.e., for each $v$ the number of neighbors $u$ with $\sigma(u)<\sigma(v)$ is at most $\alpha$.
+\subsection{Graphs and Domination}
 
-\subsection*{Set families and hypergraphs}
-For a family of sets $\mathcal{F}\subseteq 2^U$, a \emph{matching} is a subfamily of pairwise disjoint sets; a \emph{maximal matching}—in the sense of inclusion; $\nu(\mathcal{F})$—the size of a maximum matching. A \emph{transversal} (or hitting set) is $Y\subseteq U$ intersecting every set in $\mathcal{F}$; $\tau(\mathcal{F})$—the size of the smallest transversal. We have $\nu(\mathcal{F})\le \tau(\mathcal{F})$ in any hypergraph.
+Let $G = (V, E)$ denote an undirected graph.
+We denote the neighbors of a vertex $v$ by $N_G(v)$, and its closed neighborhood by $N_G[v] = \{v\} \cup N_G(v)$.
+The distance between vertices $u, v$ is denoted by $\dist_G(u,v)$.
 
-\subsection*{$\mathrm{WReach}_1$ and left degree}
-For an ordering $\sigma$ and vertex $v$ we define $L_\sigma(v)=\{u\in N(v): \sigma(u)<\sigma(v)\}$ and $\mathrm{WReach}_1[G,\sigma](v)=\{v\}\cup L_\sigma(v)$. Let $\mathcal{H}_\sigma=\{ \mathrm{WReach}_1[G,\sigma](v): v\in V\}$ and $r_\sigma=\max_v|\mathrm{WReach}_1[G,\sigma](v)|=1+\Delta^{\mathrm{left}}_\sigma$.
+\begin{definition}[Domination]
+For $r \in \mathbb{N}$, a set $D \subseteq V$ is an \emph{$r$-dominating set} in graph $G$ if every vertex $v \in V$ is at a distance of at most $r$ from some vertex in $D$, i.e., $\min_{d \in D} \dist_G(v,d) \leq r$.
+For $r=1$, we simply speak of a dominating set. The size of the smallest $r$-dominating set is denoted by $\dom_r(G)$. In particular, $\gamma(G) = \dom_1(G)$.
+\end{definition}
 
-\subsection*{Orientations and out-stars}
-Let $\vec{G}$ be an orientation of $G$. We denote $N^+(v)$—outgoing neighbors, $\Delta^+(\vec{G})=\max_v |N^+(v)|$. For $v$ we define $S_{\vec{G}}(v)=\{v\}\cup N^+(v)$. Let $\mathcal{H}_{\mathrm{out}}(\vec{G})=\{S_{\vec{G}}(v):v\in V\}$ and $r_{\mathrm{out}}=1+\Delta^+(\vec{G})$.
+\subsection{Degeneracy}
 
-\section{Two Key Combinatorial Facts}
+\begin{definition}[Degeneracy]
+A graph $G$ is \emph{$d$-degenerate} if every non-empty induced subgraph $H \subseteq G$ contains a vertex of degree at most $d$.
+The \emph{degeneracy} of a graph $G$ is the smallest $d$ for which $G$ is $d$-degenerate, denoted by $\degen(G)$.
+\end{definition}
 
-First, the result required in point 5 for $\mathrm{WReach}_1$.
+Equivalently, $\degen(G)$ is the smallest $d$ for which there exists a linear order $\sigma: V \to \{1,\ldots,n\}$ such that every vertex $v$ has at most $d$ neighbors $u$ with $\sigma(u) < \sigma(v)$ (the so-called left degree).
+The maximum left degree in order $\sigma$ is denoted by $\Delta^{\text{left}}_\sigma$.
 
-\begin{lemma}[Maximality $\Rightarrow$ domination for $\mathrm{WReach}_1$]
-\label{lem:max-dominates-wreach}
-Let $\mathcal{M}$ be a maximal matching (with respect to inclusion) in the hypergraph $\mathcal{H}_\sigma$. Then the set $D=\bigcup_{X\in \mathcal{M}} X$ is a dominating set in $G$.
+\subsection{Weak Reachable Sets}
+
+\begin{definition}[Weak $r$-reachable sets]
+\label{def:wreach}
+For a graph $G$, an order $\sigma$, and a vertex $v$, we define the \emph{weak backward $r$-reachable set} as
+\[
+\WReach_r[G,\sigma,v] = \{ u \in V \mid \exists \text{ path } u = p_0, \ldots, p_\ell = v \text{ with } \ell \leq r \text{ such that } \sigma(u) \leq \sigma(p_i) \text{ for } i=1,\ldots,\ell \}.
+\]
+The \emph{weak $r$-coloring number} of the order $\sigma$ is defined as
+$\text{wcol}_r(G,\sigma) = \max_{v \in V} |\WReach_r[G,\sigma,v]|$.
+The weak $r$-coloring number of the graph is
+$\text{wcol}_r(G) = \min_\sigma \text{wcol}_r(G,\sigma)$.
+\end{definition}
+
+Note that for $r=1$, we have $\WReach_1[G,\sigma,v] = \{v\} \cup \{u \in N_G(v) \mid \sigma(u) < \sigma(v)\}$, so $\text{wcol}_1(G,\sigma) = 1 + \Delta^{\text{left}}_\sigma$.
+
+\subsection{Hypergraphs}
+
+\begin{definition}[Hypergraph and Matching]
+A \emph{hypergraph} over a vertex set $V$ is a family of subsets $\mathcal{H} \subseteq 2^V$.
+A \emph{matching} in $\mathcal{H}$ is a subfamily $\mathcal{M} \subseteq \mathcal{H}$ of pairwise disjoint sets.
+A matching $\mathcal{M}$ is \emph{maximal with respect to inclusion} if there is no $S \in \mathcal{H} \setminus \mathcal{M}$ disjoint from all sets in $\mathcal{M}$.
+\end{definition}
+
+\section{Combinatorics of Weak Reachable Sets}\label{sec:kombinatoryka}
+
+In this section, we present key combinatorial results connecting weak reachable sets with $r$-dominance.
+All theorems are formulated for arbitrary $r \in \mathbb{N}$; however, in the dynamic construction, we will apply them only for $r=1$.
+
+\subsection{Domination via Matching}
+
+\begin{lemma}[Domination]
+\label{lem:domination}
+Let $G$ be a graph, $\sigma$ an order on $V(G)$, and $r \in \mathbb{N}$.
+Consider the family
+$\mathcal{F}_r(\sigma) = \{\WReach_r[G,\sigma,v] \mid v \in V\}$.
+If $\mathcal{M} \subseteq \mathcal{F}_r(\sigma)$ is a matching maximal with respect to inclusion, then the set $D = \bigcup_{X \in \mathcal{M}} X$ is an $r$-dominating set in $G$.
 \end{lemma}
 
 \begin{proof}
-Take any $x\in V$. If there exists $X\in\mathcal{M}$ with $x\in X$, then $x$ is dominated (it even belongs to $D$). If not, consider $X_x=\mathrm{WReach}_1[G,\sigma](x)$. By maximality, $X_x$ intersects some $X\in\mathcal{M}$; let $y\in X_x\cap X$. We have $y\in \{x\}\cup N(x)$ and $y\in D$, so $x$ is dominated.
+Take any $x \in V$. If $x \in D$, then $x$ is $r$-dominated by itself (since $\dist_G(x,x) = 0 \leq r$).
+Assume $x \notin D$. Consider the set $X_x = \WReach_r[G,\sigma,x] \in \mathcal{F}_r(\sigma)$.
+Since $\mathcal{M}$ is maximal, $X_x$ cannot be disjoint from all sets in $\mathcal{M}$.
+Therefore, there exists $Y \in \mathcal{M}$ such that $X_x \cap Y \neq \emptyset$.
+
+Choose $d \in X_x \cap Y$.
+By the definition of $X_x = \WReach_r[G,\sigma,x]$, there exists a path $P: d = p_0, p_1, \ldots, p_\ell = x$ of length $\ell \leq r$ such that $\sigma(d) \leq \sigma(p_i)$ for $i=1,\ldots,\ell$.
+In particular, $\dist_G(x,d) \leq \ell \leq r$. Since $d \in Y \subseteq D$, vertex $x$ is $r$-dominated by $d \in D$.
 \end{proof}
 
-\begin{lemma}[Transversal from optimal solution]
-\label{lem:transversal-wreach}
-For any minimum dominating set $D^\star$, the set $Y=\bigcup_{d\in D^\star} \mathrm{WReach}_1[G,\sigma](d)$ is a transversal of the hypergraph $\mathcal{H}_\sigma$. Moreover, $|Y|\le r_\sigma\cdot |D^\star|$.
+\subsection{Transversal of the Optimal Solution}
+
+\begin{lemma}[Transversal]
+\label{lem:transversal}
+Let $D^*$ be an optimal $r$-dominating set in $G$, i.e., $|D^*| = \dom_r(G)$.
+Let $\sigma$ be an order on $V$ and $\mathcal{F}_r(\sigma) = \{\WReach_r[G,\sigma,v] \mid v \in V\}$.
+The transversal
+\[
+T = \bigcup_{d \in D^*} \WReach_r[G,\sigma,d]
+\]
+has the property that every set in $\mathcal{F}_r(\sigma)$ intersects $T$.
 \end{lemma}
 
 \begin{proof}
-We show that $Y$ intersects every set in $\mathcal{H}_\sigma$. Take any $x\in V$ and consider $X_x=\mathrm{WReach}_1[G,\sigma](x)$. Since $D^\star$ is a dominating set, there exists $d\in D^\star$ such that $d\in N[x]$. Consider two cases. If $d=x$, then $x\in X_x$ and $x\in\mathrm{WReach}_1[G,\sigma](x)\subseteq Y$, hence $X_x\cap Y\neq\emptyset$. If $d\in N(x)$ and $d\neq x$, we have two possibilities. When $\sigma(d)<\sigma(x)$, then $d\in L_\sigma(x)\subseteq X_x$ and $d\in\mathrm{WReach}_1[G,\sigma](d)\subseteq Y$, so $d\in X_x\cap Y$. When $\sigma(d)>\sigma(x)$, then $x\in L_\sigma(d)\subseteq \mathrm{WReach}_1[G,\sigma](d)\subseteq Y$ and obviously $x\in X_x$, hence again $X_x\cap Y\neq\emptyset$. The size bound follows immediately from $|Y|\le \sum_{d\in D^\star}|\mathrm{WReach}_1[G,\sigma](d)|\le |D^\star|\cdot r_\sigma$.
+Take any $v \in V$ and $X_v = \WReach_r[G,\sigma,v] \in \mathcal{F}_r(\sigma)$.
+Since $D^*$ is an $r$-dominating set, there exists $d \in D^*$ such that $\dist_G(v,d) \leq r$.
+Let $P: v = p_0, p_1, \ldots, p_k = d$ be a shortest path, where $k \leq r$.
+Let $u$ be the vertex on $P$ with the smallest $\sigma(u)$.
+
+The fragment of path $P$ from $u$ to $v$ has length at most $k \leq r$ and all vertices on this fragment (except $u$) have indices at least $\sigma(u)$, so $u \in \WReach_r[G,\sigma,v] = X_v$.
+Analogously, the fragment from $u$ to $d$ implies $u \in \WReach_r[G,\sigma,d] \subseteq T$.
+Therefore, $u \in X_v \cap T$, so $X_v \cap T \neq \emptyset$.
 \end{proof}
 
-\begin{theorem}[Bound on maximum matching size]
-\label{thm:wreach-bound}
-Let $\mathcal{M}$ be a maximal matching in $\mathcal{H}_\sigma$ and let $D=\bigcup_{X\in\mathcal{M}}X$. Then $D$ is a dominating set and $|D|\le r_\sigma^2\cdot\gamma(G)$.
+\subsection{Approximation via Matching}
+
+\begin{theorem}[Static Approximation]
+\label{thm:approx-static}
+Let $G$ be a graph, $\sigma$ an order on $V$, and $r \in \mathbb{N}$.
+Consider $\mathcal{F}_r(\sigma) = \{\WReach_r[G,\sigma,v] \mid v \in V\}$. If $\mathcal{M} \subseteq \mathcal{F}_r(\sigma)$ is a matching maximal with respect to inclusion, then the set $D = \bigcup_{X \in \mathcal{M}} X$ is an $r$-dominating set in $G$ and
+\[
+|D| \leq (1 + \Delta^{\text{left}}_\sigma)^2 \cdot \dom_r(G).
+\]
+In particular, for $r=1$: $|D| \leq \text{wcol}_1(G,\sigma)^2 \cdot \gamma(G)$.
 \end{theorem}
 
 \begin{proof}
-From Lemma~\ref{lem:max-dominates-wreach} we know that $D$ is a dominating set. We show the size bound. Let $D^\star$ be a minimum dominating set in $G$, i.e., $|D^\star|=\gamma(G)$. From Lemma~\ref{lem:transversal-wreach}, the set $Y=\bigcup_{d\in D^\star}\mathrm{WReach}_1[G,\sigma](d)$ is a transversal of the hypergraph $\mathcal{H}_\sigma$ and $|Y|\le r_\sigma\cdot\gamma(G)$.
+From Lemma~\ref{lem:domination}, we know that $D$ is an $r$-dominating set. It remains to estimate $|D|$.
 
-Since each set in the matching $\mathcal{M}$ is disjoint from the others and each must intersect the transversal $Y$, we obtain $|\mathcal{M}|\le |Y|\le r_\sigma\cdot\gamma(G)$. Each set in $\mathcal{M}$ has size at most $r_\sigma$, hence $|D|=\left|\bigcup_{X\in\mathcal{M}}X\right|\le |\mathcal{M}|\cdot r_\sigma\le r_\sigma\cdot\gamma(G)\cdot r_\sigma=r_\sigma^2\cdot\gamma(G)$.
+Let $D^* \subseteq V$ be an optimal $r$-dominating set, i.e., $|D^*| = \dom_r(G)$. By Lemma~\ref{lem:transversal}, the transversal $T = \bigcup_{d \in D^*} \WReach_r[G,\sigma,d]$ intersects every set in $\mathcal{F}_r(\sigma)$.
+Since $\mathcal{M}$ is a matching, the sets in $\mathcal{M}$ are pairwise disjoint. Every set $X \in \mathcal{M}$ must intersect $T$ (by Lemma~\ref{lem:transversal}).
+Therefore,
+\[
+|\mathcal{M}| \leq |T| = \left| \bigcup_{d \in D^*} \WReach_r[G,\sigma,d] \right| \leq \sum_{d \in D^*} |\WReach_r[G,\sigma,d]| \leq |D^*| \cdot \text{wcol}_r(G,\sigma).
+\]
+
+Each set $X \in \mathcal{M}$ has size at most $\text{wcol}_r(G,\sigma)$ (by the definition of the weak coloring number). Thus,
+\[
+|D| = \left| \bigcup_{X \in \mathcal{M}} X \right| \leq \sum_{X \in \mathcal{M}} |X| \leq |\mathcal{M}| \cdot \text{wcol}_r(G,\sigma) \leq |D^*| \cdot \text{wcol}_r(G,\sigma)^2 = \dom_r(G) \cdot \text{wcol}_r(G,\sigma)^2.
+\]
+
+For $r=1$, we have $\text{wcol}_1(G,\sigma) = 1 + \Delta^{\text{left}}_\sigma$, which yields the desired inequality.
 \end{proof}
 
-\subsection{Result for Out-Stars}
+\begin{corollary}[Approximation for small weak coloring number]
+\label{cor:approx-wcol}
+If $\text{wcol}_r(G,\sigma) \leq c$, then there exists an $r$-dominating set $D$ in $G$ of size $|D| \leq c^2 \cdot \dom_r(G)$.
+\end{corollary}
 
-Analogous results hold for the family of out-stars in any orientation.
+\section{Data Structure Interface Specification}
 
-\begin{lemma}[Domination by maximal matching for stars]
-\label{lem:out-domination}
-Let $\vec{G}$ be an orientation of graph $G$ and let $\mathcal{M}$ be a maximal matching with respect to inclusion in the hypergraph $\mathcal{H}_{\mathrm{out}}(\vec{G})$. Then the set $D=\bigcup_{S\in\mathcal{M}}S$ is a dominating set in $G$.
-\end{lemma}
+We present the interface of a fully dynamic data structure maintaining an approximation of the minimum dominating set in graphs with degeneracy bounded by $\alpha$.
 
-\begin{proof}
-The proof is analogous to the proof of Lemma~\ref{lem:max-dominates-wreach}. For any $x\in V$, if $x\notin D$, then the set $S_{\vec{G}}(x)$ does not belong to $\mathcal{M}$, hence by maximality of $\mathcal{M}$ it must intersect some set $S\in\mathcal{M}$. Let $y\in S_{\vec{G}}(x)\cap S$. Then $y\in\{x\}\cup N^+(x)\cup N^-(x)\subseteq N[x]$ and $y\in D$, so $x$ is dominated.
-\end{proof}
+\subsection{Operations}
 
-\begin{lemma}[Transversal from optimal solution for stars]
-\label{lem:out-transversal}
-For any dominating set $D^\star$ in graph $G$, the set $Y=\bigcup_{d\in D^\star}S_{\vec{G}}(d)$ is a transversal of the hypergraph $\mathcal{H}_{\mathrm{out}}(\vec{G})$ and $|Y|\le r_{\mathrm{out}}\cdot|D^\star|$.
-\end{lemma}
+The data structure provides the following operations:
 
-\begin{proof}
-For any $x\in V$ consider $S_{\vec{G}}(x)$. There exists $d\in D^\star\cap N[x]$. If $d=x$, then $x\in S_{\vec{G}}(x)\cap S_{\vec{G}}(d)\subseteq S_{\vec{G}}(x)\cap Y$. If edge $\{x,d\}$ is oriented as $(x,d)$, then $d\in N^+(x)\subseteq S_{\vec{G}}(x)$ and $d\in S_{\vec{G}}(d)\subseteq Y$. If it is oriented as $(d,x)$, then $x\in N^+(d)\subseteq S_{\vec{G}}(d)\subseteq Y$ and $x\in S_{\vec{G}}(x)$. In each case $S_{\vec{G}}(x)\cap Y\neq\emptyset$. The size bound follows from $|Y|\le\sum_{d\in D^\star}|S_{\vec{G}}(d)|\le |D^\star|\cdot r_{\mathrm{out}}$.
-\end{proof}
+\begin{description}
+\item[\textsc{Init}()] Initializes an empty structure for a graph on $n$ vertices with no edges.
+Effect: The structure is ready to accept \textsc{InsertEdge} and \textsc{DeleteEdge} operations. Time complexity: $O(1)$.
 
-\begin{theorem}[Size bound for stars]
-\label{thm:out-bound}
-Let $\mathcal{M}$ be a maximal matching in $\mathcal{H}_{\mathrm{out}}(\vec{G})$ and let $D=\bigcup_{S\in\mathcal{M}}S$. Then $D$ is a dominating set and $|D|\le r_{\mathrm{out}}^2\cdot\gamma(G)$.
+\item[\textsc{InsertEdge}$(u,v)$] Adds the edge $\{u,v\}$ to the graph (if it does not exist).
+Effect: Graph $G_t$ contains the edge $\{u,v\}$, and the structure maintains a dominating set $D_t$ for $G_t$.
+Time complexity: expected amortized $O(\alpha^2 \log n)$.
+
+\item[\textsc{DeleteEdge}$(u,v)$] Removes the edge $\{u,v\}$ from the graph (if it exists).
+Effect: Graph $G_t$ does not contain the edge $\{u,v\}$, and the structure maintains a dominating set $D_t$ for $G_t$.
+Time complexity: expected amortized $O(\alpha^2 \log n)$.
+
+\item[\textsc{QueryDominatingSet}()] Returns the current dominating set $D_t$.
+Effect: The returned set $D_t$ satisfies $|D_t| \leq (c\alpha + 1)^2 \cdot \gamma(G_t)$, where $c$ is an absolute constant. Time complexity: $O(|D_t|) = O(\alpha^2 \gamma(G_t))$.
+\end{description}
+
+\subsection{Guarantees}
+
+The data structure guarantees the following properties:
+
+\begin{itemize}
+\item \textbf{Correctness:} At any moment $t$, the returned set $D_t$ is a dominating set of the graph $G_t$.
+\item \textbf{Approximation:} The size $|D_t|$ is at most $(c\alpha + 1)^2 \cdot \gamma(G_t)$, where $c$ is the constant from the Brodal-Fagerberg algorithm.
+\item \textbf{Time Complexity:} Operations \textsc{InsertEdge} and \textsc{DeleteEdge} run in expected amortized time $O(\alpha^2 \log n)$ against a non-adaptive adversary.
+\item \textbf{Space Complexity:} The structure occupies $O(\alpha n + m_t)$ space, where $m_t = |E_t|$.
+\end{itemize}
+
+\section{Data Structure Description}
+
+The structure consists of three components storing the following information:
+
+\subsection{Orientation Component (Brodal-Fagerberg)}
+
+Maintains an acyclic orientation $\vec{G}_t$ of the graph $G_t$ with maximum out-degree $\Delta^+_{\max} \leq c\alpha$.
+Stored data:
+\begin{itemize}
+\item For each edge $\{u,v\} \in E_t$: its orientation (either $(u,v)$ or $(v,u)$ in $\vec{G}_t$).
+\item For each vertex $v$: the set of successors $N^+_{\vec{G}_t}(v) = \{u \mid (v,u) \in \vec{G}_t\}$.
+\end{itemize}
+Space: $O(n + m_t)$ (adjacency list for the directed graph).
+
+\subsection{Hypergraph Component}
+
+For the current orientation $\vec{G}_t$, it maintains a hypergraph $\mathcal{H}_t = \{S_t(v) \mid v \in V\}$, where $S_t(v) = \{v\} \cup N^+_{\vec{G}_t}(v)$.
+Stored data:
+\begin{itemize}
+\item For each vertex $v$: the set $S_t(v)$ (implemented as a dynamic list).
+\item Mapping from vertex $v$ to all sets $S_t(u)$ containing $v$ (for efficient updates).
+\end{itemize}
+Space: Each set $S_t(v)$ has size at most $1 + c\alpha$. We have $n$ sets, so $O(\alpha n)$ elements in total.
+
+\subsection{Matching Component (Assadi-Solomon)}
+
+Maintains a maximal matching $\mathcal{M}_t \subseteq \mathcal{H}_t$. Stored data as described in \cite{AssadiSolomon21}, Theorem 1.1.
+Space: $O(r \cdot n + n) = O(\alpha n)$ for a hypergraph with $n$ hyperedges of rank $r = O(\alpha)$.
+
+\subsection{Dominating Set}
+
+The current dominating set $D_t = \bigcup_{X \in \mathcal{M}_t} X$ is not explicitly stored as a separate structure.
+Instead, it is computed on demand in the \textsc{QueryDominatingSet}() operation.
+
+Space: No additional space (the set is computed dynamically).
+
+\subsection{Memory Summary}
+
+Total space: $O(n + m_t) + O(\alpha n) + O(\alpha n) = O(\alpha n + m_t)$.
+
+\section{Implementation of Procedures}
+
+\subsection{Procedure \textsc{Init}}
+
+Creates an empty structure for a graph on $n$ vertices with no edges.
+\paragraph{Implementation.} Initializes components: empty adjacency lists for orientation (time $O(n)$, but can be reduced to $O(1)$ via lazy creation), empty hypergraph with $n$ single-element sets $S(v) = \{v\}$ (time $O(n)$, but analogously can be $O(1)$), initialization of the Assadi-Solomon structure for an empty hypergraph ($O(1)$).
+\paragraph{Complexity.} With lazy implementation: $O(1)$.
+
+\subsection{Procedure \textsc{InsertEdge}$(u,v)$}
+
+Adds the edge $\{u,v\}$ to the graph.
+
+\paragraph{Implementation.} Calls the edge addition operation in the Brodal-Fagerberg component.
+This component deterministically decides on the orientation of the new edge (e.g., $(u,v)$) and may perform a sequence of orientation flips of other edges to maintain acyclicity and the constraint $\Delta^+_{\max} \leq c\alpha$.
+Each flip of an edge $\{x,y\}$ (changing from $(x,y)$ to $(y,x)$) generates two modifications to the hypergraph: removing $y$ from the set $S(x)$ and adding $x$ to the set $S(y)$.
+These modifications are passed to the Assadi-Solomon component, which updates the maximal matching.
+
+\paragraph{Complexity.} The Brodal-Fagerberg algorithm (Theorem 2 in \cite{BrodalFagerberg99}) guarantees an expected amortized number of flips of $O(\log n)$ per operation.
+Each flip corresponds to two modifications of a hypergraph of rank $r = O(\alpha)$.
+The Assadi-Solomon algorithm (Theorem 1.1 in \cite{AssadiSolomon21}) has an expected amortized time of $O(r^2)$ per hypergraph modification against a non-adaptive adversary.
+In total: $O(\log n) \cdot O(\alpha^2) = O(\alpha^2 \log n)$.
+
+\subsection{Procedure \textsc{DeleteEdge}$(u,v)$}
+
+Removes the edge $\{u,v\}$ from the graph.
+\paragraph{Implementation.} Analogous to \textsc{InsertEdge}: calls the operation in the Brodal-Fagerberg component, which may perform $O(\log n)$ flips, each generating two hypergraph modifications.
+\paragraph{Complexity.} $O(\alpha^2 \log n)$ expected amortized time (identical analysis as for \textsc{InsertEdge}).
+
+\subsection{Procedure \textsc{QueryDominatingSet}()}
+
+Returns the current dominating set.
+\paragraph{Implementation.} Iterates through all sets $X \in \mathcal{M}_t$ in the matching and collects the union $D_t = \bigcup_{X \in \mathcal{M}_t} X$ (eliminating duplicates, e.g., via a hash set).
+\paragraph{Complexity.} $|\mathcal{M}_t| \leq c\alpha \cdot \gamma(G_t)$ (from the proof of Theorem~\ref{thm:approx-static}), each set has size $O(\alpha)$, so the total number of elements is $O(\alpha^2 \gamma(G_t))$, hence the time is $O(|D_t|) = O(\alpha^2 \gamma(G_t))$.
+
+\section{Proofs of Correctness and Complexity}
+
+\subsection{Correctness}
+
+\begin{theorem}[Correctness]
+After any sequence of operations, the structure maintains a set $D_t$ which is a dominating set of the graph $G_t$ with size $|D_t| \leq (c\alpha + 1)^2 \cdot \gamma(G_t)$, where $c$ is the constant from the Brodal-Fagerberg algorithm.
 \end{theorem}
 
 \begin{proof}
-The proof proceeds identically to the proof of Theorem~\ref{thm:wreach-bound}, using Lemmas~\ref{lem:out-domination} and~\ref{lem:out-transversal}.
+Let $\vec{G}_t$ be the acyclic orientation maintained by the Brodal-Fagerberg component. From Theorem 2 in \cite{BrodalFagerberg99} (specifically citing equation (2) on page 345), we know that $\Delta^+_{\max}(\vec{G}_t) \leq c \cdot \degen(G_t) \leq c \alpha$, where $c$ is an absolute constant from that algorithm.
+Since the orientation is acyclic, there exists a reverse topological order $\sigma_t$. For each vertex $v$, we define $S_t(v) = \{v\} \cup N^+_{\vec{G}_t}(v)$.
+By construction, the hypergraph $\mathcal{H}_t = \{S_t(v) \mid v \in V\}$ satisfies $S_t(v) = \WReach_1[G_t, \sigma_t, v]$ for every $v$ (proof analogous to Lemma~\ref{lem:domination} in the preliminaries section but for orientation).
+The Assadi-Solomon component maintains a matching $\mathcal{M}_t \subseteq \mathcal{H}_t$ maximal with respect to inclusion.
+From Lemma~\ref{lem:domination} applied for $r=1$, we obtain that $D_t = \bigcup_{X \in \mathcal{M}_t} X$ is a dominating set in $G_t$.
+From Theorem~\ref{thm:approx-static} for $r=1$, we have
+\[
+|D_t| \leq \text{wcol}_1(G_t, \sigma_t)^2 \cdot \gamma(G_t) = (1 + \Delta^{\text{left}}_{\sigma_t})^2 \cdot \gamma(G_t).
+\]
+Since $\Delta^{\text{left}}_{\sigma_t} = \Delta^+_{\max}(\vec{G}_t) \leq c\alpha$ (from the fact that $\sigma_t$ is a reverse topological order), we have
+\[
+|D_t| \leq (1 + c\alpha)^2 \cdot \gamma(G_t) = (c\alpha + 1)^2 \cdot \gamma(G_t).
+\qedhere
+\]
 \end{proof}
 
-\section{Interface Specification}
+\subsection{Time Complexity}
 
-The data structure provides the following operations for a dynamic graph $G_t=(V,E_t)$ with bounded degeneracy $\alpha$.
+\begin{theorem}[Time Complexity]
+Operations \textsc{InsertEdge} and \textsc{DeleteEdge} take expected amortized time $O(\alpha^2 \log n)$ against a non-adaptive adversary.
+\end{theorem}
 
-\subsection*{Procedure \textsc{Init}}
-Creates an empty structure for a graph on the vertex set $V$. After execution, the graph contains edge set $E_0=\emptyset$, and the returned dominating set $D_0$ is empty. Time complexity is $O(1)$.
+\begin{proof}
+The Brodal-Fagerberg algorithm (Theorem 2 in \cite{BrodalFagerberg99}, specifically Corollary 1 on page 349) guarantees that an edge operation generates an expected amortized number of $O(\log n)$ orientation flips in a graph with $n$ vertices.
+Each flip of an edge $\{x,y\}$ results in two hypergraph modifications: removing an element from one set and adding it to another.
+The size of each set in the hypergraph is at most $r = 1 + c\alpha = O(\alpha)$ (where $c$ is the constant from the Brodal-Fagerberg algorithm).
+The Assadi-Solomon algorithm (Theorem 1.1 in \cite{AssadiSolomon21}, specifically point (a) on page 2204) guarantees expected amortized time $O(r^2)$ per operation of adding or removing an element in a hyperedge of rank $r$, against a non-adaptive adversary.
+For our hypergraph $r = O(\alpha)$, so each modification costs $O(\alpha^2)$.
+Crucially, the sequence of hypergraph modifications is non-adaptive with respect to the randomness of the Assadi-Solomon algorithm.
+The flips are deterministically determined by the Brodal-Fagerberg algorithm based on the sequence of graph operations, which is assumed to be fixed in advance (non-adaptive adversary).
+Therefore, the sequence of hypergraph modifications does not depend on the random choices within the Assadi-Solomon structure.
+In total, one graph operation generates $O(\log n)$ flips, each costing $O(\alpha^2)$, yielding an expected amortized time of $O(\alpha^2 \log n)$ per operation.
+\end{proof}
 
-\subsection*{Procedure \textsc{Insert-Edge}$(u,v)$}
-Adds edge $\{u,v\}$ to graph $G_t$. After execution, the structure maintains a dominating set $D_t$ satisfying $|D_t|\le (\alpha+1)^2\cdot\gamma(G_t)$. Amortized expected time complexity is $O(\alpha^3+\alpha^2\log n)$ against an oblivious adversary.
+\subsection{Space Complexity}
 
-\subsection*{Procedure \textsc{Delete-Edge}$(u,v)$}
-Removes edge $\{u,v\}$ from graph $G_t$. Correctness and complexity guarantees are identical to \textsc{Insert-Edge}.
+\begin{theorem}[Space]
+The structure occupies $O(\alpha n + m_t)$ space.
+\end{theorem}
 
-\subsection*{Procedure \textsc{Query-Dominating-Set}}
-Returns the current dominating set $D_t$ in time $\Theta(|D_t|)$.
+\begin{proof}
+The Brodal-Fagerberg component stores a directed graph with $n$ vertices and $m_t$ edges, which requires $O(n + m_t)$ space (adjacency lists).
+The hypergraph consists of $n$ sets, each of size at most $1 + c\alpha = O(\alpha)$.
+The total number of elements is $O(\alpha n)$. Additional structures (e.g., reverse pointers) do not increase the asymptotics.
+The Assadi-Solomon structure (Theorem 1.1 in \cite{AssadiSolomon21}, point (b)) for a hypergraph with $n$ hyperedges of rank $r$ occupies $O(rn + n) = O(rn)$ space.
+For $r = O(\alpha)$, we have $O(\alpha n)$.
 
-\section{Data Structure}
+Total: $O(n + m_t) + O(\alpha n) + O(\alpha n) = O(\alpha n + m_t)$.
+\end{proof}
 
-The structure consists of four cooperating components.
+\section{Summary and Open Questions}
 
-\subsection*{Orientation module}
-We use the dynamic orientation representation for sparse graphs presented by Brodal and Fagerberg in~\cite{BrodalFagerberg99}. For a graph of degeneracy $\alpha$, this representation maintains an orientation $\vec{G}_t$ with guarantee $\Delta^+(\vec{G}_t)=O(\alpha)$. Each edge insertion or deletion operation triggers a deterministically computed sequence of local orientation changes, called \emph{flips}. A flip consists of reversing the direction of a single edge. The amortized cost of adding or deleting an edge in the representation is $O(\alpha+\log n)$ flips. The representation uses $O(n+m)$ memory.
+We have presented the first fully dynamic data structure maintaining a constant approximation of the minimum dominating set in graphs of bounded degeneracy.
+Key to this are: dynamic acyclic orientation \cite{BrodalFagerberg99}, reduction to maximal matching in a hypergraph, and a dynamic matching algorithm \cite{AssadiSolomon21}.
+The result generalizes the static approach of Lenzen and Wattenhofer \cite{LenzenWattenhofer10} to the fully dynamic model.
 
-\subsection*{Hypergraph module}
-For each vertex $v\in V$ we maintain explicitly the set $S(v)=\{v\}\cup N^+_{\vec{G}_t}(v)$ represented as a list. Changing the orientation of a single edge $(x,y)$ causes modification of at most two sets by adding or removing a single element. The memory of this module is $O(n+m)$.
+\paragraph{Open Question.} The presented results concern $1$-domination (standard domination). In Section~\ref{sec:kombinatoryka} (Combinatorics of Weak Reachable Sets), we showed that the combinatorics of weak reachable sets generalizes to arbitrary $r \geq 1$.
+The main obstacle to extending the dynamic construction to $r$-domination for $r > 1$ is the lack of an efficient method for maintaining an order $\sigma$ with a small value of $\text{wcol}_r(G,\sigma)$ for $r > 1$.
+For $r=1$, we used acyclic orientation, but for larger $r$, more complex structures are needed.
+Is there a fully dynamic data structure that, for a fixed $r > 1$ and graphs of bounded degeneracy, maintains an order $\sigma$ with $\text{wcol}_r(G,\sigma) = O(1)$ in polylogarithmic time per operation?
+Solving this problem would open the way to efficient dynamic approximation of $r$-domination and many other distance-based problems in sparse graphs.
 
-\subsection*{Matching module}
-We maintain a maximal matching $\mathcal{M}_t$ in the current family $\mathcal{H}_{\mathrm{out}}(\vec{G}_t)$ using the algorithm of Assadi and Solomon for dynamic matching in hypergraphs~\cite{AssadiSolomon21}. This algorithm for rank-$r$ hypergraphs guarantees amortized expected time $O(r^2)$ per single hyperedge update, where an update consists of adding or removing an element from a set or complete addition/removal of a set from the family. The algorithm works against an oblivious adversary. Memory is $O(\sum_{v\in V}|S(v)|)=O(n+m)$.
-
-\subsection*{Output module}
-For each vertex $x\in V$ we maintain a counter $\mathrm{count}[x]$ equal to the number of sets in $\mathcal{M}_t$ containing $x$. Additionally, we maintain a list of all vertices $x$ such that $\mathrm{count}[x]>0$. This list represents the current dominating set $D_t=\bigcup_{S\in\mathcal{M}_t}S$. Each change in the matching $\mathcal{M}_t$ causes counter updates for at most $r_{\mathrm{out}}=O(\alpha)$ vertices, each costing $O(1)$. The memory of this module is $O(n)$.
-
-Total memory used by the structure is $O(n+m)$.
-
-\section{Operation Implementation}
-
-\subsection{Operation \textsc{Init}}
-
-We initialize the orientation module creating an orientation of the empty graph. For each vertex $v\in V$ we create set $S(v)=\{v\}$. We initialize the matching module with empty matching $\mathcal{M}_0=\emptyset$. All counters $\mathrm{count}[x]$ are set to zero, and the list of vertices in $D_0$ is empty.
-
-\subsubsection*{Correctness}
-The empty set $D_0=\emptyset$ is a dominating set for the empty graph $G_0=(V,\emptyset)$ trivially, since each vertex has an empty neighbor set.
-
-\subsubsection*{Complexity}
-Initialization of the orientation module, empty hyperedge family, empty matching, and zero counters is done in time $O(1)$ assuming preallocation of $O(n)$ memory for header structures.
-
-\subsection{Operation \textsc{Insert-Edge}$(u,v)$}
-
-We call the edge insertion procedure in the orientation module from~\cite{BrodalFagerberg99}. In response, the module performs a deterministically computed sequence of edge flips maintaining the condition $\Delta^+(\vec{G}_t)=O(\alpha)$. For each flip of an edge between vertices $x$ and $y$, we update the corresponding sets $S(x)$ and $S(y)$ by adding or removing a single element. Each such modification is reported to the matching module as a hyperedge update. The matching module appropriately modifies $\mathcal{M}_t$. Each time a set $S$ enters $\mathcal{M}_t$ or leaves $\mathcal{M}_t$, we update counters $\mathrm{count}[x]$ for all $x\in S$ and appropriately modify the list representing $D_t$.
-
-\subsubsection*{Correctness}
-After completion of all operations we have orientation $\vec{G}_t$ with $\Delta^+(\vec{G}_t)\le\alpha$, the current family is $\mathcal{H}_{\mathrm{out}}(\vec{G}_t)$, and matching $\mathcal{M}_t$ is maximal in this family according to guarantees from~\cite{AssadiSolomon21}. From Lemma~\ref{lem:out-domination}, set $D_t$ is dominating. From Theorem~\ref{thm:out-bound} we have $|D_t|\le r_{\mathrm{out}}^2\cdot\gamma(G_t)=(1+\Delta^+(\vec{G}_t))^2\cdot\gamma(G_t)\le (1+\alpha)^2\cdot\gamma(G_t)$.
-
-\subsubsection*{Complexity}
-According to \cite{BrodalFagerberg99}, edge insertion generates amortized $O(\alpha+\log n)$ flips. Each flip causes an update of at most two hyperedges in the matching module. According to \cite{AssadiSolomon21}, each hyperedge update in a rank-$r$ hypergraph costs amortized in expectation $O(r^2)$ against an oblivious adversary. In our case $r=r_{\mathrm{out}}=1+\Delta^+(\vec{G}_t)=O(\alpha)$, hence each hyperedge update costs $O(\alpha^2)$. Total expected amortized cost is $O((\alpha+\log n)\cdot\alpha^2)=O(\alpha^3+\alpha^2\log n)$. Counter updates for each flip cost $O(r_{\mathrm{out}})=O(\alpha)$ and are absorbed in the above estimate.
-
-\subsection{Operation \textsc{Delete-Edge}$(u,v)$}
-
-We call the edge deletion procedure in the orientation module. Further implementation is identical to operation \textsc{Insert-Edge}: the orientation module generates a sequence of flips, each flip causes hyperedge updates, the matching module appropriately modifies $\mathcal{M}_t$, and we update counters and list $D_t$.
-
-\subsubsection*{Correctness}
-The proof is identical to the operation \textsc{Insert-Edge}, using the same lemmas and theorems.
-
-\subsubsection*{Complexity}
-According to \cite{BrodalFagerberg99}, edge deletion also generates amortized $O(\alpha+\log n)$ flips. Further analysis proceeds identically, giving expected amortized cost $O(\alpha^3+\alpha^2\log n)$.
-
-\subsection{Operation \textsc{Query-Dominating-Set}}
-
-We return the list of all vertices $x$ such that $\mathrm{count}[x]>0$. This list is explicitly maintained, so the operation consists of copying it or iterating through it.
-
-\subsubsection*{Complexity}
-Execution time is $\Theta(|D_t|)$, since the list contains exactly $|D_t|$ elements.
-
-\section{Summary}
-
-We presented a fully dynamic data structure for approximate dominating set in graphs of finite degeneracy $\alpha$. The structure consists of four cooperating modules: orientation representation from~\cite{BrodalFagerberg99}, explicit hypergraph representation, dynamic matching from~\cite{AssadiSolomon21}, and an output module maintaining counters. Key combinatorial results show that a maximal matching in the family of backward reachable sets (or equivalently in the family of out-stars) gives a dominating set of size bounded by the square of maximum rank multiplied by the size of the optimal solution. Thanks to the guarantee $\Delta^+(\vec{G}_t)=O(\alpha)$ from~\cite{BrodalFagerberg99}, we obtain approximation factor $(\alpha+1)^2$. Each edge insertion or deletion operation has amortized expected cost $O(\alpha^3+\alpha^2\log n)$ against an oblivious adversary. The structure requires no additional assumptions regarding the relationship between the number of vertices $n$ and degeneracy parameter $\alpha$, works from initialization in constant time, and does not use static algorithms as subroutines.
-
+\bibliographystyle{plain}
 \begin{thebibliography}{9}
-
-\bibitem{BrodalFagerberg99}
-G.~S. Brodal and R.~Fagerberg.
-\newblock Dynamic Representations of Sparse Graphs.
-\newblock In \emph{Proceedings of WADS 1999}, Lecture Notes in Computer Science, volume 1663, pages 342--351. Springer, 1999.
 
 \bibitem{AssadiSolomon21}
 S.~Assadi and S.~Solomon.
-\newblock Fully Dynamic Set Cover via Hypergraph Maximal Matching: An Optimal Approximation Through a Local Approach.
-\newblock In \emph{Proceedings of the 32nd ACM-SIAM Symposium on Discrete Algorithms (SODA)}, pages 2203--2219, 2021.
+\newblock Fully dynamic set cover via hypergraph maximal matching: an optimal approximation through a local approach.
+\newblock In \emph{Proceedings of the 32nd Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2021)}, pages 2203--2219, 2021.
+
+\bibitem{BrodalFagerberg99}
+G.~S. Brodal and R.~Fagerberg.
+\newblock Dynamic representations of sparse graphs.
+\newblock In \emph{Proceedings of the 6th International Workshop on Algorithms and Data Structures (WADS 1999)}, volume 1663 of \emph{Lecture Notes in Computer Science}, pages 342--351.
+Springer, 1999.
+
+\bibitem{LenzenWattenhofer10}
+C.~Lenzen and R.~Wattenhofer.
+\newblock Minimum dominating set approximation in graphs of bounded arboricity.
+\newblock In \emph{Proceedings of the 24th International Symposium on Distributed Computing (DISC 2010)}, volume 6343 of \emph{Lecture Notes in Computer Science}, pages 510--524.
+Springer, 2010.
 
 \end{thebibliography}
 
