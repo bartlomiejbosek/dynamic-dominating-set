@@ -1,5 +1,6 @@
 syntax: glob
 main.pdf
+dom-one.pdf
 *.bbl
 *.blg
 *.log
