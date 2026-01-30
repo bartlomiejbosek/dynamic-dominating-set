@@ -8,16 +8,30 @@
 \usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{todonotes}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{definition}[theorem]{Definition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{observation}[theorem]{Obervation}
 
 \DeclareMathOperator{\degen}{degen}
 \DeclareMathOperator{\WReach}{WReach}
 \DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\dist}{dist}
+
+\newcommand{\eps}{\varepsilon}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Oh}{\mathcal{O}}
+
+\newcommand{\wninline}[2][inline]{\todo[color=green!80,#1]{{\textbf{W:} #2}}}
+\newcommand{\bbinline}[2][inline]{\todo[color=blue!50,#1]{{\textbf{B:} #2}}}
+\newcommand{\azinline}[2][inline]{\todo[color=red!80,#1]{{\textbf{A:} #2}}}
+\newcommand{\mpinline}[2][inline]{\todo[color=yellow!50,#1]{{\textbf{M:} #2}}}
 
 \title[Fully Dominating Set in Graphs of Bounded Degeneracy]{Fully Dynamic Randomized Data Structure for Approximate Dominating Set in Graphs of Bounded Degeneracy}
 
@@ -27,7 +41,7 @@
 
 \author{Wojciech Nadara}
 \address{Institute of Informatics, University of Warsaw, Poland}
-\email{wnadara@mimuw.edu.pl}
+\email{w.nadara@mimuw.edu.pl}
 
 \author{Michał Pilipczuk}
 \address{Institute of Informatics, University of Warsaw, Poland}
@@ -381,6 +395,56 @@ The main obstacle to extending the dynamic construction to $r$-domination for $r
 For $r=1$, we used acyclic orientation, but for larger $r$, more complex structures are needed.
 Is there a fully dynamic data structure that, for a fixed $r > 1$ and graphs of bounded degeneracy, maintains an order $\sigma$ with $\text{wcol}_r(G,\sigma) = O(1)$ in polylogarithmic time per operation?
 Solving this problem would open the way to efficient dynamic approximation of $r$-domination and many other distance-based problems in sparse graphs.
+
+\section{Bezładne początki tekstu Wojtka}
+
+\begin{lemma}
+	Let $f$ be a function that takes two arguments --- a graph $G$ and its vertex $v$, such that $f(G, v) \ge 0$ for all valid pairs of arguments. Suppose that for any fixed function $g : V(G) \to \Z$, there exists a data structure $R_{f, g}(G)$ that for a dynamic graph $G$ is able to report $\sum_{v \in V(G)} f(G, v)g(v)$ after each update, and a data structure $V_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$. Then, there exists a randomized data structure $P_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the time and space complexities of $R$ and $V$ per a single update or query are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the time and space complexities of $P$ are $\Oh((T_R+T_V) \log |V(G)| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \log |V(G)| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative.
+\end{lemma}	
+
+\wninline{Przerzucic poniższe do prelimsów?}
+\begin{definition}
+	Let $G$ be a graph and $v \in V(G), v' \not\in V(G)$. The operation of \textit{adding a pendant} $vv'$ produces a graph $G'$ such that $V(G') = V(G) \cup \{v'\}$ and $E(G') = E(G) \cup \{vv'\}$.
+\end{definition}
+
+\begin{observation} \label{obs:pendants-bnd-exp}
+	Let $\G$ be a class of graphs with bounded expansion and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also of bounded expansion.
+\end{observation}
+
+\wninline{textit się nie wyróżnia w definicjach?}
+\begin{definition}
+	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
+\end{definition}
+
+	For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\mathcal{HOM}$, $\mathcal{SUB}$ and $\mathcal{ISUB}$, i.e. $\mathcal{HOM}(H, G)$, $\mathcal{SUB}(H, G)$ and $\mathcal{ISUB}(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms, respectively.
+	
+\begin{definition}
+	Let $\F$ be a type of mappings and let $\F(H, G, v, u)$ for $v \in V(H)$ and $u \in V(G)$ be the restriction of $F(H, G)$ to the mappings $\phi$ such that $\phi(v)=u$.
+	We say that $\F$ is \textit{reasonable} if and only if it satisfies the following property: Let $H$ and $G$ be undirected graphs with colored edges, where $H$ does not have isolated vertices. Let $v \in V(H), u \in V(G)$, $H'$ be a graph $H$ with added pendant $vv'$ and $G'$ be a graph with added pendant $uu'$, where $vv'$ and $uu'$ have the same color that is not present in $H$ and $G$. Then, $\F(H', G') = \F(H', G', v', u')$ and there is a natural bijection between $\F(H', G')$ and $\F(H, G, v, u)$ given by restricting any $\phi' \in F(H', G')$ to  $V(H)$. 
+\end{definition}
+
+\begin{claim}
+	Homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are reasonable types of mappings.
+\end{claim}
+\begin{proof}
+	Let $\F \in \{\mathcal{HOM}, \mathcal{SUB}, \mathcal{ISUB}\}$. Let $\phi \in \F(H', G')$. All three of these types are homomorphisms, so we have that $\phi$ is a homomorphism from $H$ to $G$. As $vv'$ and $uu'$ have equal colors that are different from colors of any other edges in $H'$ and $G'$ we must have that either $\phi(v)=u, \phi(v')=u'$ or $\phi(v)=u', \phi(v')=u$. However, as $v$ is not isolated in $H$, it has an adjacent edge with a different color than $vv'$, so it is not possible that $\phi(v)=u'$. Hence $\F(H', G') = \F(H', G', v', u') = \F(H', G', v, u)$. One can then readily verify that restricting any member of $\F(H', G')$ to $V(H)$ defines a bijection between $\F(H', G')$ and $\F(H, G, v, u)$ for any $\F$ from $\{\mathcal{HOM}, \mathcal{SUB}, \mathcal{ISUB}\}$.
+\end{proof}
+
+
+\begin{lemma} Let us assume that there exists a randomized data structure $S_{H, v, k, \mathcal{F}}(G)$ solving the following problem: Let $H$ be a graph without isolated vertices and with edges colored with $\{1, \ldots, k\}$, $v$ be a vertex of $H$, $G$ be a dynamic graph that belongs to a fixed class of graphs $\mathcal{G}$ of bounded expansion. Let $\mathcal{F}$ be a reasonable type of mappings. Then, the data structure is able to either provide a vertex $u \in V(G)$ such that there exists $\phi$ such that $\phi(v)=u$ and $\phi \in \F(H, G)$, or state that such $\phi$ does not exist. Any update to $G$ is handled in $f_{\mathcal{G}}(|V(H)|, k) \log^{g(|V(H)|, k)}(|V(G)|)$ time complexity (for some monotonic functions $f_{\mathcal{G}}$ and $g$) and the queries never provide false positives, but may provide false negatives with probability at most $\eps$.
+	
+Then, there exists a data structure $P_{H, k, \mathcal{F}}(G)$ solving an analogous problem, which provides $\phi$ such that $\phi \in \F(H, G)$, or state that it does not exist. Any update to $G$ is handled in $f'_{\mathcal{G}}(|V(H)|, k) \log^{g'(|V(H)|, k)}(|V(G)|+|V(H)|)$ time complexity for some function $f_{\mathcal{G}}'$ and $g'$. The queries never provide false negatives, but may provide false negatives with probability at most $|V(H)| \eps$.
+
+%\wninline{Dopisac zalozenie, ze dodanie pendanta do G zachowuje bycie w $\mathcal{G}$.}
+\end{lemma}
+\wninline{WIP}
+\begin{proof}
+	Let $c=|V(H)|$ and let $V(H) = \{v_1, \ldots, v_c\}$. Let us create a sequence of graphs $H_0, \ldots, H_{c}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding a $v_ip_i$ pendant colored with the color $k+i$. 
+	
+	Let $S_i \coloneqq S_{H_i, v_{i+1}, k + i, \mathcal{F}}$ for $i=0, \ldots, c-1$. The data structure $S_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
+	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding a $u_iq_i$ pendant colored with the color $k_i$. Let us turn $S_i(G)$ into $S_i(G_i)$ by adding the corresponding $i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \ref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$. 
+	
+\end{proof}
 
 \bibliographystyle{plain}
 \begin{thebibliography}{9}
