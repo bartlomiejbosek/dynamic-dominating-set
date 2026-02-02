@@ -10,9 +10,6 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
 
-% ============================================================================
-% Theorem environments
-% ============================================================================
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -22,9 +19,6 @@
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
-% ============================================================================
-% Notation
-% ============================================================================
 \newcommand{\NN}{\mathbb{N}}
 \newcommand{\ZZ}{\mathbb{Z}}
 \newcommand{\Nbh}{N}
@@ -61,9 +55,7 @@
 
 \begin{document}
 
-% ============================================================================
 \begin{abstract}
-% ============================================================================
 We consider the problem of dynamically maintaining information about a dominating set in an undirected graph on a fixed vertex set $V = \{1, \ldots, n\}$.
 For parameters $d$ (degeneracy) and $k$ (the size bound on the sought dominating set) we present a fully dynamic data structure supporting edge insertions and deletions under the promise that the graph remains $d$-degenerate.
 The data structure answers queries asking whether there exists a dominating set of size at most~$k$, and in the positive case can return such a set.
@@ -74,9 +66,7 @@ The update operations have amortized time $O(2^{4d}\cdot (d^3+\log^3 n))$, and a
 
 \maketitle
 
-% ============================================================================
 \section{Introduction}\label{sec:intro}
-% ============================================================================
 
 \subsection{Problem statement}
 
@@ -188,9 +178,7 @@ In Section~\ref{sec:query} we describe the $\proc{Query}$ procedure, including t
 In Section~\ref{sec:main-proof} we combine all components into the proof of the main theorem.
 
 
-% ============================================================================
 \section{Interface specification}\label{sec:interface}
-% ============================================================================
 
 In this section we precisely define the interface of the data structure.
 We use the parameter $\Delta$ and the functions $p(d,k)$ and $f(d,k)$ as defined in Section~\ref{sec:intro}.
@@ -212,9 +200,7 @@ For a fixed randomness seed, the update procedures $\proc{InsertEdge}$ and $\pro
 Space complexity: the data structure uses $O(n+m+m \cdot 2^{4d} \cdot \log^2 n)$ machine words, where $m$ is the current number of edges (Theorem~\ref{thm:space}).
 
 
-% ============================================================================
 \section{Data structure}\label{sec:ds}
-% ============================================================================
 
 In this section we describe the components of the data structure and analyze its space usage.
 
@@ -389,9 +375,7 @@ Together with the $O(n+m)$ memory needed for the dynamic orientation and the nei
 \end{proof}
 
 
-% ============================================================================
 \section{Update procedures}\label{sec:update}
-% ============================================================================
 
 \subsection{Procedure \proc{Init}}
 
@@ -519,9 +503,7 @@ O(2^{4d}\cdot (d + \log n) \cdot (d(\log n + d) + \log^2 n))
 \end{proof}
 
 
-% ============================================================================
 \section{Procedure \proc{Query}}\label{sec:query}
-% ============================================================================
 
 The procedure $\proc{Query}$ is based on a semi-ladder algorithm inspired by the work of Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{FabianskiPST19}.
 
@@ -650,9 +632,7 @@ If $k \ge 2$, then by Lemma~\ref{lem:disjunction} the semi-ladder index of~$\psi
 \end{proof}
 
 
-% ============================================================================
 \subsection{Candidate oracle}\label{sec:candidate}
-% ============================================================================
 
 The candidate oracle takes a set of witnesses $W \subseteq V$ and should return a set $D \subseteq V$ with $|D| \leq k$ that dominates~$W$, or report that no such set exists.
 
@@ -761,9 +741,7 @@ O(2^t \cdot \Delta \cdot t^2 \cdot (\log n + \Delta)) + O(3^t) = O(3^t \cdot \De
 \end{proof}
 
 
-% ============================================================================
 \subsection{Witness oracle}\label{sec:witness}
-% ============================================================================
 
 The witness oracle takes a set $D \subseteq V$ with $|D| \leq k$ and should return a vertex not dominated by~$D$, or report that $D$ is a dominating set.
 
@@ -1006,9 +984,7 @@ Using $q<n^{-1}$ we obtain $\mathbb{E}[\#\text{tries}] \le (1-n^{-1})^{-1}$ and 
 \end{proof}
 
 
-% ============================================================================
 \subsection{Main loop}\label{sec:query-loop}
-% ============================================================================
 
 The main loop constructs sequences of witness sets $W_0,W_1,\ldots$ and candidate sets $D_0,D_1,\ldots$.
 It starts with $W_0:=\emptyset$.
@@ -1044,9 +1020,7 @@ Thus the displayed bound is $O(f(d,k)\cdot \log^3 n)$ by the definition of $f(d,
 \end{proof}
 
 
-% ============================================================================
 \section{Proof of the main theorem}\label{sec:main-proof}
-% ============================================================================
 
 \begin{proof}[Proof of Theorem~\ref{thm:main}]
 Correctness of \proc{Init} follows from Lemma~\ref{lem:init}.
@@ -1065,9 +1039,7 @@ Using Corollary~\ref{cor:edge-bound}, this is bounded by $O(n \cdot d \cdot 2^{4
 \end{proof}
 
 
-% ============================================================================
 \section{Conclusion}\label{sec:conclusion}
-% ============================================================================
 
 We presented a fully dynamic data structure for the dominating set problem on $d$-degenerate graphs with a fixed vertex set $V = \{1, \ldots, n\}$.
 The structure achieves amortized update time $O(2^{4d}\cdot (d^3+\log^3 n))$ and expected query time $O(f(d,k) \cdot \log^3 n)$, where $f(d,k)$ is defined in Section~\ref{sec:intro}.
