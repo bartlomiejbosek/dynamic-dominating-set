@@ -1,0 +1,11 @@
+\begin{abstract}
+	Let $\Cc$ be a class of graphs of bounded expansion and $d,k\in \N$ be fixed. We give a dynamic data structure that for a given dynamic graph $G$, updated by edge insertions and deletions subject to the promise that $G\in \Cc$ at all times, maintains the answer to the following two queries:
+	\begin{itemize}[nosep]
+		\item Does $G$ contain a distance-$d$ dominating set of size $k$?
+		\item Does $G$ contain a distance-$d$ independent set of size $k$?
+	\end{itemize}
+	The data structure is randomized, of Las Vegas type.
+	The expected amortized update time is $\log^c n$, where $n$ is the vertex count of $G$ and $c$ is a constant that depends only on $d$, $k$, and $\Cc$. In case of the first query, the data structure can also output a distance-$d$ dominating set of size $k$, if existent.
+	
+	We also prove that when $d=1$, our data structure for the dominating set query can be implemented even if we only assume that the maintained graph $G$ has arboricity bounded by a constant $\alpha$, yielding a simpler data structure and an improved update time of $f(k,\alpha)\cdot \log^3 n$ (still expected and amortized). Finally, we prove that in graphs of arboricity at most $\alpha$, one can maintain a constant-factor approximation of the minimum size of a (distance-$1$) dominating set with amortized update time $TODO$.
+\end{abstract}

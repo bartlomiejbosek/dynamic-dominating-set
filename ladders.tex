@@ -1,0 +1,9 @@
+\section{(Semi-)ladder algorithms for domination and independence}\label{sec:ladders}
+
+Here we recall \cite{FabianskiPST19}. The goal is to reduce the task of designing dynamic data structures on a class $\Cc$ to three ingredients:
+\begin{itemize}
+	\item Proof that graphs from $\Cc$ do not admit long (semi-)ladders.
+	\item Implementation of the oracle: Given a set $D$ with $|D|\leq k$, find $v$ satisfying $\dist(v,D)>d$.
+	\item Implementation of the oracle: Given a set $D$ with $|D|\leq k$, find $v$ satisfying $\dist(u,v)\leq d$ for each $u\in D$.
+\end{itemize}
+We should name those oracles somehow.

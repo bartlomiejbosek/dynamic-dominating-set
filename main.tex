@@ -1,0 +1,197 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in,bottom=1in]{geometry}
+\usepackage[utf8]{inputenc}
+
+\usepackage{authblk}
+\usepackage{tabularx}
+\usepackage{mdframed}
+\usepackage{libertine}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\DeclareMathOperator{\symdiff}{\triangle}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{mathrsfs} 
+\usepackage{mathtools}
+\usepackage{thm-restate}
+\usepackage[colorlinks = true,linkcolor = blue,urlcolor = blue, citecolor = blue]{hyperref}
+\usepackage[capitalize, nameinlink]{cleveref}
+\usepackage{url}
+\usepackage{todonotes}
+\usepackage{mathrsfs} 
+\usepackage{soul}
+\usepackage{relsize}
+%\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage[all,defaultlines=3]{nowidow}
+\usepackage[mathlines]{lineno}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{lineno}
+\usepackage{nicefrac}
+\usepackage{wasysym}
+\usepackage{comment}
+\usepackage{bbold}
+\linenumbers
+
+\usepackage{textpos}
+\setlist[itemize]{topsep=4pt,itemsep=3pt,parsep=0pt} 
+\setlist[enumerate]{topsep=4pt,itemsep=3pt,parsep=0pt} 
+ %\linenumbers
+
+\crefname{claim}{Claim}{Claims}
+\crefname{figure}{Figure}{Figures}
+\renewcommand{\preceq}{\preccurlyeq}
+\renewcommand{\succeq}{\succcurlyeq}
+\renewcommand{\subset}{\subseteq}
+\newtheorem{theorem}{Theorem}[section]
+
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{remark}{Remark}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{case}{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{plain}
+\newtheorem{property}{Property}
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+\newtheorem*{example*}{Example}
+
+\numberwithin{equation}{section}
+
+\renewcommand{\cal}{\mathcal}
+
+\newenvironment{claimproof}[1][Proof of the claim.]{%
+  \renewcommand{\qedsymbol}{$\lrcorner$}%
+  \begin{proof}[#1]%
+}{%
+  \end{proof}%
+}
+
+\newcommand{\cc}{\mathsf{cc}}
+\newcommand{\bd}{\partial}
+
+\newcommand{\bn}{\mathsf{bn}}
+\newcommand{\tw}{\mathsf{tw}}
+\newcommand{\wtw}{\mathsf{wtw}}
+\newcommand{\bw}{\mathsf{bw}}
+\newcommand{\wbw}{\mathsf{wbw}}
+
+\newcommand{\wei}{\mathbf{w}}
+
+\newcommand{\Pp}{\mathcal{P}}
+\newcommand{\Qq}{\mathcal{Q}}
+\newcommand{\Ww}{\mathcal{W}}
+
+\newcommand{\tup}[1]{{\bar{#1}}}
+
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Exp}{\mathbb{E}}
+
+
+\newcommand{\clos}{\mathrm{cl}}
+\newcommand{\bnd}{\partial}
+
+
+\def\phi{\varphi}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Zp}{\Z^+}
+\newcommand{\wh}{\widehat}
+
+\newcommand{\Leaves}{\mathrm{Leaves}}
+\newcommand{\Ball}{\mathrm{Ball}}
+\newcommand{\dist}{\mathrm{dist}}
+\newcommand{\cw}{\mathsf{cvw}}
+\newcommand{\wcw}{\mathsf{wcvw}}
+\newcommand{\ct}{\mathsf{cut}}
+\newcommand{\md}{\mathsf{mid}}
+
+\newcommand{\Aa}{\mathcal{A}}
+\newcommand{\Bb}{\mathcal{B}}
+\newcommand{\Ee}{\mathcal{E}}
+
+\newcommand{\Tt}{\mathcal{T}}
+\newcommand{\Ll}{\mathcal{L}}
+\newcommand{\Ff}{\mathcal{F}}
+\newcommand{\Ss}{\mathcal{S}}
+
+\newcommand{\from}{\colon}
+\newcommand{\Cc}{\mathscr C}
+\newcommand{\Dd}{\mathscr D}
+\def\epsilon{\varepsilon}
+\def\eps{\varepsilon}
+\newcommand{\Oh}{\mathcal{O}}
+
+\newcommand{\id}{\mathrm{id}}
+\renewcommand{\emptyset}{\varnothing}
+
+\newcommand{\michal}[1]{\todo[color=pink!40]{Micha\l{}: #1}}
+\newcommand{\michalin}[1]{\todo[size=\normalsize,inline,color=pink!40]{Micha\l{}: #1}}
+
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\le}{\leq}
+\renewcommand{\ge}{\geq}
+
+\renewcommand{\setminus}{-}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\setof}[2]{\{#1 \colon#2\}}
+
+\newcommand{\cnst}[3]{{#1}_{#2}^{\ref{#3}}}
+
+\newcommand{\aff}[1]{\normalsize\textcolor{black!60}{#1}}
+
+\usepackage{tikz}
+
+\begin{document}
+
+\newcommand{\funding}{All the authors were supported by the project BOBR that received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme, grant agreement No. 948057.}
+
+
+%\title{Minor Containment and Disjoint Paths in almost-linear time\thanks{\funding}}
+\title{Dynamic domination and independence in sparse graphs\footnote{\funding}}
+%\date{\today}
+\date{}
+	\author[1,2]{Bart\l{}omiej Bosek}
+	\author[1]{Wojciech Nadara}
+	\author[1]{Micha\l{} Pilipczuk}
+	\author[1]{Anna Zych-Pawlewicz}
+	\affil[1]{\aff{University of Warsaw, Poland}}
+	\affil[2]{\aff{Jagiellonian University, Cracow, Poland}}
+\maketitle
+
+\input{abstract}
+
+% \begin{textblock}{20}(-1.75, 3.6)
+% \includegraphics[width=40px]{logo-erc}%
+% \end{textblock}
+% \begin{textblock}{20}(-1.75, 4.6)
+% \includegraphics[width=40px]{logo-eu}%
+% \end{textblock}
+
+\newpage
+
+\clearpage
+\setcounter{page}{1}
+
+\input{intro}
+\input{prelims}
+\input{ladders}
+\input{dvorak}
+\input{oracles}
+\input{distone}
+\input{apx}
+\input{conclusions}
+
+\bibliographystyle{alpha}
+\bibliography{references}
+\end{document}
