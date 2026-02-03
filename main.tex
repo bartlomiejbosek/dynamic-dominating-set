@@ -27,6 +27,7 @@
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\Oh}{\mathcal{O}}
+\newcommand{\val}{\mathrm{val}}
 
 \newcommand{\wninline}[2][inline]{\todo[color=green!80,#1]{{\textbf{W:} #2}}}
 \newcommand{\bbinline}[2][inline]{\todo[color=blue!50,#1]{{\textbf{B:} #2}}}
@@ -399,7 +400,7 @@ Solving this problem would open the way to efficient dynamic approximation of $r
 \section{Bezładne początki tekstu Wojtka}
 
 \begin{lemma}
-	Let $f$ be a function that takes two arguments --- a graph $G$ and its vertex $v$, such that $f(G, v) \ge 0$ for all valid pairs of arguments. Suppose that for any fixed function $g : V(G) \to \Z$, there exists a data structure $R_{f, g}(G)$ that for a dynamic graph $G$ is able to report $\sum_{v \in V(G)} f(G, v)g(v)$ after each update, and a data structure $V_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$. Then, there exists a randomized data structure $P_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the time and space complexities of $R$ and $V$ per a single update or query are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the time and space complexities of $P$ are $\Oh((T_R+T_V) \log |V(G)| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \log |V(G)| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative.
+	Let $f$ be a function that takes two arguments --- a graph $G$ and its vertex $v$, such that $f(G, v) \ge 0$ for all valid pairs of arguments. Suppose that for any fixed function $g : V(G) \to \Z$, there exists a data structure $R_{f, g}(G)$ that for a dynamic graph $G$ is able to report $\sum_{v \in V(G)} f(G, v)g(v)$ after each update, and a data structure $V_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$. Then, there exists a randomized data structure $P_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the amortized time and space complexities of $R$ and $V$ per a single update or query are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the amortized time and space complexities of $P$ are $\Oh((T_R+T_V) \log |V(G)| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \log |V(G)| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative.
 \end{lemma}	
 
 \wninline{Przerzucic poniższe do prelimsów?}
@@ -431,41 +432,37 @@ Solving this problem would open the way to efficient dynamic approximation of $r
 \end{proof}
 
 
-\begin{lemma} Let us assume that there exists a randomized data structure $S_{H, v, k, \mathcal{F}}(G)$ solving the following problem: Let $H$ be a graph without isolated vertices and with edges colored with $\{1, \ldots, k\}$, $v$ be a vertex of $H$, $G$ be a dynamic graph that belongs to a fixed class of graphs $\mathcal{G}$ of bounded expansion. Let $\mathcal{F}$ be a reasonable type of mappings. Then, the data structure is able to either provide a vertex $u \in V(G)$ such that there exists $\phi$ such that $\phi(v)=u$ and $\phi \in \F(H, G)$, or state that such $\phi$ does not exist. Any update to $G$ is handled in $f_{\mathcal{G}}(|V(H)|, k) \log^{g(|V(H)|, k)}(|V(G)|)$ time complexity (for some monotonic functions $f_{\mathcal{G}}$ and $g$) and the queries never provide false positives, but may provide false negatives with probability at most $\eps$.
+\begin{lemma} Let us assume that there exists a randomized data structure $S_{H, v, k, \mathcal{F}}(G)$ solving the following problem: Let $H$ be a graph without isolated vertices and with edges colored with $\{1, \ldots, k\}$, $v$ be a vertex of $H$, $G$ be a dynamic graph that belongs to a fixed class of graphs $\mathcal{G}$ of bounded expansion. Let $\mathcal{F}$ be a reasonable type of mappings. Then, the data structure is able to either provide a vertex $u \in V(G)$ such that there exists $\phi$ such that $\phi(v)=u$ and $\phi \in \F(H, G)$, or state that such $\phi$ does not exist. Any update to $G$ is handled in amortized $f_{\mathcal{G}}(|V(H)|, k) \log^{g(|V(H)|, k)}(|V(G)|)$ time complexity (for some monotonic functions $f_{\mathcal{G}}$ and $g$) and the queries never provide false positives, but may provide false negatives with probability at most $\eps$.
 	
-Then, there exists a data structure $P_{H, k, \mathcal{F}}(G)$ solving an analogous problem, which provides $\phi$ such that $\phi \in \F(H, G)$, or state that it does not exist. Any update to $G$ is handled in $f'_{\mathcal{G}}(|V(H)|, k) \log^{g'(|V(H)|, k)}(|V(G)|+|V(H)|)$ time complexity for some function $f_{\mathcal{G}}'$ and $g'$. The queries never provide false negatives, but may provide false negatives with probability at most $|V(H)| \eps$.
+Then, there exists a data structure $P_{H, k, \mathcal{F}}(G)$ solving an analogous problem, which provides $\phi$ such that $\phi \in \F(H, G)$, or state that it does not exist. Any update to $G$ is handled in amortized $f'_{\mathcal{G}}(|V(H)|, k) \log^{g'(|V(H)|, k)}(|V(G)|+|V(H)|)$ time complexity for some functions $f_{\mathcal{G}}'$ and $g'$. The queries never provide false negatives, but may provide false negatives with probability at most $|V(H)| \eps$.
 
 %\wninline{Dopisac zalozenie, ze dodanie pendanta do G zachowuje bycie w $\mathcal{G}$.}
 \end{lemma}
-\wninline{WIP}
 \begin{proof}
 	Let $c=|V(H)|$ and let $V(H) = \{v_1, \ldots, v_c\}$. Let us create a sequence of graphs $H_0, \ldots, H_{c}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding a $v_ip_i$ pendant colored with the color $k+i$. 
 	
-	Let $S_i \coloneqq S_{H_i, v_{i+1}, k + i, \mathcal{F}}$ for $i=0, \ldots, c-1$. The data structure $S_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
-	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding a $u_iq_i$ pendant colored with the color $k_i$. Let us turn $S_i(G)$ into $S_i(G_i)$ by adding the corresponding $i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \ref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$. 
+	Let $S_i \coloneqq S_{H_i, v_{i+1}, k + i, \mathcal{F}}$ for $i=0, \ldots, c-1$. Any update to $G$ is passed to all of $S_0, \ldots, S_{c-1}$. The data structure $S_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
+	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding a $u_iq_i$ pendant colored with the color $k+i$. Let us turn $S_i(G)$ into $S_i(G_i)$ by adding the corresponding $i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \ref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
+	
+	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $S_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, c-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
+	
+	Note that we can set $f'_{\G}(|V(H)|, k) = |V(H)|^2 f_{\G'}(2|V(H)|, k+|V(H)|)$ and $g'(|V(H)|, k) = g(2|V(H)|, k+|V(H)|)$ and $|V(G_i)| \le |V(G)| + |V(H)|$. As we make $|V(H)|$ queries to all $S_i$, the tota probability of not succeeding at some step is at most $|V(H)|\eps$.
 	
 \end{proof}
 
+\begin{definition}
+	Let $H$ and $G$ be graphs and $f$ be a function $f : V(H) \times V(G) \to \Z$. Let $\phi : V(H) \to V(G)$ be a mapping. Then, by the \textit{value of} $\phi$, denoted as $\val_f(\phi)$, we denote the following value $\val_f(\phi) = \prod_{v \in V(H)} f(v, \phi(v))$. 
+\end{definition}
+
+In \cite{DvorakTumaWADS} Dvor{\'{a}}k and Tuma prove the following: 
+
+\begin{theorem}
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph. 
+\end{theorem}
+
+
+
 \bibliographystyle{plain}
-\begin{thebibliography}{9}
-
-\bibitem{AssadiSolomon21}
-S.~Assadi and S.~Solomon.
-\newblock Fully dynamic set cover via hypergraph maximal matching: an optimal approximation through a local approach.
-\newblock In \emph{Proceedings of the 32nd Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2021)}, pages 2203--2219, 2021.
-
-\bibitem{BrodalFagerberg99}
-G.~S. Brodal and R.~Fagerberg.
-\newblock Dynamic representations of sparse graphs.
-\newblock In \emph{Proceedings of the 6th International Workshop on Algorithms and Data Structures (WADS 1999)}, volume 1663 of \emph{Lecture Notes in Computer Science}, pages 342--351.
-Springer, 1999.
-
-\bibitem{LenzenWattenhofer10}
-C.~Lenzen and R.~Wattenhofer.
-\newblock Minimum dominating set approximation in graphs of bounded arboricity.
-\newblock In \emph{Proceedings of the 24th International Symposium on Distributed Computing (DISC 2010)}, volume 6343 of \emph{Lecture Notes in Computer Science}, pages 510--524.
-Springer, 2010.
-
-\end{thebibliography}
+\bibliography{references}
 
 \end{document}
