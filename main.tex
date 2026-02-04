@@ -1,6 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in,bottom=1in]{geometry}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
 
 \usepackage{authblk}
 \usepackage{tabularx}
@@ -124,6 +126,10 @@
 \newcommand{\Ff}{\mathcal{F}}
 \newcommand{\Ss}{\mathcal{S}}
 
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\val}{\mathrm{val}}
+
 \newcommand{\from}{\colon}
 \newcommand{\Cc}{\mathscr C}
 \newcommand{\Dd}{\mathscr D}
@@ -136,6 +142,11 @@
 
 \newcommand{\michal}[1]{\todo[color=pink!40]{Micha\l{}: #1}}
 \newcommand{\michalin}[1]{\todo[size=\normalsize,inline,color=pink!40]{Micha\l{}: #1}}
+\newcommand{\wninline}[2][inline]{\todo[color=green!50,#1]{{\textbf{W:} #2}}}
+\newcommand{\bbinline}[2][inline]{\todo[color=blue!50,#1]{{\textbf{B:} #2}}}
+\newcommand{\azinline}[2][inline]{\todo[color=yellow!50,#1]{{\textbf{A:} #2}}}
+\newcommand{\mpinline}[2][inline]{\todo[color=pink!40,#1]{{\textbf{M:} #2}}}
+
 
 \renewcommand{\leq}{\leqslant}
 \renewcommand{\geq}{\geqslant}

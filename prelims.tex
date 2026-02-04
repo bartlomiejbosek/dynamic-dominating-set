@@ -1,2 +1,12 @@
 \section{Preliminaries}\label{sec:prelims}
 
+\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy}
+
+\begin{definition}
+	Let $G$ be a graph and $v \in V(G), v' \not\in V(G)$. The operation of \textit{adding a pendant} $vv'$ produces a graph $G'$ such that $V(G') = V(G) \cup \{v'\}$ and $E(G') = E(G) \cup \{vv'\}$.
+\end{definition}
+
+\begin{observation} \label{obs:pendants-bnd-exp}
+	Let $\G$ be a class of graphs with bounded expansion and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also of bounded expansion.
+\end{observation}
+\wninline{Czy powyższe wymaga dowodu?}
