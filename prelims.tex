@@ -10,3 +10,9 @@
 	Let $\G$ be a class of graphs with bounded expansion and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also of bounded expansion.
 \end{observation}
 \wninline{Czy powyższe wymaga dowodu?}
+
+\begin{definition}
+	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
+\end{definition}
+
+For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\mathcal{HOM}$, $\mathcal{SUB}$ and $\mathcal{ISUB}$, i.e. $\mathcal{HOM}(H, G)$, $\mathcal{SUB}(H, G)$ and $\mathcal{ISUB}(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms, respectively.

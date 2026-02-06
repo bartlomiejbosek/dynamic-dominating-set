@@ -2,9 +2,25 @@
 
 Here we recall and extend relevant stuff from Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}.
 
+The main result of the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} can be expressed as following:
+
+\begin{theorem} \cite{DvorakT13} \label{thm:dvorak-tuma}
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let $\F$ be either $\mathcal{HOM}$, $\mathcal{SUB}$, or $\mathcal{ISUB}$. Then, there exists a data structure $C_{\F, H}(G)$, which is able to determine $|\F(H, G)|$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^h |V(G)|)$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$.
+\end{theorem}
+
+However, they concluded that even though they are able to count appearances of $H$ in $G$ as an induced subgraph (that is, determine $|\mathcal{ISUB}(H, G)|$), it is not easy to restore any example of such mapping from their data structure as it involves inclusion-exclusion principle. Despite not written explicitly, it can be expected that the authors would have similar troubles restoring examples of subgraph isomorphisms (as the reduction from counting subgraph isomorphisms to counting homomorphisms requires subtractions as well), though they would have likely known how to restore examples of homomorphisms, as that part of the algorithm does not require any subtractions and the restoration of an example can be done through tracing transitions with nonzero contributions in the designed dynamic programming. 
+
+In this work, we are going to resolve these open questions and prove the following:
+
+\begin{theorem} \label{thm:dvorak-tuma-examples}
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let $\F$ be either $\mathcal{HOM}$, $\mathcal{SUB}$, or $\mathcal{ISUB}$. Let $\delta \in (0, 1)$ be a real number. Then, there exists a randomized data structure $E_{\F, H}(G)$, which after each update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)|$. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^{h+1} |V(G)| \log{\frac{1}{\delta}})$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)| \log |V(G)| \log {\frac{1}{\delta}})$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps \log{\frac{1}{\delta}})$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps} \log{\frac{1}{\delta}})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$. The data structure never provide false positives, but may fail to provide $\phi$ with probability at most $\delta$.
+\end{theorem}
+
+For the algorithms in the following sections we will only need the case $\F = \mathcal{HOM}$, which was the only case that was easy to handle for \cite{DvorakT13} (despite not being stated and proven), but the toolbox that we need to introduce for our main result is of great help in resolving the harder cases of $\F = \mathcal{SUB}$ and $\F = \mathcal{ISUB}$ that can be viewed as interesting results of independent interest.
+
 \wninline{@Bartek, napiszesz dowód tego lematu? De facto już to zrobiłeś w dom-one i trzeba by go tylko przystosować do języka tutaj}
 
-\newpage
+The following lemma, which draws an inspiration from \cite{Majewski24} and \cite{Nadara22}, is a handy tool that helps in restorations of examples while given only counting functions.
 \begin{lemma}
 	Let $f$ be a function that takes two arguments --- a graph $G$ and its vertex $v$, such that $f(G, v) \ge 0$ for all valid pairs of arguments.
 	
@@ -15,20 +31,13 @@ Here we recall and extend relevant stuff from Dvo\v{r}\'ak and T\r{u}ma~\cite{Dv
 		\item \label{it:binary-f} $f(G, v) \in \{0, 1\}$ for all valid arguments, or
 		\item there exists a data structure $V_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$.
 	\end{enumerate}
-	Then, there exists a randomized data structure $P_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the amortized time and space complexities of $R$ and $V$ per a single update or query are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the amortized time and space complexities of $P$ are $\Oh((T_R+T_V) \cdot \log |V(G)| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \cdot \log |V(G)| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative and where we assume that $T_V = S_V = 0$ in the case \ref{it:binary-f}, where $V$ is not required.
+	Then, there exists a randomized data structure $P_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the amortized time and space complexities of $R$ and $V$ per a single update or query are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the amortized time and space complexities of $P$ are $\Oh((T_R+T_V) \cdot \log |V(G)| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \cdot \log |V(G)| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative and where we assume that $T_V = S_V = 0$ in the case \cref{it:binary-f}, where $V$ is not required.
 \end{lemma}	
 
 
-
-\begin{definition}
-	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
-\end{definition}
-
-For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\mathcal{HOM}$, $\mathcal{SUB}$ and $\mathcal{ISUB}$, i.e. $\mathcal{HOM}(H, G)$, $\mathcal{SUB}(H, G)$ and $\mathcal{ISUB}(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms, respectively.
-
 \begin{definition}
 	Let $\F$ be a type of mappings and let $\F(H, G, v, u)$ for $v \in V(H)$ and $u \in V(G)$ be the restriction of $F(H, G)$ to the mappings $\phi$ such that $\phi(v)=u$.
-	We say that $\F$ is \textit{reasonable} if and only if it satisfies the following property: Let $H$ and $G$ be undirected graphs with colored edges, where $H$ does not have isolated vertices. Let $v \in V(H), u \in V(G)$, $H'$ be a graph $H$ with added pendant $vv'$ and $G'$ be a graph with added pendant $uu'$, where $vv'$ and $uu'$ have the same color that is not present in $H$ and $G$. Then, $\F(H', G') = \F(H', G', v', u')$ and there is a natural bijection between $\F(H', G')$ and $\F(H, G, v, u)$ given by restricting any $\phi' \in F(H', G')$ to  $V(H)$. 
+	We say that $\F$ is \textit{reasonable} if and only if it satisfies the following property: Let $H$ and $G$ be undirected graphs with colored edges, where $H$ does not have isolated vertices. Let $v \in V(H), u \in V(G)$, $H'$ be a graph $H$ with added pendant $vv'$ and $G'$ be a graph $G$ with added pendant $uu'$, where $vv'$ and $uu'$ have the same color that is not present in $H$ and $G$. Then, $\F(H', G') = \F(H', G', v', u')$ and there is a natural bijection between $\F(H', G')$ and $\F(H, G, v, u)$ given by restricting any $\phi' \in F(H', G')$ to  $V(H)$. 
 \end{definition}
 
 \begin{claim}
@@ -49,20 +58,22 @@ For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphi
 	Let $c=|V(H)|$ and let $V(H) = \{v_1, \ldots, v_c\}$. Let us create a sequence of graphs $H_0, \ldots, H_{c}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding a $v_ip_i$ pendant colored with the color $k+i$. 
 	
 	Let $S_i \coloneqq S_{H_i, v_{i+1}, k + i, \mathcal{F}}$ for $i=0, \ldots, c-1$. Any update to $G$ is passed to all of $S_0, \ldots, S_{c-1}$. The data structure $S_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
-	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding a $u_iq_i$ pendant colored with the color $k+i$. Let us turn $S_i(G)$ into $S_i(G_i)$ by adding the corresponding $i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \ref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
+	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding a $u_iq_i$ pendant colored with the color $k+i$. Let us turn $S_i(G)$ into $S_i(G_i)$ by adding the corresponding $i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \cref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
 	
-	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $S_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, c-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
+	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi \in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $S_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, c-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
 	
-	Note that we can set $f'_{\G}(|V(H)|, k) = |V(H)|^2 f_{\G'}(2|V(H)|, k+|V(H)|)$ and $g'(|V(H)|, k) = g(2|V(H)|, k+|V(H)|)$ and $|V(G_i)| \le |V(G)| + |V(H)|$. As we make $|V(H)|$ queries to all $S_i$, the tota probability of not succeeding at some step is at most $|V(H)|\eps$.
+	Note that we can set $f'_{\G}(|V(H)|, k) = |V(H)|^2 f_{\G'}(2|V(H)|, k+|V(H)|)$ and $g'(|V(H)|, k) = g(2|V(H)|, k+|V(H)|)$ and $|V(G_i)| \le |V(G)| + |V(H)|$. As we make $|V(H)|$ queries to all $S_i$, the total probability of not succeeding at some step is at most $|V(H)|\eps$.
 	
 \end{proof}
 
 \begin{definition}
-	Let $H$ and $G$ be graphs and $f$ be a function $f : V(H) \times V(G) \to \Z$. Let $\phi : V(H) \to V(G)$ be a mapping. Then, by the \textit{value of} $\phi$, denoted as $\val_f(\phi)$, we denote the following value $\val_f(\phi) = \prod_{v \in V(H)} f(v, \phi(v))$. 
+	Let $H$ and $G$ be graphs and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Let $\phi : V(H) \to V(G)$ be a mapping. Then, by the \textit{value of} $\phi$, denoted as $\val_w(\phi)$, we denote the following value $\val_w(\phi) = \prod_{v \in V(H)} f(v, \phi(v))$. Consequently, for a type of mappings $\F$, we are going to define $\val_w(\F(H, G))$ as $\sum_{\phi \in \F(H, G)} \val_w(\phi)$.
 \end{definition}
 
-In \cite{DvorakT13} Dvor{\'{a}}k and Tuma prove the following: 
+We are now going to present a weighted version of \cref{thm:dvorak-tuma}:
 
-\begin{theorem}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph. 
+\begin{theorem} \label{lem:weighted-dvorak}
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Let $\F$ be either $\mathcal{HOM}$, $\mathcal{SUB}$, or $\mathcal{ISUB}$. Then, there exists a data structure $W_{\F, H, w}(G)$, which is able to determine $\val_w(\F(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^h |V(G)|)$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$.
 \end{theorem}
+
+On a high level, \cref{thm:dvorak-tuma} is proven in a way that counting induced subgraph isomorphisms is reduced to counting subgraph isomorphisms, which is reduced to counting homomorphisms, which is reduced to counting homomorphisms in a special case, where both $H$ and $G$ are additionally directed, but $H$ is a so called \textit{elder graph}. The last case is solved through a dynamic programming routine. As can be expected, incorporating weights into a dynamic programming routine can be easily done and having that, weighted versions are easily pulled back to homomorphisms, subgraph isomorphisms and induced subgraph isomorphism. We defer more detailed proof of \cref{lem:weighted-dvorak} to \cref{sec:app-weighted-dvorak}.
