@@ -1,2 +1,21 @@
-\section{Detailed proof of \cref{lem:weighted-dvorak}} \label{sec:app-weighted-dvorak}
-Blah, nuda
+\section{The proof of \cref{lem:weighted-dvorak}} \label{sec:app-weighted-dvorak}
+In Theorem 14 of \cite{DvorakTumaArxiv} Dvo\v{r}\'ak and T\r{u}ma prove that for a fixed directed elder graph $H$ and dynamic directed graph $G$ with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$, it is possible to maintain the number of homomorphisms from $H$ to $G$ in $\Oh(f(|V(H)|, D))$ time complexity per update. A directed graph $H$ is called an \textit{elder graph} if it has the property that $(u, w), (v, w) \in E(H)$ imply that $u$ and $v$ are adjacent as well, that is, either $(u, v) \in E(H)$ or $(v, u) \in E(H)$.
+
+We generalize their statement to the following weighted version:
+
+\begin{lemma}
+	Let $D$ be an integer, $H$ be a fixed directed elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. There exists a data structure $AHom_{H, k, D, w}(G)$ that maintains $\val_w(\mathcal{HOM}(H, G))$. Each update to the data structure takes $f(|V(H)|, D)$ time complexity and the space complexity of it is $\Oh(f(|V(H)|, D) \cdot |V(G)|)$ for some function $f$. 
+\end{lemma}
+
+\begin{proof}
+	The generalization to the weighted version requires just a few minor modifications to the proof of the original Theorem 14 of \cite{DvorakTumaArxiv}, therefore we are only going to highlight the differences between them and refer the reader to the original result for a more detailed version. We are also going to use the terminology of that article (that is, notions like \textit{vineyard, clan, extended clan, ghost}).
+	
+	During the initialization of the data structure we fix any vineyard $T$ for $H$. For a clan $C$ and vertices $v, w_1, \ldots, w_m \in V(G)$, by $\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)$ we are going to denote the set of homomorphisms from an extended clan $C^*$ to $G$ such that $r(C)$ is mapped to $v$ and ghosts $g_1, \ldots, g_m$ of $C$ are mapped to $w_1, \ldots, w_m$. A value of a partial homomorphism $\phi$ from $H$ to $G$ belonging to that set is defined naturally as the product of $w(x_i, y_i)$ over all $x_i \in V(C^*)$, where $\phi(x_i) = y_i$, and the value of a whole set is defined as the sum of values of its elements.
+	
+	For each clan $C \neq V(H)$ with $m$ ghosts and each $m$-tuple of vertices $w_1, \ldots, w_m$ of $G$ in the unweighted version the number $S(C, w_1, \ldots, w_m) = \sum_{v \in N_1^=(w_1)} |\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)|$ was recorded, however we will record the number $S_w(C, w_1, \ldots, w_m) = \sum_{v \in N_1^=(w_1)} \val_w(\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G))$ instead. 
+			
+	The original proof expresses the difference of the sets $\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)$ before and after an addition of an edge $e$ to $G$ as a disjoint sum of some sets, where each of them results from a different guess of which edges of $H$ will be mapped to $e$. In each of these cases, a partial homomorphism $\phi$ is determined and the problem of extending it to a homomorphism of full $C^*$ decomposes to a few independent subproblems, hence the set of ways to extend the fixed partial homomorphisms resulting from that guess to a full homomorphisms of $C^*$ can be expressed as a cartesian product of sets of homomorphisms for the smaller instances. If $C_i$ and $g_1^i, \ldots, g_{m_i}^i$ are the clan and the ghosts of the $i$-th subproblem, then the number of ways to extend $\phi$ to a full homomorphisms of $C^*$ can be expressed as $\prod_{i=1}^{t} S(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$, whereas the incurred contribution to the value of all accounted homomorphisms will be $\val_w(\phi) \cdot \prod_{i=1}^{t}S_w(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$.
+	
+	We remark that the calculation above crucially relies on the properties of $\val_w$ that $\val_w(X \sqcup Y) = \val_w(X) + \val_w(Y)$ and $\val_w(P \times Q) = \val_w(P) \cdot \val_w(Q)$, where $P$ and $Q$ are acting on disjoint subsets $V_P$ and $V_Q$ of $V(H)$ and each element $\phi = (\phi_P, \phi_Q) \in P \times Q$ is understood as a unique mapping on $V_P \sqcup V_Q$ such that $\phi|_{V_P} = \phi_P$ and $\phi|_{V_Q} = \phi_Q$.  
+	
+\end{proof}
