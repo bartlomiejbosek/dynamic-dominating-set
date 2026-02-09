@@ -28,7 +28,7 @@
 \newcommand{\Dom}{\mathrm{Dom}}
 \DeclareMathOperator{\arb}{arb}
 \DeclareMathOperator{\idsum}{idsum}
-\newcommand{\proc}[1]{\textup{\mdseries\textsc{#1}}}
+\newcommand{\proc}[1]{\textup{\textsc{#1}}}
 
 \title[Dynamic dominating set in bounded-degeneracy graphs]{A fully dynamic data structure for parameterized\\ dominating set in graphs of bounded degeneracy}
 \author{Bart{\l}omiej Bosek}
@@ -61,7 +61,7 @@ For parameters $d$ (degeneracy) and $k$ (the size bound on the sought dominating
 The data structure answers queries asking whether there exists a dominating set of size at most~$k$, and in the positive case can return such a set.
 This is a Las~Vegas randomized data structure: the answer is always correct, while the running time is a random variable whose expectation is bounded by the stated estimates.
 For a fixed randomness seed, the update operations are deterministic.
-The update operations have amortized time $O(2^{4d}\cdot (d^3+\log^3 n))$, and a query has expected time $O(f(d,k) \cdot \log^3 n)$, where $f(d,k)$ is an explicit computable function of $d$ and $k$.
+The update operations have amortized time $O(2^{4d}\cdot (d^3+\log^3 n))$, and a query has expected time $O(f(d,k) \cdot \log^3 n)$, where $f(d,k)$ is the explicit function defined in Theorem~\ref{thm:main}.
 \end{abstract}
 
 \maketitle
@@ -78,7 +78,7 @@ A set of vertices $D \subseteq V$ is a \emph{dominating set} of the graph $G = (
 Formally, $\bigcup_{u \in D} \NbhC{u} = V$, where $\NbhC{u} := \{u\} \cup \Nbh(u)$ denotes the closed neighborhood of~$u$, and $\Nbh(u) := \{v \in V : \{u,v\} \in E\}$ denotes the open neighborhood.
 
 \begin{definition}[$d$-degeneracy]\label{def:degen}
-A graph $G = (V, E)$ is \emph{$d$-degenerate} if every nonempty induced subgraph of~$G$ contains a vertex of degree at most~$d$.
+A graph $G = (V, E)$ is \emph{$d$-degenerate} if every nonempty induced subgraph $H$ of~$G$ contains a vertex whose degree in~$H$ is at most~$d$.
 \end{definition}
 
 \begin{lemma}[Degeneracy orderings]\label{lem:degen-order}
@@ -103,15 +103,16 @@ Our goal is to construct a data structure that, for given parameters $d, k \in \
 
 Our data structure combines a deterministic update mechanism with a Las~Vegas query algorithm.
 The update mechanism maintains a bounded-outdegree orientation of the current graph using the dynamic orientation data structure of Brodal and Fagerberg~\cite{BrodalFagerberg99}.
-For a $d$-degenerate graph this yields an orientation with maximum out-degree $\Delta=4d$ (Section~\ref{sec:ds}).
+Since a $d$-degenerate graph has arboricity at most $d$ (Lemma~\ref{lem:arb}), Theorem~\ref{thm:bf} yields an orientation with maximum out-degree at most $4d$; we denote this bound by $\Delta:=4d$.
+Throughout the paper we write $V^+ := \{u \in V : \deg_G(u) > 0\}$ for the set of non-isolated vertices in the current graph.
 
 The central auxiliary object is a \emph{bucket system} indexed by subsets of out-neighborhoods.
-For each set $Z \subseteq V$ with $|Z|\le \Delta$ we define the bucket $B(Z)=\{u\in V^+ : Z \subseteq \Np(u)\}$, where $V^+$ denotes the set of non-isolated vertices (defined in Section~\ref{sec:buckets}).
+For each set $Z \subseteq V$ with $|Z|\le \Delta$ we define the bucket $B(Z)=\{u\in V^+ : Z \subseteq \Np(u)\}$.
 Maintaining these buckets together with a collection of counters allows us to evaluate, for many sets $Z$, the quantities $|B(Z)\cap S|$ and the corresponding identifier sums for suitable random samples $S$.
 
 The procedure \proc{Query} is based on the semi-ladder framework of Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{FabianskiPST19}.
 It alternates between a \emph{candidate oracle}, which (given a current witness set $W$) either constructs a size-$k$ set dominating $W$ or proves that none exists, and a \emph{witness oracle}, which (given a candidate set $D$) either certifies that $D$ dominates $V$ or produces a new vertex not dominated by~$D$.
-The witness oracle uses inclusion--exclusion and a randomized isolation mechanism to recover such a witness in expected time, and repeats with resampled randomness until it succeeds, ensuring Las~Vegas correctness.
+The witness oracle uses inclusion--exclusion together with an isolation argument (Lemma~\ref{lem:isolation}) to recover such a witness in expected time; if isolation fails, it resamples its hash seed and repeats (Section~\ref{sec:witness}), ensuring Las~Vegas correctness.
 
 \subsection{Related work}\label{sec:related}
 
@@ -119,27 +120,29 @@ Fabia\'nski et al.~\cite{FabianskiPST19} introduced the progressive/semi-ladder 
 The present work dynamizes the framework by providing update operations that maintain the information needed by the oracles, and by implementing a witness oracle through dynamic counting in the bucket system.
 
 We use the fully dynamic bounded-outdegree orientation data structure of Brodal and Fagerberg~\cite{BrodalFagerberg99}; additionally, our implementation records all edges that change orientation in an update (Lemma~\ref{lem:bf-report}).
-For background on sparse graph classes and degeneracy we refer to the monograph of Ne\v{s}et\v{r}il and Ossona de Mendez~\cite{NesetrilOssona12}.
+For a comprehensive treatment of degeneracy and related sparsity notions, including connections to arboricity and orientations, see Ne\v{s}et\v{r}il and Ossona de Mendez~\cite[Chapters~3--5]{NesetrilOssona12}.
 
 \subsection{Computational model}\label{sec:model}
 
-We work in the word-RAM model with word length $w = \Theta(\log n)$.
+We work in the word-RAM model with word length $w=\Theta(\log n)$ and assume that $w \geq \lceil \log_2(n+1) \rceil$ (equivalently, $n < 2^w$).
 Throughout the paper, logarithms are base~$2$ and we use the convention $\log n := \max(1, \log_2 n)$.
-In particular,
-$w \geq \lceil \log_2(n+1) \rceil$ (and hence $2^w > n$).
 Vertices are represented by numbers from $\{1, \ldots, n\}$, which fit in one machine word.
 For a vertex $u \in V$ we define $\id(u) := u$ as its numeric identifier (a number in $\{1, \ldots, n\}$).
-In this model, arithmetic and bit operations on $w$-bit words, including addition, subtraction, comparison, shifts, and multiplication in $\ZZ_{2^w}$, take constant time~$O(1)$.
-We represent dictionaries by balanced binary search trees, which support insert, delete, and lookup in $O(\log M)$ time for a dictionary with $M$ elements; see, e.g.,~\cite[Chapter~13]{CLRS}.
+In this model, arithmetic and bit operations on $w$-bit words, including addition, subtraction, comparison, shifts, and multiplication, take constant time~$O(1)$.
+We assume that multiplication of two $w$-bit words yields the full $2w$-bit product, so both its low and high $w$ bits can be accessed in $O(1)$ time.
+We implement dictionaries as balanced binary search trees (e.g., red--black trees), which support insert, delete, and lookup in $O(\log M)$ time for a dictionary with $M$ elements~\cite[Chapter~13]{CLRS}.
 
-The witness oracle evaluates inclusion--exclusion sums whose magnitudes are bounded by $2^k\cdot n$.
-We represent such integers explicitly as sequences of machine words in base $2^w$; addition, subtraction, and comparison then take time $O(k+1)$ (Lemma~\ref{lem:multiword} in Appendix~\ref{app:multiword}).
+\begin{remark}[Multiword integers]\label{rem:multiword}
+The witness oracle evaluates inclusion--exclusion sums whose absolute values are bounded by $2^k\cdot n$.
+Since $n<2^w$, every integer $z$ with $|z|\le 2^k\cdot n$ admits a base-$2^w$ representation using at most $k+1$ machine words.
+Addition, subtraction, and comparison of two such representations can be performed digit-by-digit in time $O(k+1)$.
+\end{remark}
 
 \subsection{Main result}
 
 The main result of this paper is the following theorem.
 
-We use the derived parameter $\Delta := 4d$.
+We use the derived parameter $\Delta := 4d$, which is the maximum out-degree bound provided by the Brodal--Fagerberg dynamic orientation (Theorem~\ref{thm:bf}) when applied to $d$-degenerate graphs (Lemma~\ref{lem:arb}).
 For notational convenience we define
 \[
 p(d,k) := \max(2,k)^{3d+3}
@@ -150,6 +153,7 @@ f(d,k) := (1+\Delta)^2 \cdot p(d,k)^3 \cdot 3^{p(d,k)}
           + (1+\Delta)^2 \cdot p(d,k) \cdot 2^k \cdot k^3
           + p(d,k)\cdot d \cdot 2^\Delta.
 \]
+The three summands correspond to the cost of the candidate oracle, the cost of one try of the witness oracle, and the amortized resampling cost.
 
 \begin{theorem}[Main theorem]\label{thm:main}
 Let $n, d, k \in \NN$ and let $V = \{1, \ldots, n\}$.
@@ -171,6 +175,8 @@ The data structure is Las~Vegas: the answer returned by $\proc{Query}$ is always
 Randomness is used only to sample the current seed $\sigma$ defining the random labels (Section~\ref{sec:labels}); the seed is initialized on demand and may be replaced by resampling in the witness oracle.
 For a fixed seed, the update operations $\proc{InsertEdge}$ and $\proc{DeleteEdge}$ are deterministic.
 
+\subsection{Organization}\label{sec:organization}
+
 The proof of Theorem~\ref{thm:main} is presented in the subsequent sections.
 In Section~\ref{sec:ds} we describe the data structure and analyze its space complexity.
 In Section~\ref{sec:update} we present the update procedures together with proofs of correctness and complexity.
@@ -180,24 +186,35 @@ In Section~\ref{sec:main-proof} we combine all components into the proof of the 
 
 \section{Interface specification}\label{sec:interface}
 
-In this section we precisely define the interface of the data structure.
-We use the parameter $\Delta$ and the functions $p(d,k)$ and $f(d,k)$ as defined in Section~\ref{sec:intro}.
+All procedures operate on a fixed vertex set $V=\{1,\ldots,n\}$ and maintain an undirected graph $G=(V,E)$ under edge updates.
+The parameters $d,k\in\NN$ are fixed at initialization; the update operations are guaranteed to satisfy the stated bounds under the promise that the current graph is $d$-degenerate.
+We use the parameter $\Delta:=4d$ and the functions $p(d,k)$ and $f(d,k)$ as defined in Section~\ref{sec:intro}.
 
-\noindent\proc{Init}$(n,d,k)$ initializes the data structure for the edgeless graph $G=(V,\emptyset)$ on $V=\{1,\ldots,n\}$ and runs in time $O(1)$.
+\subsection*{\texorpdfstring{Procedure \textnormal{\proc{Init}}$(n,d,k)$}{Procedure Init(n,d,k)}}
+\noindent\textbf{Effect.} Initializes the data structure for the edgeless graph $G=(V,\emptyset)$.
+\par
+\noindent\textbf{Running time.} $O(1)$.
 
-\noindent\proc{InsertEdge}$(u,v)$ inserts the edge $\{u,v\}$ if it is not present.
-It is required that after the insertion the graph remains $d$-degenerate; if this precondition is violated, the behavior is undefined.
-The amortized running time is $O(2^{4d}\cdot (d^3+\log^3 n))$.
+\subsection*{\texorpdfstring{Procedure \textnormal{\proc{InsertEdge}}$(u,v)$}{Procedure InsertEdge(u,v)}}
+\noindent\textbf{Effect.} Inserts the edge $\{u,v\}$ into the current graph if it is not already present.
+\par
+\noindent\textbf{Precondition.} After the insertion, the graph is $d$-degenerate.
+\par
+\noindent\textbf{Running time.} $O(2^{4d}\cdot (d^3+\log^3 n))$ amortized.
 
-\noindent\proc{DeleteEdge}$(u,v)$ deletes the edge $\{u,v\}$ if it is present.
-The amortized running time is $O(2^{4d}\cdot (d^3+\log^3 n))$.
+\subsection*{\texorpdfstring{Procedure \textnormal{\proc{DeleteEdge}}$(u,v)$}{Procedure DeleteEdge(u,v)}}
+\noindent\textbf{Effect.} Deletes the edge $\{u,v\}$ from the current graph if it is present; otherwise does nothing.
+\par
+\noindent\textbf{Running time.} $O(2^{4d}\cdot (d^3+\log^3 n))$ amortized.
 
-\noindent\proc{Query}() returns a dominating set $D$ with $|D|\le k$ if one exists, and otherwise returns~$\bot$.
-The procedure is Las~Vegas: the returned answer is always correct, and the running time is a random variable.
-The expected running time is $O(f(d,k) \cdot \log^3 n)$.
-For a fixed randomness seed, the update procedures $\proc{InsertEdge}$ and $\proc{DeleteEdge}$ are deterministic, while $\proc{Query}$ may resample the seed.
+\subsection*{\texorpdfstring{Procedure \textnormal{\proc{Query}}$()$}{Procedure Query()}}
+\noindent\textbf{Effect.} Returns a set $D\subseteq V$ such that $|D|\le k$ and $\bigcup_{v\in D}\NbhC{v}=V$ if such a set exists, and otherwise returns~$\bot$.
+The procedure is Las~Vegas: the returned answer is always correct, while the running time is a random variable.
+\par
+\noindent\textbf{Running time.} $O(f(d,k)\cdot \log^3 n)$ expected.
 
-Space complexity: the data structure uses $O(n+m+m \cdot 2^{4d} \cdot \log^2 n)$ machine words, where $m$ is the current number of edges (Theorem~\ref{thm:space}).
+\subsection*{Space usage}
+\noindent\textbf{Bound.} The space complexity is analyzed in Theorem~\ref{thm:space}.
 
 
 \section{Data structure}\label{sec:ds}
@@ -258,12 +275,14 @@ The data structure uses $O(n + m)$ memory for a graph with $n$ vertices and $m$ 
 
 \begin{lemma}[Reporting reoriented edges]\label{lem:bf-report}
 There exists an implementation of the data structure from Theorem~\ref{thm:bf} such that each update additionally outputs the list of edges whose orientation changed during this update.
-Producing this list takes $O(r)$ time, where $r$ is the number of reoriented edges, and does not affect the amortized bounds from Theorem~\ref{thm:bf}.
+If $r$ is the number of edges reoriented during this update, then producing this list takes $O(r)$ additional time.
 \end{lemma}
 
 \begin{proof}
-We implement the structure from Theorem~\ref{thm:bf} so that whenever it changes the stored orientation of an edge (that is, flips its direction in~$\vec{G}$), it appends this edge to an output list.
-Maintaining such a list adds $O(1)$ overhead per reoriented edge, hence $O(r)$ total time, and does not change the amortized bounds.
+Consider one update of the Brodal--Fagerberg structure and let $r$ be the number of edges whose orientation changes during this update.
+We augment the implementation so that whenever an edge is reoriented (its arc in~$\vec{G}$ is flipped), the edge identifier is appended to an output list.
+This adds an overhead of $O(1)$ time per reoriented edge and therefore $O(r)$ time in total.
+The list is temporary and uses $O(r)$ additional memory during an update.
 \end{proof}
 
 By Lemma~\ref{lem:arb}, for a $d$-degenerate graph we can apply Theorem~\ref{thm:bf} with parameter $\alpha = d$, obtaining an orientation with out-degree at most $\Delta$ (in particular, at most $4d$).
@@ -287,7 +306,7 @@ This information is used to implement the candidate oracle (Section~\ref{sec:can
 
 For a set $Z \subseteq V$ of size $|Z| \leq \Delta$ we define the \emph{bucket} $B(Z) := \{u \in V^+ : Z \subseteq \Np(u)\}$ as the set of non-isolated vertices whose out-neighborhood contains all of~$Z$.
 For $|Z|>\Delta$ we have $B(Z)=\emptyset$, since $|\Np(u)|\le \Delta$ for every vertex~$u$.
-We store buckets in a global dictionary, where the key is the set~$Z$ represented as a sorted sequence of vertex identifiers.
+We store buckets in a global dictionary, where the key is the set~$Z$ represented as a sorted sequence of at most~$\Delta$ vertex identifiers.
 Comparing two keys costs $O(\Delta)$, so dictionary operations take time $O(\Delta \log M)$ for a dictionary of size~$M$.
 At any time, the number of nonempty buckets satisfies
 \[
@@ -295,18 +314,16 @@ M \le \sum_{u \in V^+} 2^{|\Np(u)|} \le |V^+|\cdot 2^\Delta \le n \cdot 2^\Delta
 \]
 Hence $\log M \le \log n + \Delta$ and dictionary operations take time $O(\Delta(\log n + \Delta))$.
 
-We maintain a bucket object only when $B(Z)$ is nonempty; it stores the key~$Z$, the element set $B(Z)$, and the counter arrays defined in Section~\ref{sec:labels}.
-For each vertex $u\in V^+$ we maintain a list of all sets $Z\subseteq \Np(u)$ such that $u\in B(Z)$; this list has size exactly $2^{|\Np(u)|}\le 2^\Delta$.
-To support $O(1)$ modifications of bucket memberships, each bucket $B(Z)$ is represented as a doubly linked list of vertices with a stored head pointer and size.
-Each registration record for a pair $(u,Z)$ stores a pointer to the bucket object for~$Z$ and a pointer to the list node representing~$u$ in the list for~$B(Z)$.
-Thus, once the record for $(u,Z)$ is available, removing or inserting $u$ into $B(Z)$ takes $O(1)$ pointer updates; updating the associated counters takes $O(\log^2 n)$ time per insertion/deletion.
+We maintain a bucket object only when $B(Z)$ is nonempty; it stores the key~$Z$, the current set $B(Z)$ as a linked list, and the counter arrays defined in Section~\ref{sec:labels}.
+For each vertex $u\in V^+$ we maintain a registration list containing, for every set $Z\subseteq \Np(u)$, a record that gives direct access to the list node of~$u$ in~$B(Z)$.
+This list has size exactly $2^{|\Np(u)|}\le 2^\Delta$.
+Consequently, once the record for $(u,Z)$ is available, removing or inserting $u$ into $B(Z)$ takes $O(1)$ pointer updates, while maintaining the counters for this change takes $O(\log^2 n)$ time.
 
-Finally, we maintain iterable lists of the current set $V^+$ and of all nonempty buckets.
-These are used only during resampling in the witness oracle to traverse all registration pairs $(u,Z)$ with $u\in B(Z)$.
+Finally, we maintain iterable lists of the current set $V^+$ and of all nonempty buckets; these are used only during resampling in the witness oracle to traverse all registration pairs $(u,Z)$ with $u\in B(Z)$.
 
 \subsection{Random labels and counters}\label{sec:labels}
 
-Fix an integer constant $c_0:=7$ and let $\lambda := \lceil c_0 \log n \rceil$.
+Fix an integer constant $c_0:=7$ and let $\lambda := \lceil c_0 w \rceil$.
 This value of $c_0$ is chosen so that the failure probability bound in Theorem~\ref{thm:domwitness} yields $q<n^{-1}$ for all $n$.
 The data structure maintains a current randomness seed~$\sigma$ that describes functions $h_1, \ldots, h_\lambda \colon V \to \{0, 1, \ldots, 2^{2w} - 1\}$ and we set $R_j(u) := h_j(u)$.
 The seed is sampled on demand and then kept fixed until it is replaced by resampling in the witness oracle (Section~\ref{sec:witness}).
@@ -317,18 +334,46 @@ There exists a family $\mathcal{H}$ of hash functions $h\colon V\to \{0,1,\ldots
 \end{lemma}
 
 \begin{proof}
-See, e.g.,~\cite{CarterWegman79,Dietzfelbinger96} for explicit constructions.
+Let $M:=2^{2w}$.
+Choose two independent uniformly random values $A,B \in \{0,1,\ldots,M-1\}$ and define
+\[
+h(u) := \left\lfloor \frac{(A\cdot \id(u)+B)\bmod M}{2^w}\right\rfloor.
+\]
+The description of $h$ consists of the two $2w$-bit values $A$ and~$B$, which fit in $O(1)$ machine words.
+The value of $h(u)$ is the high $w$ bits of the $2w$-bit integer $(A\cdot \id(u)+B)\bmod M$, hence it can be computed using $O(1)$ word operations (Section~\ref{sec:model}).
+
+We prove pairwise independence.
+Fix distinct vertices $u,v \in V$.
+Let $x:=\id(u)$ and $y:=\id(v)$; since $x,y \in \{1,\ldots,n\}\subseteq \{0,1,\ldots,2^w-1\}$ and $x\neq y$, we can write $y-x = 2^s\cdot t$ where $t$ is odd and $0\le s \le w-1$.
+Fix any $a,b \in \{0,1,\ldots,2^w-1\}$.
+For each choice of low words $r_x,r_y \in \{0,1,\ldots,2^w-1\}$ define the $2w$-bit targets
+\[
+T_x := a\cdot 2^w + r_x
+\qquad\text{and}\qquad
+T_y := b\cdot 2^w + r_y.
+\]
+The system of congruences
+\[
+A\cdot x + B \equiv T_x \pmod M,
+\qquad
+A\cdot y + B \equiv T_y \pmod M
+\]
+has a solution $(A,B)$ if and only if $T_y-T_x$ is divisible by $2^s$, because $2^s$ is the greatest common divisor of $y-x$ and~$M$.
+Moreover, if a solution exists then there are exactly $2^s$ choices for~$A$ modulo~$M$, and then $B$ is uniquely determined by the first congruence.
+Since $a\cdot 2^w$ and $b\cdot 2^w$ are both divisible by $2^w$ and $s<w$, the divisibility condition depends only on the low words and is equivalent to $r_y \equiv r_x \pmod {2^s}$.
+Thus, among the $2^w$ choices of~$r_x$ and the $2^w$ choices of~$r_y$, exactly $2^w\cdot 2^{w-s}$ pairs satisfy the condition, and each such pair yields exactly $2^s$ solutions $(A,B)$.
+Hence there are exactly $2^w\cdot 2^{w-s}\cdot 2^s = 2^{2w}$ parameter pairs $(A,B)$ that satisfy $h(u)=a$ and $h(v)=b$.
+As $(A,B)$ is uniform over $M^2=2^{4w}$ choices, we get $\Pr(h(u)=a \land h(v)=b)=2^{2w}/2^{4w}=2^{-2w}$.
 \end{proof}
 
 We sample the functions $h_1,\ldots,h_\lambda$ independently from each other.
 The seed~$\sigma$ stores the descriptions of these functions and occupies $O(\lambda)=O(\log n)$ machine words.
-We implement $h_j$ by sampling two functions $h_j^{(0)}, h_j^{(1)} \colon V \to \{0, 1, \ldots, 2^{w}-1\}$ independently from $\mathcal{H}$ (Lemma~\ref{lem:hash-impl}) and setting
+We obtain each $h_j$ by sampling two functions $h_j^{(0)}, h_j^{(1)} \colon V \to \{0, 1, \ldots, 2^{w}-1\}$ independently from $\mathcal{H}$ (Lemma~\ref{lem:hash-impl}) and setting
 \[
 h_j(u) := h_j^{(1)}(u)\cdot 2^{w} + h_j^{(0)}(u).
 \]
-We represent $h_j(u)$ as the pair of machine words $(h_j^{(1)}(u), h_j^{(0)}(u))$, so evaluating $R_j(u)$ and comparing it with the threshold $2^{2w-i-1}$ takes $O(1)$ time.
-Since the two components are sampled independently and each is pairwise independent, the resulting family for $h_j$ is pairwise independent over the range $\{0,1,\ldots,2^{2w}-1\}$.
-In particular, for any two distinct vertices $u, v \in V$ and any $a,b \in \{0,1,\ldots,2^{2w}-1\}$ we have $\Pr(h_j(u) = a \land h_j(v) = b) = 2^{-4w}$, and hence each value $h_j(u)$ is uniform over $\{0,1,\ldots,2^{2w}-1\}$.
+Thus each $h_j$ maps $V$ to $\{0,1,\ldots,2^{2w}-1\}$ and can be evaluated in $O(1)$ time.
+Since the two components are sampled independently and each is pairwise independent, for any two distinct vertices $u, v \in V$ and any $a,b \in \{0,1,\ldots,2^{2w}-1\}$ we have $\Pr(h_j(u) = a \land h_j(v) = b) = 2^{-4w}$; in particular, each value $h_j(u)$ is uniform over $\{0,1,\ldots,2^{2w}-1\}$.
 The isolation analysis in Lemma~\ref{lem:isolation} uses only this pairwise-independence property.
 The independence of the samples $h_1, \ldots, h_\lambda$ is used to bound the probability that isolation fails for all $j$ in Theorem~\ref{thm:domwitness}.
 
@@ -345,7 +390,7 @@ For every finite set $A \subseteq V$ we define
 \idsum(A) := \sum_{u \in A} \id(u) \bmod 2^w.
 \]
 
-For each nonempty bucket $B(Z)$ and each pair $(i,j)$ we store the counter $C_{Z,i,j} := |B(Z) \cap S_{i,j}|$ and the identifier sum $T_{Z,i,j} := \sum_{u \in B(Z) \cap S_{i,j}} \id(u) \mod 2^w$.
+For each nonempty bucket $B(Z)$ and each pair $(i,j)$ we store the counter $C_{Z,i,j} := |B(Z) \cap S_{i,j}|$ and the identifier sum $T_{Z,i,j} := \sum_{u \in B(Z) \cap S_{i,j}} \id(u) \bmod 2^w$.
 We also store analogous global counters $C_{\mathrm{all},i,j}$ and $T_{\mathrm{all},i,j}$ for the set $V^+$ (vertices of nonzero degree), which are stored explicitly in the data structure.
 In particular, for the initial edgeless graph we have $V^+ = \emptyset$, so all these counters are equal to~$0$.
 
@@ -377,10 +422,10 @@ Together with the $O(n+m)$ memory needed for the dynamic orientation and the nei
 
 \section{Update procedures}\label{sec:update}
 
-\subsection{Procedure \proc{Init}}
+\subsection{Procedure \textnormal{\proc{Init}}}
 
 The procedure $\proc{Init}(n, d, k)$ creates the structure for the edgeless graph $G = (V, \emptyset)$ in time $O(1)$ using lazy initialization.
-First, it stores the input parameters $n, d, k$ in global memory and computes the derived constants $\Delta = 4d$ and $\lambda = \lceil c_0 \log n \rceil$ (where $c_0=7$ is the fixed constant from Section~\ref{sec:labels}).
+First, it stores the input parameters $n, d, k$ in global memory and computes the derived constants $\Delta = 4d$ and $\lambda = \lceil c_0 w \rceil$ (where $c_0=7$ is the fixed constant from Section~\ref{sec:labels}).
 It initializes the dynamic orientation structure of Theorem~\ref{thm:bf} for the edgeless graph and allocates empty dictionary objects for the neighbor dictionaries and the bucket system (implemented as balanced binary search trees), without iterating over the vertex set.
 Memory for specific vertices is allocated only at the first call to \proc{InsertEdge} or \proc{DeleteEdge} involving them.
 The set $V^+$ is initially empty, while the set of isolated vertices $V \setminus V^+$ is initialized as a single interval $[1,n]$.
@@ -398,7 +443,7 @@ Therefore, \proc{Init} can leave $\sigma$ undefined and allocate no counter arra
 The procedure performs only $O(1)$ operations on machine words and hence runs in time $O(1)$.
 \end{proof}
 
-\subsection{Auxiliary procedure \proc{Reregister}}
+\subsection{Auxiliary procedure \textnormal{\proc{Reregister}}}
 
 After the set $\Np(u)$ changes (due to edge reorientation), the registrations of vertex~$u$ in the buckets must be updated.
 Let $\Np_{\mathrm{old}}(u)$ and $\Np_{\mathrm{new}}(u)$ denote the out-neighborhoods of~$u$ before and after the change, respectively.
@@ -419,7 +464,7 @@ During the insertion phase it inserts $u$ into every bucket $B(Z)$ with $Z \subs
 Thus, after the two phases, for every set $Z$ we have $u \in B(Z)$ if and only if $Z \subseteq \Np_{\mathrm{new}}(u)=\Np(u)$.
 
 It remains to argue correctness of the counters.
-Recall the definitions from Section~\ref{sec:labels}:
+By definition (Section~\ref{sec:labels}),
 $C_{Z,i,j} := |B(Z)\cap S_{i,j}|$ and $T_{Z,i,j} := \sum_{x \in B(Z)\cap S_{i,j}} \id(x) \bmod 2^w$.
 Whenever $u$ is removed from a bucket $B(Z)$, we decrement $C_{Z,i,j}$ and subtract $\id(u)$ from $T_{Z,i,j}$ exactly for those pairs $(i,j)$ for which $u \in S_{i,j}$; hence after the removal the counter values again satisfy the defining equalities for the updated bucket.
 Analogously, whenever $u$ is inserted into a bucket $B(Z)$, we increment $C_{Z,i,j}$ and add $\id(u)$ to $T_{Z,i,j}$ for exactly those pairs with $u \in S_{i,j}$, restoring correctness of the counter definitions after the insertion.
@@ -439,7 +484,7 @@ For each bucket we perform a dictionary operation (cost $O(\Delta(\log n + \Delt
 The total cost is $O(2^\Delta \cdot (\Delta(\log n + \Delta) + \log^2 n))$.
 \end{proof}
 
-\subsection{Procedure \proc{InsertEdge}}
+\subsection{Procedure \textnormal{\proc{InsertEdge}}}
 
 The procedure $\proc{InsertEdge}(u,v)$ changes the represented graph only if $\{u,v\}\notin E$.
 In this case it inserts $v$ into $\Nbh(u)$ and $u$ into $\Nbh(v)$.
@@ -451,7 +496,7 @@ Next, the procedure updates the maintained orientation using the insertion opera
 By Lemma~\ref{lem:bf-report}, we obtain the list of edges whose orientation changed during this update, and hence the set of vertices $x$ whose out-neighborhood $\Np(x)$ changed.
 For each such vertex (as well as for the endpoints $u$ and~$v$ of the inserted edge) the procedure invokes $\proc{Reregister}(x)$.
 
-\subsection{Procedure \proc{DeleteEdge}}
+\subsection{Procedure \textnormal{\proc{DeleteEdge}}}
 
 The procedure $\proc{DeleteEdge}(u,v)$ changes the represented graph only if $\{u,v\}\in E$.
 In this case it removes $v$ from $\Nbh(u)$ and $u$ from $\Nbh(v)$.
@@ -482,6 +527,8 @@ The amortized running time of $\proc{InsertEdge}$ and $\proc{DeleteEdge}$ is $O(
 
 \begin{proof}
 Updating the dictionaries $\Nbh(\cdot)$ costs $O(\log n)$.
+Additionally, during the first update that makes $V^+$ nonempty, the structure samples the seed~$\sigma$ and initializes the global counter arrays $C_{\mathrm{all},i,j},T_{\mathrm{all},i,j}$ to~$0$ (this can happen only once, as it requires $V^+=\emptyset$ beforehand).
+This takes $O((2w)\cdot \lambda)=O(\log^2 n)$ time and is subsumed by the amortized bounds below.
 Handling possible changes of vertex status between $V^+$ and $V \setminus V^+$ costs $O(\log^2 n)$ per affected vertex:
 updating the interval representation of isolated vertices takes $O(\log n)$ time by Lemma~\ref{lem:isolated-intervals}, and updating the global counters $C_{\mathrm{all},i,j},T_{\mathrm{all},i,j}$ touches $(2w)\cdot \lambda = O(\log^2 n)$ pairs $(i,j)$ and takes $O(\log^2 n)$ time.
 If an endpoint becomes isolated after a deletion, we traverse its registration list and remove it from all buckets while updating the counters (and deleting buckets that become empty).
@@ -494,7 +541,7 @@ The total amortized cost is:
 \[
 O(\log n) + O(d + \log n) \cdot O(2^\Delta \cdot (\Delta(\log n + \Delta) + \log^2 n)) = O(2^\Delta \cdot (d + \log n) \cdot (\Delta(\log n + \Delta) + \log^2 n)).
 \]
-Recalling that $\Delta = 4d$, the right-hand side is
+Since $\Delta = 4d$, the right-hand side is
 \[
 O(2^{4d}\cdot (d + \log n) \cdot (d(\log n + d) + \log^2 n))
 = O(2^{4d}\cdot (d+\log n)^3)
@@ -502,8 +549,28 @@ O(2^{4d}\cdot (d + \log n) \cdot (d(\log n + d) + \log^2 n))
 \]
 \end{proof}
 
+\begin{corollary}[Correctness and complexity of \proc{InsertEdge}]\label{cor:insertedge}
+Assume the promise of the interface specification (Section~\ref{sec:interface}).
+Let $G=(V,E)$ be the graph represented before the call.
+After executing $\proc{InsertEdge}(u,v)$ the data structure represents $G'=(V,E\cup\{\{u,v\}\})$, and the amortized running time of the procedure is $O(2^{4d}\cdot (d^3+\log^3 n))$.
+\end{corollary}
 
-\section{Procedure \proc{Query}}\label{sec:query}
+\begin{proof}
+Correctness follows from Lemma~\ref{lem:update-correct}, and the running-time bound follows from Lemma~\ref{lem:update-time}.
+\end{proof}
+
+\begin{corollary}[Correctness and complexity of \proc{DeleteEdge}]\label{cor:deleteedge}
+Assume the promise of the interface specification (Section~\ref{sec:interface}).
+Let $G=(V,E)$ be the graph represented before the call.
+After executing $\proc{DeleteEdge}(u,v)$ the data structure represents $G'=(V,E\setminus\{\{u,v\}\})$, and the amortized running time of the procedure is $O(2^{4d}\cdot (d^3+\log^3 n))$.
+\end{corollary}
+
+\begin{proof}
+Correctness follows from Lemma~\ref{lem:update-correct}, and the running-time bound follows from Lemma~\ref{lem:update-time}.
+\end{proof}
+
+
+\section{\texorpdfstring{Procedure \textnormal{\proc{Query}}}{Procedure Query}}\label{sec:query}
 
 The procedure $\proc{Query}$ is based on a semi-ladder algorithm inspired by the work of Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{FabianskiPST19}.
 
@@ -527,6 +594,23 @@ For a graph $G = (V, E)$ and a parameter~$k$ we define the bipartite graph $H_G 
 The graph $G$ has a dominating set of size at most~$k$ if and only if there exists a candidate $\bar{x} \in L$ that is adjacent to all witnesses in~$H_G$.
 \par
 Any dominating set $D \subseteq V$ with $|D| \leq k$ can be represented by a candidate $\bar{x}\in V^k$ by listing the elements of~$D$ and repeating arbitrary vertices to obtain a $k$-tuple.
+\par
+In the remainder of the paper we represent candidate solutions as sets $D \subseteq V$ with $|D|\le k$ and write $\Dom(D):=\bigcup_{v \in D}\NbhC{v}$.
+To relate this representation to the candidate space $L=V^k$, for every nonempty set $D$ with $|D|\le k$ we define $\mathrm{pad}(D)\in V^k$ as the tuple obtained by listing the elements of~$D$ in increasing order and repeating the last element until length~$k$; for $k=0$ we let $\mathrm{pad}(\emptyset)$ be the unique empty tuple.
+Then for every $y \in V$ we have $y \in \Dom(D)$ if and only if $(\mathrm{pad}(D),y) \in E_H$.
+
+\begin{lemma}[Tuples versus sets]\label{lem:tuple-set}
+Let $H_G^{\mathrm{set}}$ be the bipartite graph with right side $V$ and left side consisting of all subsets $D \subseteq V$ with $1 \le |D| \le k$ (and additionally $D=\emptyset$ if $k=0$), where an edge $(D,y)$ exists if and only if $y \in \Dom(D)$.
+Then the semi-ladder index of $H_G^{\mathrm{set}}$ is at most the semi-ladder index of $H_G$.
+\end{lemma}
+
+\begin{proof}
+Consider a semi-ladder of order~$\ell$ in $H_G^{\mathrm{set}}$ given by distinct left vertices $D_1,\ldots,D_\ell$ and distinct right vertices $b_1,\ldots,b_\ell$.
+For each $i$ set $a_i := \mathrm{pad}(D_i)\in V^k$.
+Since $D_i \neq D_j$ for $i\neq j$, the tuples $a_i$ are pairwise distinct.
+Moreover, by the definition of $\mathrm{pad}(\cdot)$ we have $(a_i,b_j) \in E_H$ if and only if $b_j \in \Dom(D_i)$.
+Thus the sequences $a_1,\ldots,a_\ell$ and $b_1,\ldots,b_\ell$ form a semi-ladder of order~$\ell$ in~$H_G$.
+\end{proof}
 
 \begin{definition}[Semi-ladder]\label{def:semiladder}
 In a bipartite graph $H = (L, R, E)$, sequences of pairwise distinct vertices $a_1, \ldots, a_\ell \in L$ and $b_1, \ldots, b_\ell \in R$ form a \emph{semi-ladder of order~$\ell$} if $(a_i, b_i) \notin E$ for every~$i$ and $(a_i, b_j) \in E$ for all $i > j$.
@@ -582,41 +666,37 @@ The set $A$ has $2t$ elements.
 For each $a_i \in A$ and $b_j \in B$ we have $b_j \in \NbhC{a_i}$.
 The condition $b_j = a_i$ can hold for at most $|B| = t$ pairs $(a_i, b_j)$ with $a_i \in A$ and $b_j \in B$, since each element of $B$ can be equal to at most one element of~$A$ (the $b_j$ are pairwise distinct).
 
-Therefore there exists a subset $A' \subseteq A$ of size $|A'| \geq |A| - t = t$ such that for every $a \in A'$ and every $b \in B$ we have $a \neq b$, and hence $b \in \NbhC{a}$ implies $\{a, b\} \in E$.
+Let $A' := \{a \in A : a \notin B\}$.
+Since $|B|=t$, we have $|A'|\ge |A|-|B|=t$.
+For every $a \in A'$ and $b \in B$ we have $a\neq b$, and hence $b \in \NbhC{a}$ implies $\{a, b\} \in E$.
 Choosing any $t$ elements from $A'$ yields a set that together with $B$ forms a $K_{t,t}$ subgraph, contradicting the assumption that $G$ contains no $K_{t,t}$.
 \end{proof}
 
-\begin{lemma}[Disjunction of permuted relations {\cite[Lemma~5]{FabianskiPST19}}]\label{lem:permutation-disjunction}
-Let $\rho(\bar{x}; y)$ be a relation with semi-ladder index smaller than~$\ell$ for some $\ell \geq 1$, where $\bar{x}=(x_1,\ldots,x_k)$ and $k \geq 2$.
-For a permutation $\pi$ of $\{1,\ldots,k\}$ let $\rho^{\pi}(\bar{x}; y)$ be the relation obtained from~$\rho$ by permuting the variables in~$\bar{x}$ according to~$\pi$.
-Then for any permutations $\pi_1,\ldots,\pi_k$ the relation $\bigvee_{i=1}^{k}\rho^{\pi_i}(\bar{x}; y)$ has semi-ladder index smaller than $k^{\ell-1}$.
-\end{lemma}
-
-\begin{remark}
-Lemma~\ref{lem:permutation-disjunction} is proved in~\cite[Lemma~5]{FabianskiPST19}; we use it as stated to avoid duplicating its proof.
-Intuitively, if the disjunction admitted a semi-ladder of order $k^{\ell-1}$, then by repeatedly applying the pigeonhole principle one could extract a semi-ladder of order $\ell$ for one fixed disjunct $\rho^{\pi_i}$, contradicting the assumed semi-ladder index bound for~$\rho$.
-\end{remark}
-
-\begin{lemma}[Index bound for disjunctions]\label{lem:disjunction}
-Let $\varphi(x; y)$ be a binary relation with semi-ladder index smaller than~$\ell$ for some $\ell \geq 1$.
-Let $\psi(x_1, \ldots, x_k; y) := \bigvee_{i=1}^k \varphi(x_i, y)$ for $k \geq 2$.
-Then the semi-ladder index of~$\psi$ is smaller than $k^{\ell}$.
-\end{lemma}
-
-\begin{proof}
-Consider the relation
-$\varphi'(x_1, \ldots, x_k; y) := \varphi(x_1, y)$, which ignores the variables $x_2, \ldots, x_k$.
-Any semi-ladder for $\varphi'$ projects (by forgetting $x_2,\ldots,x_k$) to a semi-ladder of the same order for~$\varphi$, and conversely any semi-ladder for~$\varphi$ induces a semi-ladder for~$\varphi'$ by extending each left vertex with arbitrary values in the dummy coordinates.
-Hence $\varphi'$ has semi-ladder index smaller than~$\ell$.
-
-For each permutation $\pi$ of $\{1, \ldots, k\}$ let $\varphi'^{\pi}$ be the relation obtained from~$\varphi'$ by permuting the variables $x_1, \ldots, x_k$ according to~$\pi$.
-For the permutation $\pi_i$ with $\pi_i(1)=i$ we have $\varphi'^{\pi_i}(x_1, \ldots, x_k; y) = \varphi(x_i, y)$, and therefore
-\[
-\psi(x_1, \ldots, x_k; y) = \bigvee_{i=1}^k \varphi'^{\pi_i}(x_1, \ldots, x_k; y).
-\]
-
-By Lemma~\ref{lem:permutation-disjunction}, the semi-ladder index of this disjunction is smaller than $k^{\ell-1}$, and hence also smaller than $k^\ell$ (since $k\ge 2$ and $\ell\ge 1$).
-\end{proof}
+ \begin{lemma}[Index bound for disjunctions]\label{lem:disjunction}
+ Let $\varphi(x; y)$ be a binary relation with semi-ladder index smaller than~$\ell$ for some $\ell \geq 1$.
+ Let $\psi(x_1, \ldots, x_k; y) := \bigvee_{i=1}^k \varphi(x_i, y)$ for $k \geq 2$.
+ Then the semi-ladder index of~$\psi$ is smaller than $k^{\ell}$.
+ \end{lemma}
+ 
+ \begin{proof}
+ Suppose for contradiction that $\psi$ admits a semi-ladder of order $m := k^\ell$ with left vertices $\bar{a}_1,\ldots,\bar{a}_m$ and right vertices $b_1,\ldots,b_m$.
+ For every pair $i>j$ we have $\psi(\bar{a}_i;b_j)=\mathrm{true}$, hence we can fix an index $c(i,j)\in\{1,\ldots,k\}$ such that $\varphi((\bar{a}_i)_{c(i,j)}, b_j)=\mathrm{true}$.
+ 
+ We construct indices $1\le i_1<\cdots<i_\ell\le m$ and colors $p_2,\ldots,p_\ell\in\{1,\ldots,k\}$ as follows.
+ Set $I_\ell := \{1,\ldots,m\}$ and $i_\ell := m$.
+ For $t=\ell,\ell-1,\ldots,2$, among the values $c(i_t,j)$ for $j\in I_t\setminus\{i_t\}$ choose some $p_t$ that appears at least $\lceil(|I_t|-1)/k\rceil$ times, and let
+ \[
+ I_{t-1} := \{j\in I_t : j<i_t \text{ and } c(i_t,j)=p_t\}.
+ \]
+ Then set $i_{t-1}:=\max I_{t-1}$.
+ Since $|I_\ell|=m=k^\ell$ and $|I_{t-1}|\ge (|I_t|-1)/k$, this process is well-defined and yields $|I_t|\ge k^t$ for every $t$, in particular $I_1$ is nonempty.
+ 
+ Define $p_1:=1$ and, for every $t\in\{1,\ldots,\ell\}$, let $a_t := (\bar{a}_{i_t})_{p_t}$ and $b'_t := b_{i_t}$.
+ We claim that the sequences $a_1,\ldots,a_\ell$ and $b'_1,\ldots,b'_\ell$ form a semi-ladder of order~$\ell$ for~$\varphi$.
+ Indeed, for every $t$ we have $\psi(\bar{a}_{i_t};b_{i_t})=\mathrm{false}$, hence $\varphi(a_t,b'_t)=\mathrm{false}$.
+ For $t>s$, since $i_s \in I_{t-1}$, by construction $c(i_t,i_s)=p_t$ and therefore $\varphi(a_t,b'_s)=\mathrm{true}$.
+ This contradicts the assumption that $\varphi$ has semi-ladder index smaller than~$\ell$.
+ \end{proof}
 
 \begin{theorem}[Semi-ladder index bound]\label{thm:sd-bound}
 If $G$ is $d$-degenerate, then the semi-ladder index of $H_G$ is smaller than $p(d,k)$.
@@ -671,15 +751,16 @@ An explicit list of elements of $U_2(X)$ is not generated, as its size can be li
 \begin{proof}
 We compute $U_1(X)$ by enumerating the multiset union $\bigcup_{x \in X}\Np(x)$ and de-duplicating on the fly.
 We traverse all pairs $(x,u)$ with $x \in X$ and $u \in \Np(x)$; there are at most $\Delta \cdot |X|$ such pairs.
-We maintain a global array indexed by $V$ storing timestamps, together with a global counter.
-At the beginning of the computation of $U_1(X)$ we increment the counter and treat a vertex as unmarked if its timestamp differs from the current counter value; marking the vertex consists of writing the current counter value into its timestamp cell.
-Thus, no entry of the array is ever reset, and each encountered vertex $u$ is processed at most once.
-Whenever we encounter a previously unmarked vertex $u$, we mark it and check whether $X \subseteq \Nbh(u)$.
+We de-duplicate using a temporary dictionary $\mathsf{Mark}$ keyed by vertex identifiers, initialized empty at the beginning of the computation.
+Whenever we encounter a vertex $u$, we first test whether $u \in \mathsf{Mark}$; if yes, we skip~$u$, and otherwise we insert $u$ into $\mathsf{Mark}$ and process it.
+Thus each encountered vertex is processed at most once.
+Each membership test and insertion into $\mathsf{Mark}$ takes time $O(\log n)$, and hence the total de-duplication overhead is $O(\Delta\cdot |X|\cdot \log n)$.
+Whenever we process a new vertex $u$, we check whether $X \subseteq \Nbh(u)$.
 This check requires $|X|$ membership queries in the neighbor dictionaries, each taking time $O(\log n)$.
 If the check succeeds, we append $u$ to the output list; the list length is the computed value $|U_1(X)|$.
 Finally, since $u \in \Np(x)$ for some $x \in X$, we have $x \notin \Np(u)$ and therefore $X \not\subseteq \Np(u)$, implying $u \notin U_2(X)$.
 Hence every appended vertex indeed belongs to $U_1(X)$.
-The total cost of this phase is $O(\Delta \cdot |X| \cdot |X| \cdot \log n) = O(\Delta \cdot t^2 \cdot \log n)$.
+The total cost of this phase is $O(\Delta \cdot |X| \cdot \log n + \Delta \cdot |X| \cdot |X| \cdot \log n) = O(\Delta \cdot t^2 \cdot \log n)$.
 
 We compute $U_2(X)$ as follows.
 If $|X| > \Delta$, then $U_2(X) = \emptyset$.
@@ -882,7 +963,7 @@ Finally, if $|X|\le \Delta$ then $U_2(X)=B(X)$ and the stored counters satisfy $
 If $|R| = 0$, we report domination.
 If $|R| > 0$, we try to \emph{isolate} a single element $r \in R$ using the sets $S_{i,j}$.
 For each pair $(i,j)$ we compute $|R \cap S_{i,j}|$ and $\idsum(R \cap S_{i,j})$ using the analogous inclusion--exclusion formula over $V^+$, in which the term for $X=\emptyset$ is given by the global counters $C_{\mathrm{all},i,j}$ and $T_{\mathrm{all},i,j}$.
-If $|R \cap S_{i,j}| = 1$ and $r$ is the unique element of $R \cap S_{i,j}$, then $\idsum(R \cap S_{i,j}) = \id(r) \bmod 2^w = \id(r)$, because $\id(r) < n < 2^w$.
+If $|R \cap S_{i,j}| = 1$ and $r$ is the unique element of $R \cap S_{i,j}$, then $\idsum(R \cap S_{i,j}) = \id(r) \bmod 2^w = \id(r)$, because $\id(r) \in \{1,\ldots,n\}$ and $n<2^w$ by the word-size assumption in Section~\ref{sec:model}.
 After verification (checking that the recovered vertex $r$ satisfies $r \in V^+$ and $r \notin \Dom(D)$) we return~$r$.
 
 If for no pair $(i,j)$ we have $|R \cap S_{i,j}| = 1$, we perform \emph{resampling}: we sample a new seed $\sigma'$ (hence independently new functions $h_1, \ldots, h_\lambda$), recompute all counters $C_{Z,i,j}, T_{Z,i,j}$ in nonempty buckets and the global counters $C_{\mathrm{all},i,j}, T_{\mathrm{all},i,j}$ for $V^+$, and repeat the isolation procedure.
@@ -939,7 +1020,7 @@ Resampling is performed until success, so the procedure always returns a correct
 We first invoke Lemma~\ref{lem:isolated-witness}, which costs $O(k\log n)$ time and either terminates with an isolated witness or establishes that all isolated vertices belong to~$D$.
 For each nonempty $X \subseteq D$ (there are $2^k - 1$ of them) we compute $U(X)$ via Lemma~\ref{lem:U-time} and we compute $X'$ as in Lemma~\ref{lem:I}; this takes $O(\Delta \cdot k^2 \cdot (\log n + \Delta))$ time per~$X$.
 By Lemma~\ref{lem:iex-terms}, these values determine $|I^+(X)|$ as well as, for every pair $(i,j)$, the quantities $|I^+(X)\cap S_{i,j}|$ and $\idsum(I^+(X)\cap S_{i,j})$ needed to update the inclusion--exclusion accumulators for $|R|$, $|R\cap S_{i,j}|$, and $\idsum(R\cap S_{i,j})$.
-The accumulators for the cardinalities are maintained as signed multiword integers (Lemma~\ref{lem:multiword}), which incurs an additional factor $O(k+1)$ per update of an inclusion--exclusion sum.
+The accumulators for the cardinalities are maintained as signed multiword integers; by Remark~\ref{rem:multiword} this incurs an additional factor $O(k+1)$ per update of an inclusion--exclusion sum.
 If the isolation step succeeds, we additionally verify the recovered vertex $r$ by testing $r \in V^+$ and $r \notin \Dom(D)$, which takes $O(k \cdot \log n)$ time and is dominated by the previous terms.
 The total cost of one try is $T_{\mathrm{try}} = O(2^k \cdot (1+\Delta) \cdot k^3 \cdot (\log n + \Delta) \cdot \log^2 n)$.
 
@@ -948,10 +1029,14 @@ Assume $|R|\ge 1$.
 Let $q$ denote the probability (over the random seed~$\sigma$) that the isolation step fails in a single try, i.e., for every $j\in\{1,\ldots,\lambda\}$ and every $i\in\{0,1,\ldots,2w-1\}$ we have $|R\cap S_{i,j}|\neq 1$.
 By Lemma~\ref{lem:isolation}, there exists $i^*$ such that for each fixed $j$ the event $|R\cap S_{i^*,j}|=1$ has probability at least $1/(2e)$.
 Moreover, since the functions $h_1,\ldots,h_\lambda$ are sampled independently, the events $|R\cap S_{i^*,j}|=1$ are independent over distinct values of~$j$.
-Therefore, $q \le (1 - 1/(2e))^\lambda \leq e^{-\lambda/(2e)}$.
-Since $\lambda = \lceil c_0 \log n \rceil \ge c_0 \log n$, we obtain $q \le e^{-c_0\log n/(2e)}$.
+Therefore, $q \le (1 - 1/(2e))^\lambda$.
+Using $\ln(1-x)\le -x$ for $x\in(0,1)$, we obtain $(1 - 1/(2e))^\lambda \le e^{-\lambda/(2e)}$.
+Since $\lambda = \lceil c_0 w \rceil \ge c_0 w$ and $w \ge \log n$, we obtain $q \le e^{-c_0\log n/(2e)}$.
 If $n\ge 2$ then $\log n=\log_2 n$ and therefore $q \le n^{-c_0/(2e\ln 2)}$.
-We have $e=\sum_{t\ge 0}1/t!\le 1+1+\sum_{t\ge 2}2^{-(t-1)}=3$ and $\ln 2<1$, hence $2e\ln 2 < 6$ and $c_0/(2e\ln 2)>7/6>1$.
+For every $t\ge 2$ we have $t! \ge 2^{t-1}$ (by induction), hence $1/t! \le 2^{-(t-1)}$ and therefore
+$e=\sum_{t\ge 0}1/t!\le 1+1+\sum_{t\ge 2}2^{-(t-1)}=3$.
+Moreover, $e>2$ and hence $\ln 2 < \ln e = 1$.
+Thus $2e\ln 2 < 6$ and $c_0/(2e\ln 2)>7/6>1$.
 Thus $q < n^{-1}$ for $n\ge 2$; for $n=1$ we have $q<1=n^{-1}$ as well.
 
 \textit{Resampling cost:}
@@ -995,7 +1080,9 @@ If the witness oracle confirms that $D_t$ dominates~$V$, the procedure returns~$
 Otherwise it returns a vertex $r_t \notin \Dom(D_t)$ and the loop sets $W_{t+1}:=W_t\cup\{r_t\}$.
 
 \begin{theorem}[Correctness and complexity of \proc{Query}]\label{thm:query}
-The procedure \proc{Query} is correct and has expected running time $O(f(d,k)\cdot \log^3 n)$, where $f(d,k)$ is defined in Section~\ref{sec:intro}.
+Assume that the current graph is $d$-degenerate, as promised by the update operations.
+The procedure $\proc{Query}()$ returns $\bot$ if and only if the current graph has no dominating set of size at most~$k$; otherwise it returns a dominating set $D\subseteq V$ with $|D|\le k$.
+Moreover, the expected running time is $O(f(d,k)\cdot \log^3 n)$, where $f(d,k)$ is defined in Section~\ref{sec:intro}.
 \end{theorem}
 
 \begin{proof}
@@ -1047,24 +1134,6 @@ The main ingredients are the dynamic bounded-outdegree orientation of Brodal--Fa
 
 \appendix
 
-\section{Multiword integers}\label{app:multiword}
-
-In the witness oracle we evaluate inclusion--exclusion sums over at most $2^k-1$ terms, each term being an integer between $0$ and~$n$.
-Consequently, the absolute values of all intermediate sums are bounded by $2^k\cdot n$.
-We use the following representation to support exact arithmetic on such numbers.
-
-\begin{lemma}[Multiword integers]\label{lem:multiword}
-Let $B := 2^w$.
-Every integer $z$ with $|z| \le 2^k\cdot n$ can be represented in base~$B$ using $\ell=O(k+1)$ machine words.
-Given two such representations, addition, subtraction, and comparison can be performed in time $O(\ell)=O(k+1)$.
-\end{lemma}
-
-\begin{proof}
-Since $n < 2^w=B$, every $z$ with $|z| \le 2^k \cdot n$ satisfies $|z| < 2^k \cdot B < B^{k+1}$, and therefore admits a base-$B$ representation using at most $k+1$ digits, that is, $\ell \le k+1$ machine words.
-Addition and subtraction can be implemented digit-by-digit with carries/borrows, and comparison can be implemented by checking the sign and then comparing the most significant differing digit.
-Each operation scans $O(\ell)$ digits and therefore takes time $O(\ell)=O(k+1)$.
-\end{proof}
-
 \section{Interval representation of isolated vertices}\label{app:intervals}
 
 Let $I := V \setminus V^+$.
@@ -1100,18 +1169,6 @@ G.~S.~Brodal and R.~Fagerberg.
 \newblock In \emph{Proceedings of the 6th International Workshop on Algorithms and Data Structures (WADS 1999)}, volume 1663 of \emph{Lecture Notes in Computer Science}, pages 342--351. Springer, 1999.
 \newblock doi:10.1007/3-540-48447-7\_34.
 
-\bibitem{CarterWegman79}
-J.~L.~Carter and M.~N.~Wegman.
-\newblock Universal classes of hash functions.
-\newblock \emph{Journal of Computer and System Sciences}, 18(2):143--154, 1979.
-\newblock doi:10.1016/0022-0000(79)90044-8.
-
-\bibitem{Dietzfelbinger96}
-M.~Dietzfelbinger.
-\newblock Universal hashing and $k$-wise independent random variables via integer arithmetic without primes.
-\newblock In \emph{Proceedings of the 13th Annual Symposium on Theoretical Aspects of Computer Science (STACS 1996)}, volume 1046 of \emph{Lecture Notes in Computer Science}, pages 569--580. Springer, 1996.
-\newblock doi:10.1007/3-540-60922-9\_46.
-
 \bibitem{CLRS}
 T.~H.~Cormen, C.~E.~Leiserson, R.~L.~Rivest, and C.~Stein.
 \newblock \emph{Introduction to Algorithms}.
@@ -1126,7 +1183,7 @@ G.~Fabia\'nski, M.~Pilipczuk, S.~Siebertz, and S.~Toru\'nczyk.
 \bibitem{NashWilliams64}
 C.~St.~J.~A.~Nash-Williams.
 \newblock Decomposition of finite graphs into forests.
-\newblock \emph{Journal of the London Mathematical Society}, s1-39(1):12--12, 1964.
+\newblock \emph{Journal of the London Mathematical Society}, s1-39(1):12, 1964.
 \newblock doi:10.1112/jlms/s1-39.1.12.
 
 \bibitem{NesetrilOssona12}
