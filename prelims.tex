@@ -1,6 +1,14 @@
 \section{Preliminaries}\label{sec:prelims}
 
-\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy}
+For a graph $G$, we introduce a notation that $|G| = |V(G)|$ and $||G|| = |E(G)|$. 
+
+We sometimes consider graphs with colored edges. In this case, $G$ is also equipped with a function $\mathrm{col} : V(G) \to C$, where $C$ is a set of admissible colors.
+
+A directed graph is called \textit{connected} if and only if its underlying undirected graph is connected.
+
+\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy. Będę też chciał mieć warunek, że zawsze inicjalizujemy pustym grafem, aby się nie bawić w czasy inicjalizacji w każdym statemencie}
+
+\wninline{Definicja bnd expansion i nowhere-dense też się przyda. Chciałbym aby statementy o nowhere-dense używały $\delta$, a nie $\eps$, aby $\eps$ zostawić na prawdopodobieństwo błędu w randomizacji}
 
 \begin{definition}
 	Let $G$ be a graph and $v \in V(G), v' \not\in V(G)$. The operation of \textit{adding a pendant} $vv'$ produces a graph $G'$ such that $V(G') = V(G) \cup \{v'\}$ and $E(G') = E(G) \cup \{vv'\}$.
@@ -12,15 +20,24 @@
 
 \wninline{Poniższe jest trywialne, ale dla porządku udowodniłem}
 \begin{proof}
-	Let $\G$ be a class of graphs with bounded expansion and let $f_{\G} : \N \to \R$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has $\frac{|E(H)|}{|V(H)|} > f_{\G}(r)$. Let $H'$ be an $r$-shallow minor of some $G' \in \G'$. We have that $H'$ can be obtained from some $r$-shallow minor $H$ of some $G \in \G'$ by repeatedly adding pendants. As adding a pendant increases the number of vertices and edges by one, there exists $c \in \N$ such that $|E(H')| - |E(H)| = c = |V(H')| - |V(H)|$, so $\frac{|E(H')|}{|V(H')|} = \frac{|E(H)| + c}{|V(H)| + c} \le \max(1, \frac{|E(H)|}{|V(H)|}) \le \max(1, f_{\G}(r))$, hence we can set $f_{\G'}(r) \coloneqq \max(1, f_{\G}(r))$ as a function bounding densities of $r$-shallow minors of $\G'$, proving that $\G'$ is of bounded expansion.
+	Let $f_{\G} : \N \to \R$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has $\frac{||H||}{|H|} > f_{\G}(r)$. Let $H'$ be an $r$-shallow minor of some $G' \in \G'$. We have that $H'$ can be obtained from some $r$-shallow minor $H$ of some $G \in \G'$ by repeatedly adding pendants. As adding a pendant increases the number of vertices and edges by one, there exists $c \in \N$ such that $||H'|| - ||H|| = c = |H'| - |H|$, so $\frac{||H'||}{|H'|} = \frac{||H|| + c}{|H| + c} \le \max(1, \frac{||H||}{|H|}) \le \max(1, f_{\G}(r))$, hence we can set $f_{\G'}(r) \coloneqq \max(1, f_{\G}(r))$ as a function bounding densities of $r$-shallow minors of $\G'$, proving that $\G'$ is of bounded expansion.
 \end{proof}
 
+\begin{observation} \label{obs:pendants-nowhere-dense}
+	Let $\G$ be a nowhere-dense class of graphs and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also nowhere-dense.
+\end{observation}
+
+\begin{proof}
+	Let $f_{\G} : \N \to \N$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has a clique bigger than $f_{\G}(r)$.
+	
+	Similarly as in \cref{obs:pendants-bnd-exp}, every $r$-shallow minor of graphs from $\G'$ can be obtained by repeatedly adding pendants to some $r$-shallow minor of a graph from $\G$. As no pendant can be a part of a clique with more than two vertices, we have that we can set $f_{\G'}(r) \coloneqq \max(2, f_{\G}(r))$ as a function bounding sizes of cliques in $r$-shallow minors of $\G'$, proving that $\G'$ is also nowhere-dense.
+\end{proof}
 
 \begin{definition}
 	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
 \end{definition}
 
-For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\mathcal{HOM}$, $\mathcal{SUB}$ and $\mathcal{ISUB}$, i.e. $\mathcal{HOM}(H, G)$, $\mathcal{SUB}(H, G)$ and $\mathcal{ISUB}(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms, respectively.
+For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\Hom$, $\Sub$ and $\ISub$, i.e. $\Hom(H, G)$, $\Sub(H, G)$ and $\ISub(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms from $H$ to $G$, respectively.
 
 \begin{theorem} \label{thm:maintaining-augmentation}
 	Placeholder na stwierdzenie, że da się dynamicznie utrzymywać augmentacje. Zapewne chcemy zacytować Theorem 4 z \cite{DvorakTumaArxiv}.

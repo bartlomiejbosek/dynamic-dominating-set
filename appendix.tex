@@ -2,26 +2,26 @@
 
 \wninline{Poprzeglądać te sekcję w kwestii jakichś spójności itd, bo się tym za bardzo nie przejmowałem. Zdaje się, że trzeba dodać założenie o spójności do AHom i WHom i do dowodu WSub dodać przypadek, że H jest niespójny (i wtedy homomorfizmy się mnożą)}
 
-The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. Incorporating weights into it requires closely following the original proof and plugging weights wherever required.
+The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. Incorporating weights into it requires closely following the original proof and plugging weights wherever required. In this section we are going to outline that process step by step.
 
 \subsection{Counting weighted augmented homomorphisms}
 
-In Theorem 14 of \cite{DvorakTumaArxiv} Dvo\v{r}\'ak and T\r{u}ma prove that for a fixed directed elder graph $H$ and dynamic directed graph $G$ with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$, it is possible to maintain the number of homomorphisms from $H$ to $G$ in $\Oh(f(|V(H)|, D))$ time complexity per update. A directed graph $H$ is called an \textit{elder graph} if it has the property that $(u, w), (v, w) \in E(H)$ imply that $u$ and $v$ are adjacent as well, that is, either $(u, v) \in E(H)$ or $(v, u) \in E(H)$.
+In Theorem 14 of \cite{DvorakTumaArxiv} Dvo\v{r}\'ak and T\r{u}ma prove that for a fixed directed elder graph $H$ and dynamic directed graph $G$ with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$, it is possible to maintain the number of homomorphisms from $H$ to $G$ in $\Oh(f(|H|, D))$ time complexity per update. A directed graph $H$ is called an \textit{elder graph} if it has the property that $(u, w), (v, w) \in E(H)$ imply that $u$ and $v$ are adjacent as well, that is, either $(u, v) \in E(H)$ or $(v, u) \in E(H)$.
 
 We generalize their statement to the following weighted version:
 
 \begin{lemma} \label{lem:weighted-ahom}
-	Let $D$ be an integer, $H$ be a fixed directed elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. There exists a data structure $AHom_{H, k, D, w}(G)$ that maintains $\val_w(\mathcal{HOM}(H, G))$. Each update to the data structure takes $f(|V(H)|, D)$ time complexity and the space complexity of it is $\Oh(f(|V(H)|, D) \cdot |V(G)|)$ for some function $f$. 
+	Let $D$ be an integer, $H$ be a fixed directed connected elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. There exists a data structure $\mathsf{WeightedAHom}_{H, k, D, w}(G)$ that maintains $\val_w(\Hom(H, G))$. Each update to the data structure takes $f(|H|, D)$ time complexity and the space complexity of it is $\Oh(f(|H|, D) \cdot |G|)$ for some function $f$. 
 \end{lemma}
 
 \begin{proof}
 	The generalization to the weighted version requires just a few minor modifications to the proof of the original Theorem 14 of \cite{DvorakTumaArxiv}, therefore we are only going to highlight the differences between them and refer the reader to the original result for a more detailed version. We are also going to use the terminology of that article (that is, notions like \textit{vineyard, clan, extended clan, ghost}).
 	
-	During the initialization of the data structure we fix any vineyard $T$ for $H$. For a clan $C$ and vertices $v, w_1, \ldots, w_m \in V(G)$, by $\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)$ we are going to denote the set of homomorphisms from an extended clan $C^*$ to $G$ such that $r(C)$ is mapped to $v$ and ghosts $g_1, \ldots, g_m$ of $C$ are mapped to $w_1, \ldots, w_m$. A value of a partial homomorphism $\phi$ from $H$ to $G$ belonging to that set is defined naturally as the product of $w(x_i, y_i)$ over all $x_i \in V(C^*)$, where $\phi(x_i) = y_i$, and the value of a whole set is defined as the sum of values of its elements.
+	During the initialization of the data structure we fix any vineyard $T$ for $H$. For a clan $C$ and vertices $v, w_1, \ldots, w_m \in V(G)$, by $\Hom_{H, T}(C, v, w_1, \ldots, w_m, G)$ we are going to denote the set of homomorphisms from an extended clan $C^*$ to $G$ such that $r(C)$ is mapped to $v$ and ghosts $g_1, \ldots, g_m$ of $C$ are mapped to $w_1, \ldots, w_m$. A value of a partial homomorphism $\phi$ from $H$ to $G$ belonging to that set is defined naturally as the product of $w(x_i, y_i)$ over all $x_i \in V(C^*)$, where $\phi(x_i) = y_i$, and the value of a whole set is defined as the sum of values of its elements.
 	
-	For each clan $C \neq V(H)$ with $m$ ghosts and each $m$-tuple of vertices $w_1, \ldots, w_m$ of $G$ in the unweighted version the number $S(C, w_1, \ldots, w_m) = \sum_{v \in N_1^+(w_1)} |\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)|$ was recorded, however we will record the number $S_w(C, w_1, \ldots, w_m) = \sum_{v \in N_1^+(w_1)} \val_w(\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G))$ instead. 
+	For each clan $C \neq V(H)$ with $m$ ghosts and each $m$-tuple of vertices $w_1, \ldots, w_m$ of $G$ in the unweighted version the number $S(C, w_1, \ldots, w_m) = \sum_{v \in N_1^+(w_1)} |\Hom_{H, T}(C, v, w_1, \ldots, w_m, G)|$ was recorded, however we will record the number $S_w(C, w_1, \ldots, w_m) = \sum_{v \in N_1^+(w_1)} \val_w(\Hom_{H, T}(C, v, w_1, \ldots, w_m, G))$ instead. 
 			
-	The original proof expresses the difference of the sets $\mathcal{HOM}_{H, T}(C, v, w_1, \ldots, w_m, G)$ before and after an addition of an edge $e$ to $G$ as a disjoint sum of some sets, where each of them results from a different guess of which edges of $H$ will be mapped to $e$. In each of these cases, a partial homomorphism $\phi$ is determined and the problem of extending it to a homomorphism of full $C^*$ decomposes to a few independent subproblems, hence the set of ways to extend the fixed partial homomorphisms resulting from that guess to a full homomorphisms of $C^*$ can be expressed as a cartesian product of sets of homomorphisms for the smaller instances. If $C_i$ and $g_1^i, \ldots, g_{m_i}^i$ are the clan and the ghosts of the $i$-th subproblem, then the number of ways to extend $\phi$ to a full homomorphisms of $C^*$ can be expressed as $\prod_{i=1}^{t} S(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$, whereas the incurred contribution to the value of all accounted homomorphisms will be $\val_w(\phi) \cdot \prod_{i=1}^{t}S_w(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$.
+	The original proof expresses the difference of the sets $\Hom_{H, T}(C, v, w_1, \ldots, w_m, G)$ before and after an addition of an edge $e$ to $G$ as a disjoint sum of some sets, where each of them results from a different guess of which edges of $H$ will be mapped to $e$. In each of these cases, a partial homomorphism $\phi$ is determined and the problem of extending it to a homomorphism of full $C^*$ decomposes to a few independent subproblems, hence the set of ways to extend the fixed partial homomorphisms resulting from that guess to a full homomorphisms of $C^*$ can be expressed as a cartesian product of sets of homomorphisms for these smaller instances. If $C_i$ and $g_1^i, \ldots, g_{m_i}^i$ are the clan and the ghosts of the $i$-th subproblem, then the number of ways to extend $\phi$ to a full homomorphisms of $C^*$ can be expressed as $\prod_{i=1}^{t} S(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$, whereas the incurred contribution to the value of all accounted homomorphisms will be $\val_w(\phi) \cdot \prod_{i=1}^{t}S_w(C_i, \phi(g_1^i), \ldots, g_{m_i}^i)$.
 	
 	We remark that the calculation above crucially relies on the properties of $\val_w$ that $\val_w(X \sqcup Y) = \val_w(X) + \val_w(Y)$ and $\val_w(P \times Q) = \val_w(P) \cdot \val_w(Q)$, where $P$ and $Q$ are acting on disjoint subsets $V_P$ and $V_Q$ of $V(H)$ and each element $\phi = (\phi_P, \phi_Q) \in P \times Q$ is understood as a unique mapping on $V_P \sqcup V_Q$ such that $\phi|_{V_P} = \phi_P$ and $\phi|_{V_Q} = \phi_Q$.  
 	
@@ -41,38 +41,38 @@ Before proceeding with the rest of the proof, we are going to recall an importan
 
 We say that a graph $G_2$ can be obtained from $G_1$ by recoloring zeros if and only if $V(G_1) = V(G_2)$, $E(G_1) = E(G_2)$, however for all edges $(u, v) \in E(G_1)$ such that their color in $G_1$ and $G_2$ is different, we have that its color in $G_1$ is $0$.
 
-Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from $h$-th augmentations of $H$, where $h = {|V(H)| \choose 2} - 2$.
+Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.
 
 Dvo\v{r}\'ak and T\r{u}ma prove the following:
 
 \begin{lemma} \cite[Lemma 11]{DvorakTumaArxiv} \label{lem:unweighted-hom-proj}
-	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$ and let $h = {|V(H)| \choose 2} - 2$. If $G'$ is an $h$-ath augmentation of $G$, then $|\mathcal{HOM}(H, G)| = \sum_{H' \in \mathcal{H}^e} |\mathcal{HOM}(H', G')|$.
+	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$ and let $h = {|H| \choose 2} - 2$. If $G'$ is an $h$-th augmentation of $G$, then $|\Hom(H, G)| = \sum_{H' \in \mathcal{H}^e} |\Hom(H', G')|$.
 \end{lemma}
 
-They show that equality by showing a natural bijection $\Phi$ between $\mathcal{HOM}(H, G)$ and pairs $(H', \phi')$, where $H' \in \mathcal{H}^e$ and $\phi' \in \mathcal{HOM}(H', G')$. As each $H' \in \mathcal{H}^e$ can be shown to be elder (\cite[Lemma 12]{DvorakTumaArxiv}), a clear consequence of the original unweighted variant of \cref{lem:weighted-dvorak}, \cref{lem:unweighted-hom-proj} and \cref{thm:maintaining-augmentation} was that there exists a data structure that efficiently maintains the number of homomorphisms for a dynamic graph $G$ of bounded expansion. Our goal now will be to adjust \cref{lem:unweighted-hom-proj} to a weighted setting.
+They show that equality by showing a natural bijection $\Phi$ between $\Hom(H, G)$ and pairs $(H', \phi')$, where $H' \in \mathcal{H}^e$ and $\phi' \in \Hom(H', G')$. As each $H' \in \mathcal{H}^e$ can be shown to be elder (\cite[Lemma 12]{DvorakTumaArxiv}), a clear consequence of the original unweighted variant of \cref{lem:weighted-dvorak}, \cref{lem:unweighted-hom-proj} and \cref{thm:maintaining-augmentation} was that there exists a data structure that efficiently maintains the number of homomorphisms for a dynamic graph $G$ of bounded expansion. Our goal now will be to adjust \cref{lem:unweighted-hom-proj} to the weighted setting.
 
-Let $w$ be a fixed weight function $V(H) \times V(G) \to \Z$ and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $w_{H'} : V(H') \times V(G') \to \Z$ by the following formula: $w_{H'}(p, u) = \prod_{v \in p} w(v, u)$. Let $\phi' \in \mathcal{HOM}(H', G')$ and let $\phi \in \mathcal{HOM}(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
+Let $w$ be a fixed weight function $V(H) \times V(G) \to \Z$ and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $w_{H'} : V(H') \times V(G') \to \Z$ by the following formula: $w_{H'}(p, u) = \prod_{v \in p} w(v, u)$. Let $\phi' \in \Hom(H', G')$ and let $\phi \in \Hom(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
 Therefore, we have that $\val_w(\phi) = \prod_{v \in V(H)} w(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} w(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} w(v, \phi'(p)) = \prod_{p \in V(H')} w_{H'}(p, \phi'(p)) = \val_{w_{H'}}(\phi')$. As a consequence we observe the following:
 
 \begin{lemma} \label{lem:weighted-hom-proj}
-	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, let $h = {|V(H)| \choose 2} - 2$ and let $w : V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-ath augmentation of $G$, then $\val_w(\mathcal{HOM}(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{w_{H'}}(\mathcal{HOM}(H', G'))$.
+	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, let $h = {|H| \choose 2} - 2$ and let $w : V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-th augmentation of $G$, then $\val_w(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{w_{H'}}(\Hom(H', G'))$.
 \end{lemma}
 
 With the above statement, we are able to conclude the following lemma:
 
 \begin{lemma} \label{lem:weighted-hom}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $WHom_{H, k, w}(G)$, which is able to determine $\val_w(\mathcal{HOM}(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^h |V(G)|)$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps)$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, w}(G)$, which is able to determine $\val_w(\Hom(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
 \begin{proof}
 	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
 	
-	The data structure $WHom_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $AHom_{H, k, D, w}(G)$, where $D$ is the bound from \cref{thm:maintaining-augmentation} on the in-degree of $G'$. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(D \log^{h+1}|V(G)|)$ changes in $G'$, each removal results in $\Oh(D)$ such changes (amortized). All changes in $G'$ are relayed to all $AHom$ structures. The value $\val_w(\mathcal{HOM}(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\mathcal{HOM}(H', G'))$.
+	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H, k, D, w}(G)$, where $D$ is the bound from \cref{thm:maintaining-augmentation} on the in-degree of $G'$. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(D \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(D)$ such changes (amortized). All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_w(\Hom(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\Hom(H', G'))$.
 \end{proof}
 
 \subsection{Counting weighted subgraph isomorphisms}
 
-Next, we are going to proceed to analyzing $\val_w(\mathcal{SUB}(H, G))$.  Firstly, we are going to recall the definition of \textit{projections} from \cite{DvorakTumaArxiv}:
+Next, we are going to proceed to analyzing $\val_w(\Sub(H, G))$.  Firstly, we are going to recall the definition of \textit{projections} from \cite{DvorakTumaArxiv}:
 \begin{definition}
 	Consider a graph $H$ with colored edges, and let $P$ be a partition of $V(H)$ such that
 	\begin{itemize}
@@ -86,7 +86,7 @@ Let $\mathcal{H}^p$ denote the set of all projections $H'$ of $H$.
 Dvo\v{r}\'ak and T\r{u}ma connect counting the number of subgraph isomorphisms with counting the homorphisms through the following statement:
 
 \begin{lemma} \cite[Lemma 7]{DvorakTumaArxiv} \label{lem:unweighted-sub-to-homo}
-	For every graph $H$ with colored edges, there exist integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges, $|\mathcal{SUB}(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\mathcal{HOM}(H', G)|$.
+	For every graph $H$ with colored edges, there exist integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges, $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Hom(H', G)|$.
 \end{lemma}
 
 For a projection $H' \in \mathcal{H}^p$ and a homomorphism $\phi' : V(H') \to V(G)$ we can define its uncontracted version $\Phi(\phi') = \phi$ by $\phi(v) \coloneqq \phi'(p_v)$, where $v \in p_v$. Similarly as in the case of $0$-contractions, we can define the projected weight function $w_{H'}(p, u) = \prod_{v \in p} w(v, u)$ and show that $\val_{w_{H'}}(\phi') = \val_w(\phi)$.
@@ -94,37 +94,37 @@ For a projection $H' \in \mathcal{H}^p$ and a homomorphism $\phi' : V(H') \to V(
 We generalize \cref{lem:unweighted-sub-to-homo} to the weighted setting in the following way:
 \begin{lemma} \label{lem:weighted-sub-to-homo}
 	For every graph $H$ with colored edges, there exists integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges and every weight function $w:V(H) \times V(G) \to \Z$,
-	$\val_w(\mathcal{SUB}(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\mathcal{HOM}(H', G))$.
+	$\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$.
 \end{lemma}
 
 \begin{proof}
-%	The coefficients $\alpha_{H'}$ are unsurprisingly going to be the same as in \cref{lem:unweighted-sub-to-homo}. For these coefficients, the proof of this lemma basically says that if we reformulate the supposed equality $|\mathcal{SUB}(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\mathcal{HOM}(H', G)|$ as $|\mathcal{SUB}(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Phi(\mathcal{HOM}(H', G))|$, then each $\phi \in \mathcal{HOM}(H, G)$ is counted on both sides of the equality the same number of times. From that, it easily follows that actually $\val_w(\mathcal{SUB}(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_w(\Phi(\mathcal{HOM}(H', G))) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\mathcal{HOM}(H', G))$.
+	The coefficients $\alpha_{H'}$ are unsurprisingly going to be the same as in \cref{lem:unweighted-sub-to-homo}. For these coefficients, the proof of this lemma basically says that if we reformulate the supposed equality $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Hom(H', G)|$ as $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Phi(\Hom(H', G))|$, then each $\phi \in \Hom(H, G)$ is counted on both sides of the equality the same number of times. From that, it easily follows that actually $\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_w(\Phi(\Hom(H', G))) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$.
 \end{proof}
 
 Armed with this statement, we are able to prove the following:
 
 \begin{lemma}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $WSub_{H, k, w}(G)$, which is able to determine $\val_w(\mathcal{SUB}(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^h |V(G)|)$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps)$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedSub}_{H, k, w}(G)$, which is able to determine $\val_w(\Sub(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
 \begin{proof}
 As based on \cref{lem:weighted-sub-to-homo} we have that
-$\val_w(\mathcal{SUB}(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\mathcal{HOM}(H', G))$,
-it suffices to maintain $\val_{w_{H'}}(\mathcal{HOM}(H', G))$ for each $H' \in \mathcal{H}^p$. However, the size of $\mathcal{H}^p$
-is bounded by a function of $|V(H)|$, so we consider it to be a constant. For each such $H'$ we use one instance of $WHom_{H', k, w_{H'}}(G)$ to track that value.
+$\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$,
+it suffices to maintain $\val_{w_{H'}}(\Hom(H', G))$ for each $H' \in \mathcal{H}^p$. However, the size of $\mathcal{H}^p$
+is bounded by a function of $|H|$, so we consider it to be a constant. For each such $H'$ we use one instance of $\mathsf{WeightedHom}_{H', k, w_{H'}}(G)$ to track that value.
 \end{proof}
 
 \subsection{Counting weighted induced subgraph isomorphisms}
-And finally, let us analyze $\val_w(\mathcal{ISUB}(H, G))$. 
-A straightforward application of the inclusion-exclusion principle shows that $\val_w(\mathcal{ISUB}(H, G)) = \sum_{i=0}^{{|V(H)| \choose 2} - |E(H)|} (-1)^i \sum_{H' \in H(+, i, k)} \val_w(\mathcal{SUB}(H', G))$, where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from $\{1, \ldots, k\}$.
+And finally, let us analyze $\val_w(\ISub(H, G))$. 
+A straightforward application of the inclusion-exclusion principle shows that $\val_w(\ISub(H, G)) = \sum_{i=0}^{{|H| \choose 2} - ||H||} (-1)^i \sum_{H' \in H(+, i, k)} \val_w(\Sub(H', G))$, where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from $\{1, \ldots, k\}$.
 
 Based on that, we are able to conclude the last required statement:
 
 \begin{lemma} \label{lem:weighted-isub-to-sub}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $WISub_{H, k, w}(G)$, which is able to determine $\val_w(\mathcal{ISUB}(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh(\log^h |V(G)|)$, where $h = {|V(H)| \choose 2} - 1$ and its space complexity is $\Oh(|V(G)|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh(|V(G)|^\eps)$ time and its space complexity is $\Oh(|V(G)|^{1 + \eps})$. The $\Oh$ notation hides factors dependent on $\G, H$ and $k$.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedIndSub}_{H, k, w}(G)$, which is able to determine $\val_w(\ISub(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 \begin{proof}
-	Based on the mentioned equality, the problem of maintaining $\val_w(\mathcal{ISUB}(H, G))$ easily reduces to the problem of maintaining $\val_w(\mathcal{ISUB}(H', G))$ for all supergraphs of $H$. As there is a constant number of them, the statement follows from \cref{lem:weighted-sub-to-homo}.
+	Based on the mentioned equality, the problem of maintaining $\val_w(\ISub(H, G))$ easily reduces to the problem of maintaining $\val_w(\ISub(H', G))$ for all supergraphs of $H$. As there is a constant number of them, the statement follows from \cref{lem:weighted-sub-to-homo}.
 \end{proof}
 
 Now, the \cref{lem:weighted-dvorak} is just a combination of \cref{lem:weighted-hom}, \cref{lem:weighted-sub-to-homo} and \cref{lem:weighted-isub-to-sub}. 
