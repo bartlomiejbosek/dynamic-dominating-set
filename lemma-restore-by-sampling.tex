@@ -1,0 +1,387 @@
+\begin{proof}
+Fix an error parameter $\eps\in(0,1)$.
+Let $n := |V(G)|$. If $n=0$, then no vertex $v$ with $f(G,v)>0$ exists and the
+claim holds trivially, so assume $n\ge 1$.
+We assume that $V(G)=\{1,2,\dots,n\}$, i.e., we identify vertices of $G$ with
+integers in $\{1,\dots,n\}$.
+In particular, we use the same symbol $v$ both for a vertex and for its
+identifier in $\{1,\dots,n\}$.
+For convenience, in the complexity bounds we write $|G|:=n$.
+Set $L := \lfloor \log_2 n\rfloor + 1$ and
+\[
+  \lambda
+    := \max\!\left(1,\,\left\lceil 10 \cdot
+       \ln\!\left(\tfrac{1}{\eps}\right)\right\rceil\right).
+\]
+The maximum with $1$ ensures that $\lambda\ge 1$ even when $\eps$ is close
+to~$1$.
+The guarantee holds against an oblivious adversary, meaning that the entire
+update sequence is fixed independently of the random bits chosen at
+initialisation.  In particular, for any fixed time step the resulting graph
+state~$G$ is independent of the random choices made below.
+
+\smallskip
+\noindent\textbf{Pairwise-independent hashing.}
+Let $p$ be a prime such that $8n < p < 16n$
+(such a prime exists by Bertrand's postulate applied to the integer $8n>1$),
+and fix any such prime $p$ at initialisation (it can be found by testing
+integers for primality, which contributes only a one-time additive cost).
+For each $j\in\{1,\dots,\lambda\}$ choose $a_j,b_j\in\{0,1,\dots,p-1\}$
+independently and uniformly at random and define
+$h_j(v) := \bigl(a_j\cdot v+b_j\bigr)\bmod p$.
+For every vertex $v$ and $x\in\{0,\dots,p-1\}$, for each choice of $a_j$ there
+is exactly one choice of $b_j$ with $h_j(v)=x$, so $h_j(v)$ is uniform.
+For any two distinct vertices $u,v$ and any $(x,y)\in\{0,\dots,p-1\}^2$, the
+system of congruences $a_j u+b_j\equiv x\pmod p$ and
+$a_j v+b_j\equiv y\pmod p$ has a unique solution
+$a_j\equiv (x-y)\cdot (u-v)^{-1}\pmod p$ and $b_j\equiv x-a_j u\pmod p$.
+Thus $(h_j(u),h_j(v))$ is uniform over $\{0,\dots,p-1\}^2$, and hence each $h_j$
+is pairwise-independent.
+Each $h_j$ is described by $O(1)$ machine words, and the total seed for all
+$\lambda$ functions occupies $O(\lambda)=O(\log\frac{1}{\eps})$ words.
+We use the standard word-RAM model with word size $\Omega(\log n)$; since
+$p<16n$, each number in $\{0,\dots,p-1\}$ fits in $O(1)$ words and arithmetic
+modulo $p$ (hence evaluation of $h_j(v)$ and membership tests $v\in S_{i,j}$)
+takes $O(1)$ time.
+
+\smallskip
+\noindent\textbf{Random sampling family and the maintained sums.}
+For every $i\in\{0,1,\dots,L\}$ and $j\in\{1,2,\dots,\lambda\}$ we define
+the threshold
+\[
+  \tau_i := \left\lfloor \frac{p}{2^{i+1}} \right\rfloor
+\]
+and the set
+\[
+  S_{i,j} := \bigl\{v\in V(G) : h_j(v) < \tau_i\bigr\}.
+\]
+Since $L=\lfloor\log_2 n\rfloor+1$, we have $n<2^{L}$ and thus $2^{L}\le 2n$,
+and consequently $2^{L+1}\le 4n$.
+Therefore, for every $i\in\{0,\dots,L\}$ we have
+$2^{i+1}\le 2^{L+1}\le 4n$.
+Since $p>8n$, this implies $p/2^{i+1} > 8n/(4n)=2$ and hence
+$\tau_i=\lfloor p/2^{i+1}\rfloor \ge 2$.
+Define $p_i := \tau_i/p$.
+Because $h_j(v)$ is uniform over $\{0,\dots,p-1\}$,
+for every vertex~$v$ we have
+\[
+  \Pr(v\in S_{i,j})
+  = \frac{\tau_i}{p}
+  = p_i,
+\]
+and for every pair of distinct vertices $u,v\in V(G)$
+(by the pairwise-independence property of~$h_j$),
+\begin{equation}\label{eq:pairwise}
+  \Pr(u\in S_{i,j} \;\wedge\; v\in S_{i,j})
+  = p_i^{\,2}.
+\end{equation}
+The random choices are performed once at initialisation and remain fixed
+afterwards.  Crucially, membership $v\in S_{i,j}$ can be tested in $O(1)$
+time by evaluating $h_j(v)$ from the stored seed; the sets $S_{i,j}$ are
+\emph{not} stored explicitly.
+
+For every $(i,j)$ define two weighting functions
+$w^{(0)}_{i,j},w^{(1)}_{i,j}\colon V(G)\to\Z$ by
+\[
+  w^{(0)}_{i,j}(v) :=
+  \begin{cases}
+    1 & \text{if } v\in S_{i,j},\\
+    0 & \text{otherwise,}
+  \end{cases}
+  \qquad
+  w^{(1)}_{i,j}(v) :=
+  \begin{cases}
+    v & \text{if } v\in S_{i,j},\\
+    0 & \text{otherwise.}
+  \end{cases}
+\]
+These are particular weighting functions $w\colon V(G)\to\Z$ as required by the
+lemma statement.
+Since $S_{i,j}$ is determined by the $O(1)$-word seed of~$h_j$, each weight
+$w^{(\ell)}_{i,j}(v)$ can be evaluated in $O(1)$ time without storing
+the sets $S_{i,j}$.
+Moreover, each weighting function $w^{(\ell)}_{i,j}$ has an $O(1)$-word
+representation given by the seed of $h_j$ together with the indices
+$(i,\ell)$.
+By the convention of the lemma statement, the bounds $T_R,S_R$ for
+$\mathsf{WeightedSum}_{f,w}(G)$ account for storing and processing this
+$O(1)$-word description of the fixed weighting function~$w$.
+In particular, the weighting functions $w^{(0)}_{i,j}$ and $w^{(1)}_{i,j}$ are
+fixed after initialisation.
+
+We maintain, for every $(i,j)$, two instances of the promised structure:
+$\mathsf{WeightedSum}_{f,\,w^{(0)}_{i,j}}(G)$ and
+$\mathsf{WeightedSum}_{f,\,w^{(1)}_{i,j}}(G)$.
+In \cref{it:general-f} we additionally maintain one instance of
+$\mathsf{Verify}_{f}(G)$.
+Every update to~$G$ is relayed to all maintained instances.
+
+\smallskip
+\noindent\textbf{Query algorithm.}
+Given the current graph~$G$, for all pairs
+$(i,j)\in\{0,\dots,L\}\times\{1,\dots,\lambda\}$ in lexicographic order, let
+\[
+  A_{i,j} := \sum_{v\in V(G)} f(G,v)\,w^{(0)}_{i,j}(v),
+  \qquad
+  B_{i,j} := \sum_{v\in V(G)} f(G,v)\,w^{(1)}_{i,j}(v),
+\]
+obtained by querying the respective maintained instances.
+If $A_{i,j}=0$, continue to the next pair.
+\begin{itemize}
+\item In \cref{it:binary-f}, if $A_{i,j}=1$, return the vertex
+  $B_{i,j}$ (we verify below that then $B_{i,j}\in\{1,\dots,n\}$); otherwise,
+  continue.
+\item In \cref{it:general-f}, since $A_{i,j}>0$, compute $q := B_{i,j}/A_{i,j}$.
+  If $q$ is not an integer or $q\notin\{1,\dots,n\}$, continue.
+  Otherwise, query $\mathsf{Verify}_f(G)$ on the vertex $q$;
+  if $f(G,q)>0$, return $q$, and otherwise continue.
+\end{itemize}
+If no pair leads to returning a vertex, report that no vertex $v$ with
+$f(G,v)>0$ exists.
+
+\smallskip
+\noindent\textbf{No false positives.}
+In \cref{it:binary-f}, suppose the algorithm returns $B_{i,j}$ for
+some $(i,j)$.
+By definition of $w^{(0)}_{i,j}$ and the assumption
+$f(G,v)\in\{0,1\}$, we have
+\[
+  A_{i,j}=\sum_{v\in S_{i,j}} f(G,v)=1,
+\]
+hence there exists exactly one vertex $x\in S_{i,j}$ with $f(G,x)=1$, and
+for all $v\in S_{i,j}\setminus\{x\}$ we have $f(G,v)=0$.
+Therefore
+\[
+  B_{i,j}=\sum_{v\in S_{i,j}} f(G,v)\,v=x,
+\]
+so the returned vertex is $B_{i,j}=x$ and satisfies
+$f(G,x)=1>0$.
+
+In \cref{it:general-f}, the algorithm returns a vertex $q$ only after
+$\mathsf{Verify}_f(G)$ has confirmed that $f(G,q)>0$; hence every
+returned vertex satisfies $f(G,v)>0$. In particular, even if $q$ happens to be
+an integer in $\{1,\dots,n\}$ but corresponds to a vertex $y$ with $f(G,y)=0$,
+the verification step prevents returning~$y$.
+
+Thus, in both cases the data structure has no false positives.
+
+\smallskip
+\noindent\textbf{Probability of a false negative.}
+Fix a state of the graph~$G$ and let
+\[
+  X := \{v\in V(G)\mid f(G,v)>0\}
+  \qquad\text{and}\qquad
+  m := |X|.
+\]
+Formally, we consider a fixed time step (that is, a graph state obtained after
+a fixed number of updates); since the update sequence is fixed independently of
+the random bits of the construction, the resulting graph~$G$ (and hence $X$)
+is determined independently of the hash functions $h_1,\dots,h_\lambda$.
+Equivalently, we may condition on this fixed graph state~$G$ without changing
+the distribution of the random hash functions.
+If $m=0$, then $f(G,v)=0$ for all $v\in V(G)$ and consequently $A_{i,j}=0$ for
+every $(i,j)$, so the query algorithm correctly reports that no such vertex
+exists. Hence assume $m\ge 1$.
+
+Set $i^\star := \lfloor \log_2 m\rfloor + 1$.
+Since $m\le n$ and $L = \lfloor\log_2 n\rfloor + 1$, we have
+$i^\star \le L$, so $i^\star\in\{0,1,\dots,L\}$.
+Note that for $m=1$ we have $i^\star=1$.
+Moreover, $2^{i^\star-1}\le m < 2^{i^\star}$: the left inequality holds
+because $i^\star - 1 = \lfloor \log_2 m\rfloor$ and
+$2^{\lfloor\log_2 m\rfloor}\le m$; the right inequality holds because
+$m < 2^{\lfloor\log_2 m\rfloor+1} = 2^{i^\star}$.
+
+Define $\mu := m\cdot p_{i^\star} = m\cdot \tau_{i^\star}/p$.
+Since $\tau_{i^\star}=\lfloor p/2^{i^\star+1}\rfloor \le p/2^{i^\star+1}$,
+we have
+\[
+  \mu \le m\cdot 2^{-i^\star-1}
+  < 2^{i^\star}\cdot 2^{-i^\star-1}
+  = 1/2.
+\]
+Moreover, $\tau_{i^\star} > p/2^{i^\star+1}-1$, so
+\[
+  \mu > m\cdot 2^{-i^\star-1} - \frac{m}{p}
+  \ge 2^{i^\star-1}\cdot 2^{-i^\star-1} - \frac{m}{p}
+  = \frac14 - \frac{m}{p}.
+\]
+$p>8n\ge 8m$, so $m/p < 1/8$, and therefore
+$\mu\in(1/8,\,1/2)$.
+
+Fix any $j\in\{1,\dots,\lambda\}$.
+For each $v\in X$ let $I_v := \mathbf{1}[v\in S_{i^\star,j}]$ be the
+indicator random variable and set $Y := \sum_{v\in X} I_v
+= |S_{i^\star,j}\cap X|$.
+We have $\Pr(I_v = 1) = p_{i^\star}$ for each $v\in X$, and by the
+pairwise-independence property~\eqref{eq:pairwise}, for any two distinct
+vertices $u,v\in X$:
+\[
+  \Pr(I_u = 1 \;\wedge\; I_v = 1) = p_{i^\star}^{\,2}.
+\]
+
+We lower-bound $\Pr(Y=1)$.
+For each $v\in X$, the event $\{I_v=1\}$ is the disjoint union of the events
+\[
+  E_v := \Bigl\{I_v = 1 \;\wedge\; \bigwedge_{u\in X\setminus\{v\}} I_u=0\Bigr\}
+  \qquad\text{and}\qquad
+  F_v := \bigl\{I_v=1\;\wedge\;\exists\,u\in X\setminus\{v\}:\;I_u=1\bigr\},
+\]
+hence $\Pr(E_v)=\Pr(I_v=1)-\Pr(F_v)$.
+Observe that the event $\{Y=1\}$ is exactly the disjoint union
+$\biguplus_{v\in X} E_v$, and hence $\Pr(Y=1)=\sum_{v\in X}\Pr(E_v)$.
+By the union bound we have
+\[
+  \Pr(F_v) \le \sum_{u\in X\setminus\{v\}} \Pr(I_v=1\;\wedge\;I_u=1).
+\]
+Therefore:
+\begin{align*}
+  \Pr(Y=1)
+  &= \sum_{v\in X} \Pr\!\Bigl(I_v=1 \;\wedge\;
+     \textstyle\bigwedge_{u\in X\setminus\{v\}} I_u=0\Bigr)\\
+  &= \sum_{v\in X}\Bigl[\Pr(I_v=1)
+     - \Pr\!\bigl(I_v=1\;\wedge\;\exists\,u\in X\setminus\{v\}:\;I_u=1\bigr)
+     \Bigr]\\
+  &\ge \sum_{v\in X}\Bigl[p_{i^\star}
+     - \sum_{u\in X\setminus\{v\}} \Pr(I_v=1 \;\wedge\; I_u=1)\Bigr]\\
+  &= m\,p_{i^\star} - m(m-1)\,p_{i^\star}^{\,2}
+  \;=\; \mu - \tfrac{m-1}{m}\,\mu^2
+  \;\ge\; \mu - \mu^2
+  \;=\; \mu(1-\mu).
+\end{align*}
+The function $g(\mu):=\mu(1-\mu)$ satisfies $g'(\mu)=1-2\mu > 0$ for
+$\mu<1/2$, hence $g$ is increasing on $[0,\,1/2)$.
+Therefore $g(\mu) > g(1/8) = 7/64 > 1/10$ (since $7\cdot 10 > 64$), and so
+\[
+  \Pr\bigl(|S_{i^\star,j}\cap X|=1\bigr)=\Pr(Y=1)\ge \tfrac{1}{10}.
+\]
+
+The hash functions $h_1,\dots,h_\lambda$ are sampled independently.
+For each fixed $j$, the set $S_{i^\star,j}$ (and hence the event
+$\{|S_{i^\star,j}\cap X|\neq 1\}$) is determined solely by~$h_j$.
+Therefore, the events $\{|S_{i^\star,j}\cap X|\neq 1\}$ are independent across
+distinct values of~$j$.
+Consequently
+\[
+  \Pr\Bigl(\forall\, j\in\{1,\dots,\lambda\}\colon\;
+    |S_{i^\star,j}\cap X|\neq 1\Bigr)
+  \le \left(1-\tfrac{1}{10}\right)^\lambda
+  \le \exp\!\left(-\tfrac{\lambda}{10}\right)
+  \le \exp\!\left(-\ln\!\left(\tfrac{1}{\eps}\right)\right)
+  = \eps,
+\]
+where we used $(1-x)\le e^{-x}$ for $x\ge 0$ and the definition
+$\lambda\ge 10\ln(1/\eps)$.
+
+We now argue that if for some~$j$ we have $|S_{i^\star,j}\cap X|=1$, then
+the query algorithm returns a vertex from~$X$ no later than when it processes
+the pair $(i^\star,j)$.
+Let~$x$ be the unique element of $S_{i^\star,j}\cap X$.
+By definition of $X$, we have $f(G,x)>0$.
+\begin{itemize}
+\item In \cref{it:binary-f}, $f(G,x)=1$ and $f(G,v)=0$ for all
+  $v\in S_{i^\star,j}\setminus\{x\}$
+  (since every such $v$ satisfies $v\notin X$, hence $f(G,v)=0$ by
+  definition of~$X$), so
+  $A_{i^\star,j}=\sum_{v\in S_{i^\star,j}}f(G,v)=f(G,x)=1$ and
+  $B_{i^\star,j}=\sum_{v\in S_{i^\star,j}}f(G,v)\,v=x$.
+  The query algorithm returns~$x$ when it encounters this pair.
+\item In \cref{it:general-f}, since $x$ is the only element of
+  $S_{i^\star,j}$ with $f(G,\cdot)>0$ (every other $v\in S_{i^\star,j}$
+  satisfies $v\notin X$ and hence $f(G,v)=0$), we have
+  $A_{i^\star,j}=f(G,x)>0$ and $B_{i^\star,j}=f(G,x)\cdot x$.
+  Therefore $q = B_{i^\star,j}/A_{i^\star,j}=x\in\{1,\dots,n\}$,
+  which is an integer.
+  The algorithm then queries $\mathsf{Verify}_f(G)$ on~$x=q$,
+  which confirms $f(G,x)>0$, and returns~$x$.
+\end{itemize}
+Moreover, if the algorithm returns a vertex for any \emph{earlier} pair
+$(i',j')$ --- not necessarily with $i'=i^\star$ --- the returned vertex still
+satisfies $f(G,v)>0$ by the no-false-positives property, so this is also
+not a false negative.
+Hence a false negative occurs only when the algorithm exhausts all pairs
+without returning, which requires
+$|S_{i^\star,j}\cap X|\neq 1$ for every $j\in\{1,\dots,\lambda\}$, an event
+of probability at most~$\eps$.
+
+\smallskip
+\noindent\textbf{Complexity.}
+We maintain $2(L+1)\lambda$ instances of~$\mathsf{WeightedSum}_{f,w}(G)$.
+In \cref{it:general-f} we additionally maintain one instance of
+$\mathsf{Verify}_f(G)$.
+To combine amortized bounds across maintained instances, we sum their total
+costs over an arbitrary operation sequence and divide by the number of outer
+updates/queries.
+Since $L=\lfloor\log_2 n\rfloor+1$, we have $L+1=\Theta(1+\log n)$.
+Here and below, $\log$ denotes a logarithm to an arbitrary fixed base, so
+changing the base affects only constant factors in $\Oh(\cdot)$.
+In particular, for $n\ge 2$ we have $L+1=\Theta(\log n)=\Theta(\log|G|)$, and
+therefore $(L+1)\lambda=\Theta(\log|G|\cdot\log\frac{1}{\eps})$.
+The sampling of the hash functions and the initialisation of the maintained
+instances is performed once and contributes only a one-time additive cost; we
+focus on the amortized costs of subsequent updates and queries.
+
+\emph{Update cost.}
+Each update to~$G$ is relayed to all $2(L+1)\lambda$ instances of
+$\mathsf{WeightedSum}$ and to the single instance of $\mathsf{Verify}$
+(in \cref{it:general-f}).
+Thus, every update to~$G$ triggers $2(L+1)\lambda$ update operations in
+$\mathsf{WeightedSum}$ instances and one update operation in
+$\mathsf{Verify}$ (in \cref{it:general-f}). Summing the amortized bounds over
+all maintained instances, the total amortized update time is therefore
+\[
+  \Oh\!\bigl(2T_R\cdot (L+1)\lambda + T_V\bigr)
+  \;\subseteq\;
+  \Oh\!\bigl((T_R+T_V)\cdot (L+1)\lambda\bigr)
+  \;=\;
+  \Oh\!\left((T_R+T_V)\cdot \log |G|\cdot
+    \log\tfrac{1}{\eps}\right).
+\]
+
+\emph{Query cost.}
+The query algorithm iterates over at most $(L+1)\lambda$ pairs.
+For each pair it performs two queries to $\mathsf{WeightedSum}_{f,w}(G)$
+and at most one query to $\mathsf{Verify}_f(G)$, each costing $\Oh(T_R)$
+and $\Oh(T_V)$, respectively.
+Thus, each query to $\mathsf{RetrieveVertex}_f(G)$ performs at most
+$2(L+1)\lambda$ queries to $\mathsf{WeightedSum}$ instances and at most
+$(L+1)\lambda$ queries to $\mathsf{Verify}$ (in \cref{it:general-f}).
+Summing the amortized bounds, this gives an amortized query time of
+\[
+  \Oh\!\bigl(2T_R\cdot (L+1)\lambda + T_V\cdot (L+1)\lambda\bigr)
+  \;\subseteq\;
+  \Oh\!\bigl((T_R+T_V)\cdot (L+1)\lambda\bigr).
+\]
+Equivalently, over any sequence with $N_u$ updates and $N_q$ queries,
+$\mathsf{Verify}$ receives $N_u$ updates and at most $N_q\cdot (L+1)\lambda$
+queries, so its amortized contribution per outer operation is
+$\Oh((L+1)\lambda\cdot T_V)$.
+In \cref{it:general-f}, for each processed pair with $A_{i,j}>0$ we additionally
+compute $q = B_{i,j}/A_{i,j}$ and test integrality; this is a division of
+integers whose bit-length is bounded by the output size of
+$\mathsf{WeightedSum}$ and is accounted for in~$\Oh(T_R)$ by the conventions of
+the lemma statement.
+The total query time is therefore
+$\Oh\!\left((T_R+T_V)\cdot\log |G|\cdot\log\frac{1}{\eps}\right)$,
+matching the stated bound.
+
+\emph{Space.}
+The $2(L+1)\lambda$ instances of $\mathsf{WeightedSum}$ use
+$\Oh(S_R\cdot\log |G|\cdot\log\frac{1}{\eps})$ space.
+The single instance of $\mathsf{Verify}$ uses $\Oh(S_V)$ space.
+The hash seeds for $h_1,\dots,h_\lambda$ occupy $\Oh(\lambda) =
+\Oh(\log\frac{1}{\eps})$ machine words and contribute an additional additive
+$\Oh(\log\frac{1}{\eps})$ term.
+The sets $S_{i,j}$ are \emph{not} stored explicitly: membership
+$v\in S_{i,j}$ is tested in $\Oh(1)$ time by evaluating $h_j(v)$ from the
+stored seed.
+The total space is therefore
+$\Oh\!\left(S_R\cdot\log|G|\cdot\log\frac{1}{\eps} + S_V +
+  \log\frac{1}{\eps}\right)$.
+Since the $O(1)$-word description of the fixed weighting function is accounted
+for in $S_R$, we have $S_R\ge 1$.
+In particular, for $|G|\ge 2$ (so $\log|G|\ge 1$) the additive
+$\Oh(\log\frac{1}{\eps})$ term is subsumed and the space is
+$\Oh\!\left((S_R+S_V)\cdot\log|G|\cdot\log\frac{1}{\eps}\right)$.
+
+\end{proof}

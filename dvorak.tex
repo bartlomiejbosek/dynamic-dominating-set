@@ -29,11 +29,12 @@ The following lemma, which draws an inspiration from \cite{Majewski24} and \cite
 	Also, suppose that either:
 	\begin{enumerate}
 		\item \label{it:binary-f} $f(G, v) \in \{0, 1\}$ for all valid arguments, or
-		\item there exists a data structure $\mathsf{Verify}_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$.
+		\item \label{it:general-f} there exists a data structure $\mathsf{Verify}_{f}(G)$ that for a dynamic graph $G$ and for a given vertex $v$ is able to check if $f(G, v)>0$.
 	\end{enumerate}
 	Then, there exists a randomized data structure $\mathsf{RetrieveVertex}_{f}(G)$ with no false positives that is able to report any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the amortized time complexities per a single update or query and space complexities of $\mathsf{WeightedSum}_{f, w}(G)$ and $\mathsf{Verify}_f(G)$ are $\Oh(T_R)$, $\Oh(S_R)$, $\Oh(T_V)$ and $\Oh(S_V)$, respectively, then the amortized time complexity per a single update and space complexity of $\mathsf{RetrieveVertex}_f(G)$ are $\Oh((T_R+T_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$, where $\eps$ is the probability of a false negative and where we assume that $T_V = S_V = 0$ in the case \cref{it:binary-f}, where $\mathsf{Verify}$ is not required.
 \end{lemma}	
 
+\input{lemma-restore-by-sampling.tex}
 
 Before proceeding we are going to define a useful property of mappings that is shared by homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms.
 \begin{definition}
