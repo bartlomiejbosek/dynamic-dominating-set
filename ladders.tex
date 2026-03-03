@@ -1,9 +1,73 @@
 \section{(Semi-)ladder algorithms for domination and independence}\label{sec:ladders}
 
-Here we recall \cite{FabianskiPST19}. The goal is to reduce the task of designing dynamic data structures on a class $\Cc$ to three ingredients:
+Here we recall \cite{FabianskiPST19}, where the authors propose efficient parameterized
+algorithms for a variety of problems, including \drds{r} and \dris{r}.
+The engine of these algorithms are the two procedures listed below.
+
 \begin{itemize}
-	\item Proof that graphs from $\Cc$ do not admit long (semi-)ladders.
-	\item Implementation of the oracle: Given a set $D$ with $|D|\leq k$, find $v$ satisfying $\dist(v,D)>d$.
-	\item Implementation of the oracle: Given a set $D$ with $|D|\leq k$, find $v$ satisfying $\dist(u,v)\leq d$ for each $u\in D$.
+\item $\notDominated{S}$ -
+returns a vertex that is not $r$-dominated by $S$ if such vertex exists, otherwise $\bot$
+\item $\candidate{W}$ - returns a set of $k$ vertices which $r$-dominates $W$
+if such set exists, otherwise $\bot$
 \end{itemize}
-We should name those oracles somehow.
+
+The algorithm to compute $r$-domination set of size $k$ is then implemented as follows
+using these procedures.
+
+\begin{algorithm}\label{alg:1}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \underline{function DomSet} $(G,r,k)$\;
+    \Input{A graph $G$}
+    \Output{$r$-dominating set of size $k$}
+    $S :=$ a subset of $V$ of size $k$ \;
+    $w :=  \notDominated{S} $\;
+    $W := \{ w \}$\;
+    \While{$w \neq \bot$}
+      {
+        $S:= \candidate{W}$\;
+        \If{$S = \bot$}
+        {
+           return $\bot$ \;
+        }
+        $w := \notDominated{S}$ \;
+        $W := W \cup \{ w \}$ \;
+      }
+    return $S$ \;
+    \caption{An algorithm computing an $r$-dominating set of size $k$ in a graph $G$}
+\end{algorithm}
+
+\begin{theorem}
+Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data structures of Theorem~\ref{thm:NearVertex}
+and Theorem~\ref{thm:FarVertex},
+one can implement Algorithm~\ref{alg:1} in time \azinline{here sth depentent on the ladder index or such.}
+\end{theorem}
+
+
+\begin{theorem}\label{thm:NearVertex}
+There is a $\nearVertexDS{r,n}$ data structure that maintains a dynamic graph $G$ of bounded
+expansion, providing the following operations:
+\begin{itemize}
+ \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
+ \item $\add{uv}$ - inserts an edge $uv$ to $G$
+ \item $\remove{uv}$ - removes an edge $uv$ from $G$
+ \item $\near{S}$ - returns a vertex at distance at most $r$ from all vertices in $S$ if such vertex exists, otherwise it returns $\bot$.
+\end{itemize}
+\end{theorem}
+\begin{proof}Postponed to Section 5. \end{proof}
+
+\begin{theorem}\label{thm:FarVertex}
+There is a $\farVertexDS{r,n}$ data structure that maintains a dynamic graph $G$ of bounded
+expansion, providing the following operations:
+\begin{itemize}
+ \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
+ \item $\add{uv}$ - inserts an edge $uv$ to $G$
+ \item $\remove{uv}$- removes an edge $uv$ from $G$
+ \item $\far{v}$ - returns a vertex at distance at least $r$ from $v$ if it exists,
+ otherwise it returns $\bot$
+\end{itemize}
+\end{theorem}
+\begin{proof}Postponed to Section 5. \end{proof}
+
+

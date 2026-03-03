@@ -36,7 +36,7 @@
 \usepackage{comment}
 \usepackage{bbold}
 \linenumbers
-
+\usepackage[linesnumbered,ruled]{algorithm2e}
 \usepackage{textpos}
 \setlist[itemize]{topsep=4pt,itemsep=3pt,parsep=0pt} 
 \setlist[enumerate]{topsep=4pt,itemsep=3pt,parsep=0pt} 
@@ -76,6 +76,19 @@
 }{%
   \end{proof}%
 }
+
+\newcommand{\drds}[1]{{\sc Distance-}{#1} {Dominating Set}}
+\newcommand{\dris}[1]{{\sc Distance-}{#1} {Independent Set}}
+\newcommand{\notDominated}[1]{\mathtt{notDominated(#1)}}
+\newcommand{\candidate}[1]{\mathtt{Candidate(#1)}}
+\newcommand{\add}[1]{\mathtt{Add(#1)}}
+\newcommand{\remove}[1]{\mathtt{Remove(#1)}}
+\newcommand{\near}[1]{\mathtt{nearVertex(#1)}}
+\newcommand{\far}[1]{\mathtt{farVertex(#1)}}
+\newcommand{\init}[1]{\mathtt{Init(#1)}}
+\newcommand{\farVertexDS}[1]{\mathsf{FarVertex[#1]}}
+\newcommand{\nearVertexDS}[1]{\mathsf{NearVertex[#1]}}
+
 
 \newcommand{\cc}{\mathsf{cc}}
 \newcommand{\bd}{\partial}
