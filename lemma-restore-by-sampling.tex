@@ -1,20 +1,19 @@
 \begin{proof}
 Fix an error parameter $\eps\in(0,1)$.
-Let $n := |V(G)|$. If $n=0$, then no vertex $v$ with $f(G,v)>0$ exists and the
-claim holds trivially, so assume $n\ge 1$.
+Let $n := |V(G)|$.
 We assume that $V(G)=\{1,2,\dots,n\}$, i.e., we identify vertices of $G$ with
 integers in $\{1,\dots,n\}$.
 In particular, we use the same symbol $v$ both for a vertex and for its
 identifier in $\{1,\dots,n\}$.
-For convenience, in the complexity bounds we write $|G|:=n$.
 Set $L := \lfloor \log_2 n\rfloor + 1$ and
 \[
   \lambda
-    := \max\!\left(1,\,\left\lceil 10 \cdot
-       \ln\!\left(\tfrac{1}{\eps}\right)\right\rceil\right).
+    := \lceil 10 \cdot
+       \ln\!\left(\tfrac{1}{\eps}\right)\rceil.
 \]
 The maximum with $1$ ensures that $\lambda\ge 1$ even when $\eps$ is close
 to~$1$.
+\wninline{Przełożyłbym ten komentarz o oblivious adversary do statementu}
 The guarantee holds against an oblivious adversary, meaning that the entire
 update sequence is fixed independently of the random bits chosen at
 initialisation.  In particular, for any fixed time step the resulting graph
@@ -23,7 +22,7 @@ state~$G$ is independent of the random choices made below.
 \smallskip
 \noindent\textbf{Pairwise-independent hashing.}
 Let $p$ be a prime such that $8n < p < 16n$
-(such a prime exists by Bertrand's postulate applied to the integer $8n>1$),
+(such a prime exists by Bertrand's postulate),
 and fix any such prime $p$ at initialisation (it can be found by testing
 integers for primality, which contributes only a one-time additive cost).
 For each $j\in\{1,\dots,\lambda\}$ choose $a_j,b_j\in\{0,1,\dots,p-1\}$
@@ -41,7 +40,7 @@ Each $h_j$ is described by $O(1)$ machine words, and the total seed for all
 $\lambda$ functions occupies $O(\lambda)=O(\log\frac{1}{\eps})$ words.
 We use the standard word-RAM model with word size $\Omega(\log n)$; since
 $p<16n$, each number in $\{0,\dots,p-1\}$ fits in $O(1)$ words and arithmetic
-modulo $p$ (hence evaluation of $h_j(v)$ and membership tests $v\in S_{i,j}$)
+modulo $p$
 takes $O(1)$ time.
 
 \smallskip
@@ -55,7 +54,7 @@ and the set
 \[
   S_{i,j} := \bigl\{v\in V(G) : h_j(v) < \tau_i\bigr\}.
 \]
-Since $L=\lfloor\log_2 n\rfloor+1$, we have $n<2^{L}$ and thus $2^{L}\le 2n$,
+Since $L=\lfloor\log_2 n\rfloor+1$, we have $n<2^{L}\le 2n$,
 and consequently $2^{L+1}\le 4n$.
 Therefore, for every $i\in\{0,\dots,L\}$ we have
 $2^{i+1}\le 2^{L+1}\le 4n$.
@@ -187,10 +186,7 @@ Set $i^\star := \lfloor \log_2 m\rfloor + 1$.
 Since $m\le n$ and $L = \lfloor\log_2 n\rfloor + 1$, we have
 $i^\star \le L$, so $i^\star\in\{0,1,\dots,L\}$.
 Note that for $m=1$ we have $i^\star=1$.
-Moreover, $2^{i^\star-1}\le m < 2^{i^\star}$: the left inequality holds
-because $i^\star - 1 = \lfloor \log_2 m\rfloor$ and
-$2^{\lfloor\log_2 m\rfloor}\le m$; the right inequality holds because
-$m < 2^{\lfloor\log_2 m\rfloor+1} = 2^{i^\star}$.
+Moreover, $2^{i^\star-1}\le m < 2^{i^\star}$.
 
 Define $\mu := m\cdot p_{i^\star} = m\cdot \tau_{i^\star}/p$.
 Since $\tau_{i^\star}=\lfloor p/2^{i^\star+1}\rfloor \le p/2^{i^\star+1}$,
@@ -251,7 +247,7 @@ Therefore:
 \end{align*}
 The function $g(\mu):=\mu(1-\mu)$ satisfies $g'(\mu)=1-2\mu > 0$ for
 $\mu<1/2$, hence $g$ is increasing on $[0,\,1/2)$.
-Therefore $g(\mu) > g(1/8) = 7/64 > 1/10$ (since $7\cdot 10 > 64$), and so
+Therefore $g(\mu) > g(1/8) = 7/64 > 1/10$, and so
 \[
   \Pr\bigl(|S_{i^\star,j}\cap X|=1\bigr)=\Pr(Y=1)\ge \tfrac{1}{10}.
 \]

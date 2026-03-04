@@ -21,7 +21,8 @@ In this work, we are going to resolve these open questions and prove the followi
 
 For the algorithms in the following sections we will only need the case $\F = \Hom$, which was the only case that was easy to handle for \cite{DvorakT13} (despite not being stated and proven), but the toolbox that we need to introduce for our main result is of great help in resolving the harder cases of $\F = \Sub$ and $\F = \ISub$ that can be viewed as interesting results of independent interest.
 
-\wninline{@Bartek, napiszesz dowód tego lematu? De facto już to zrobiłeś w dom-one i trzeba by go tylko przystosować do języka tutaj. No i przypadek 2 wymaga jeszcze triku z dzieleniem ważonych przez nieważone aby odzyskać indeks}
+%\wninline{@Bartek, napiszesz dowód tego lematu? De facto już to zrobiłeś w dom-one i trzeba by go tylko przystosować do języka tutaj. No i przypadek 2 wymaga jeszcze triku z dzieleniem ważonych przez nieważone aby odzyskać indeks}
+\wninline{TODO: Zastanowić się na ile potrzebujemy tak skomplikowanego dowodu}
 
 The following lemma, which draws an inspiration from \cite{Majewski24} and \cite{Nadara22}, is a handy tool that helps in restorations of examples while given only counting functions.
 \begin{lemma} \label{lem:restore-by-sampling}
@@ -125,7 +126,7 @@ We are now ready to conclude the proof of the \cref{thm:dvorak-tuma-examples}.
 We remark that as $|\F(H, G)| \le |G|^{|H|}$ and $\val_w(\phi) \le |G|$ for any considered $\F$, $w$ and $\phi$, all integers involved in the computations are of size at most $\Oh(|H|)$ words, hence for a constant $H$, any arithmetic computations can be performed in constant time as well. 
 
 \subsection{Extension to relational structures}
-There is a natural question to ask about whether \cref{thm:dvorak-tuma-examples} extends to more general settings, e.g. can we ask about directed edges or hyperedges? The short answer is affirmative. In fact, in the following sections we are going to use a generalization to retrieving example homomorphisms between directed graphs. However, due to a technical nature of this argument, we defer it to \cref{app:relations}. 
+There is a natural question to ask about whether \cref{thm:dvorak-tuma-examples} extends to more general settings, e.g. can we ask about directed edges or hyperedges? The short answer is affirmative. In fact, in the following sections we are going to use a generalization to retrieving example homomorphisms between directed graphs. However, due to a technical nature of this argument, we defer precise statement and its proof to \cref{app:relations}. 
  
 
 
