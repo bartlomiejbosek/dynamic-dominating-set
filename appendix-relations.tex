@@ -1,0 +1,46 @@
+\section{Extension of \cref{thm:dvorak-tuma-examples} to relational structures } \label{app:relations}
+
+
+Let $H$ and $G$ be two relational structures, that is, consider universes $U_H$ and $U_G$ equipped with relations $R_1, \ldots, R_r$, i.e. $R_i(H) \subseteq U_H^{c_i}$ and $R_i(G) \subseteq U_G^{c_i}$ for some positive integers $c_1, \ldots, c_r$. We say that $\phi : U_H \to U_G$ is a homomorphism from $H$ to $G$ if and only if $(v_1, \ldots, v_{c_i}) \in R_i(H) \Rightarrow (\phi(v_1), \ldots, \phi(v_{c_i})) \in R_i(G)$ for any $1 \le i \le r$ and $v_1, \ldots, v_{c_i} \in U_H$. Similarly, we say that it is a~subrelation isomorphism if $\phi$ is additionaly injective and it is an induced subrelation isomorphism if the implication becomes an equivalence, i.e. $(v_1, \ldots, v_{c_i}) \in R_i(H) \Leftrightarrow (\phi(v_1), \ldots, \phi(v_{c_i})) \in R_i(G)$. Analogously as for undirected colored graphs, we are going to denote these classes of morphisms as $\Hom$, $\Sub$ and $\ISub$ and consequently define $\F(H, G)$ as morphisms from $H$ to $G$ from the class $\F$.
+
+Before proceeding, we need a definition of a \textit{Gaifman graph} of a relational structure. The Gaifman graph of a relational structure $S$ with universe $U_S$ and relations $S_1, \ldots S_s$, denoted as $\mathsf{Gaif}(S)$, is defined such that $V(\mathsf{Gaif}(S)) = U_S$ and $u, v \in E(\mathsf{Gaif}(H))$ if and only if there exists $t \in S_i(H)$ for some $1 \le i \le s$ such that $u, v \in t$. 
+
+
+
+We are going to prove the following combined analog of \ref{lem:weighted-dvorak} and \ref{thm:dvorak-tuma-examples} to relational structures:
+
+\begin{theorem}
+	Let $H$ and $G$ be two relational structures with $U_H$ and $U_G$ as their universes equipped with relations $R_1, \ldots, R_r$, where the arity of $R_i$ is $c_i$. $H$ is a fixed relational structure, i.e. $R_i(H)$ stays fixed, while $G$ is a dynamic relational structure, i.e. it receives a series of additions and removals to any of $R_1(G), \ldots, R_r(G)$. Let $\F \in \{\Hom, \Sub, \ISub\}$. Let $\eps \in (0, 1)$ be a real number. Then, there exist deterministic data structure $\mathsf{WeightedMappings}_{\F, H}(G)$, which is able to determine $|\F(H, G)|$ after each update, and a randomized data structure $\mathsf{MappingExample}_{\F, H, \eps}(G)$, which is able to report any $\phi \in \F(H, G)$ if it is nonempty. Let $\G$ be a class of graphs such that $\mathsf{Gaif}(G) \in \G$ at any point in time.
+	
+	If $\G$ is of bounded expansion, then the data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G|)$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G|)$ space complexity, while $\mathsf{MappingExample}_{\F, H \eps}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ space complexity. 
+	
+	If $\G$ is a nowhere-dense class, then the data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$ processes each update in $\Oh_{\G, H}(|U_G|^\delta)$ amortized time complexity and requires $\Oh_{\G, H}(|U_G|^\delta)$ space complexity, while $\mathsf{MappingExample}_{\F, H, \eps}(G)$ processes each update in $\Oh_{\G, H}(|U_G|^\delta \log{\frac{1}{\eps}})$ amortized time complexity and requires $\Oh_{\G, H}(|U_G|^\delta \log{\frac{1}{\eps}})$ space complexity. 
+	
+	The data structure $\mathsf{MappingExample}_{\F, H, \eps}(G)$ provides no false positives, but may fail to provide $\phi$ with probability at most $\eps$.
+\end{theorem}
+
+\begin{proof}
+	We are going to mainly follow the proof of \cite{DvorakTumaArxiv}, but apply a few required changes. We are going to (almost) reduce the problem to the cases of colored undirected graphs already covered by \ref{lem:weighted-dvorak} and \ref{thm:dvorak-tuma-examples}.
+	
+	Let $M_H$ be a colored undirected graph defined this way. For each $v \in U_H$ we create a vertex $v \in V(M_H)$. For each $t \coloneqq (v_1, \ldots, v_{c_i}) \in R_i(H)$ let us create vertices $t_1, t_2 \in V(M_H)$ and create an edge $t_1t_2$ of color $R_i$ and for each $v \in t$ let us create an edge $vt_1$ of a color $S \subseteq \{1, \ldots, c_i\}$ denoting the subset of positions where $v$ appears in $t$ \footnote{In \cite{DvorakTumaArxiv} all edges of the form $vt_1$ are of the same color, however assigning them different colors is necessary to not lose the information about the position of the vertex $v$ in the tuple $t$.}. Let us define $M_G$ analogously. 
+	
+	By construction, it is easy to see that there is a natural bijection between subgraph isomorphisms from $M_H$ to $M_G$ and subrelation isomorphisms from $H$ to $G$ (however, note that the same is \textit{not} true for homomorphisms or induced isomorphisms). If we extend the function $w : U_H \times U_G \to \Z$ to a function $w' : V(M_H) \times V(M_G) 
+	\to \Z$, where $w'(v, u) = w(v, u)$ if $(v, u) \in U_H \times U_G$ and $w'(v, u)=1$ otherwise, then the $w-$weight of the subrelation isomorphism will be the same as the $w'$-weight of the corresponding subgraph isomorphism.
+	As each update to either of $R_i(G)$ incurs a constant number of updates to $M_G$, we easily get the existence of $\mathsf{WeightedMappings}_{\Sub, H, w}(G)$ and $\mathsf{MappingExample}_{\Sub, H, \eps}(G)$. Also, let $\G'$ be the class of graphs that can be obtained as $M_G$ for $G \in \G$. In \cite{DvorakTumaArxiv} it is proven that if $\G$ is of bounded expansion then $\G'$ is of bounded expansions as well, and if $\G$ is nowhere-dense, then $\G'$ is nowhere-dense as well.
+	
+%	\wninline{Pogadac o Gaifmanach, tzn. udowodnić, że $Gaif(G) \in \G$, gdzie $\G$ jest bnd exp/nowhere-dense daje że $M_G \in \G'$, gdzie $\G'$ też jest bnd exp/nowhere-dense}
+	
+	In order to extend this conclusion to $\Hom$ and $\ISub$ we are going to use similar relations between them and $\Sub$ as in the case of graphs, however we are going to apply them directly on the relations rather than on $M_H$ and $M_G$\footnote{We note that in \cite{DvorakTumaArxiv} the authors worked on induced subgraph isomorphisms between corresponding graphs, but this does not lead to a correct algorithm as induced subrelation isomorphisms do not correspond to induced subgraph isomorphisms from $M_H$ to $M_G$.}.
+	
+	Let us tackle the case of $\Hom$ first. Similarly as in \ref{def:projections}, we may define a projection $H_P$ for a partition $P$ of $U_H$, denoting which elements of $U_H$ are supposed to be mapped to the same elements of $U_G$, and denote the set of all such projections as $\mathcal{H}^p$. We then write that
+	$\val_w(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^p} \val_{w_{H'}}(\Sub(H', G))$,
+	where $\val_{w_{H'}}$ is defined similarly as in \ref{lem:unweighted-sub-to-homo}. Hence, we can design $\mathsf{WeightedMappings}_{\Hom, H, w}(G)$ and $\mathsf{MappingExample}_{\Hom, H}(G)$ by reducing them to a constant number of corresponding data structures $\mathsf{WeightedMappings}_{\Sub, H', w_{H'}}(G)$ and $\mathsf{MappingExample}_{\Sub, H'}(G)$.
+	
+	Finally, for the case of $\ISub$ we follow a similar argument as for \ref{lem:weighted-isub-to-sub}, but instead of iterating over all supergraphs, it suffices to iterate over all superrelations, that is, all relations $H'$ such that $U_{H'} = U_H$ and for each $1 \le i \le R$ we have that $R_i(U_H) \subseteq R_i(U_{H'})$. More specifically $\val_w(\ISub(H, G)) = \sum_{H' \in H^+} (-1)^{||H'|| - ||H||} \val_w(\Sub(H', G))$, where $H^+$ is the set of all superrelations and $||H|| = \sum_{i=1}^{r} |R_i(H)|$. All graphs obtained from this reduction will still be of constant sizes and there will be a constant number of them, hence the data structures $\mathsf{WeightedMappings}_{\ISub, H, w}(G)$ and $\mathsf{MappingExample}_{\ISub, H}(G)$ can be designed by reducing them to a constant number of $\mathsf{WeightedMappings}_{\Sub, H', w}(G)$ and $\mathsf{MappingExample}_{\Sub, H'}(G)$ structures.
+	
+	
+	
+	
+	
+	
+\end{proof}
