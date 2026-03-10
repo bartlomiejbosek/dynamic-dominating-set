@@ -1,0 +1,351 @@
+\begin{proof}
+Fix an error parameter $\eps\in(0,1)$.
+Assume throughout that the universe of vertices of the dynamic graph is fixed in
+advance as $V(G)=\{1,2,\dots,n\}$ with $n>0$, and that every update preserves this vertex set.
+Thus every vertex is permanently identified with its canonical integer label.
+For convenience, in the complexity bounds we write $|G|:=n$.
+Set $L := \lfloor \log_2 n\rfloor + 1$ and $\lambda := \left\lceil 8\ln\!\left(\tfrac{1}{\eps}\right)\right\rceil$.
+Since $\eps\in(0,1)$, we have $\lambda\ge 1$.
+The probabilistic argument below is for an oblivious adversary:
+the whole update sequence is fixed independently of the random choices made by
+the data structure at initialization.
+
+\smallskip
+\noindent\textbf{Random sets stored explicitly.}
+For every $i\in\{0,1,\dots,L\}$ let $p_i := 2^{-(i+1)}.$
+For every pair
+$(i,j)\in\{0,1,\dots,L\}\times\{1,2,\dots,\lambda\}$,
+independently for every vertex $v\in V(G)$, we put $v$ into $S_{i,j}$ with
+probability $p_i$.
+All these random choices are mutually independent over all vertices and all
+pairs $(i,j)$.
+After initialization, the sets $S_{i,j}$ remain fixed forever.
+
+We store each set $S_{i,j}$ explicitly as an $n$-bit vector indexed by
+$\{1,\dots,n\}$.
+Hence the whole family $\{S_{i,j}\}$ is stored once and uses
+$O(n(L+1)\lambda)$ additional space.
+For later use we note that for every fixed subset $X\subseteq V(G)$ and every
+fixed pair $(i,j)$, the
+random variable $|S_{i,j}\cap X|$ therefore has distribution
+$\mathrm{Bin}(|X|,p_i)$.
+
+\smallskip
+\noindent\textbf{Maintained weighted sums.}
+For every pair $(i,j)$ define functions
+$w^{(0)}_{i,j},w^{(1)}_{i,j}\colon V(G)\to \Z$ by
+\[
+w^{(0)}_{i,j}(v) :=
+\begin{cases}
+1 & \text{if } v\in S_{i,j},\\
+0 & \text{if } v\notin S_{i,j},
+\end{cases}
+\qquad
+w^{(1)}_{i,j}(v) :=
+\begin{cases}
+v & \text{if } v\in S_{i,j},\\
+0 & \text{if } v\notin S_{i,j}.
+\end{cases}
+\]
+These weighting functions are fixed after the initial sampling.
+Because $V(G)=\{1,\dots,n\}\subseteq \Z$, both $w^{(0)}_{i,j}$ and
+$w^{(1)}_{i,j}$ indeed map $V(G)$ to~$\Z$.
+The choice of $w^{(1)}_{i,j}(v)=v$ on $S_{i,j}$ is exactly what will later
+allow us to decode the witness under the event that exactly one positive
+vertex is sampled; outside that event, the same quotient may still produce a
+candidate, which is then filtered by $\mathsf{Verify}_f(G)$ in the case
+\cref{it:general-f}.
+Each instance of $\mathsf{WeightedSum}_{f,w}(G)$ receives its own fixed
+weighting function at initialization.
+The common storage of the bit vectors representing the sets $S_{i,j}$ is
+counted separately from the space $S_R$ used by the black-box data structures.
+
+For every pair $(i,j)$ we maintain two instances:
+\[
+\mathsf{WeightedSum}_{f,\,w^{(0)}_{i,j}}(G)
+\qquad\text{and}\qquad
+\mathsf{WeightedSum}_{f,\,w^{(1)}_{i,j}}(G).
+\]
+In the case \cref{it:general-f} we additionally maintain one instance of
+$\mathsf{Verify}_f(G)$.
+Every update of the outer dynamic graph is relayed to all maintained instances.
+
+\smallskip
+\noindent\textbf{Query algorithm.}
+When a query is asked in the current graph state, we inspect the pairs
+$(i,j)$ in lexicographic order, with $i=0,\dots,L$ and $j=1,\dots,\lambda$.
+For the current pair $(i,j)$ we obtain
+\[
+A_{i,j} := \sum_{v\in V(G)} f(G,v)\,w^{(0)}_{i,j}(v)
+\qquad\text{and}\qquad
+B_{i,j} := \sum_{v\in V(G)} f(G,v)\,w^{(1)}_{i,j}(v)
+\]
+by querying the corresponding maintained instances.
+If $A_{i,j}=0$, then we continue to the next pair.
+Since $f(G,v)\ge 0$ for all $v\in V(G)$ and
+$w^{(0)}_{i,j}(v)\in\{0,1\}$, we always have $A_{i,j}\ge 0$.
+Consequently, whenever $A_{i,j}\neq 0$, in fact $A_{i,j}>0$.
+
+\begin{itemize}
+\item In the case \cref{it:binary-f}, if $A_{i,j}=1$, then we return the
+vertex $B_{i,j}$, because then exactly one vertex of $S_{i,j}$ contributes
+a nonzero value to the sum defining $B_{i,j}$; otherwise we continue.
+\item In the case \cref{it:general-f}, since $A_{i,j}>0$ and therefore is
+nonzero, we form the exact rational number $q := B_{i,j}/A_{i,j}.$
+When several positive vertices contribute to the sums, this quotient need not
+identify any unique witness; this is why the algorithm performs the explicit
+verification step below.
+If $q$ is not an integer, or if $q\notin\{1,\dots,n\}$, then we continue.
+Otherwise we query $\mathsf{Verify}_f(G)$ on the vertex $q$.
+If $\mathsf{Verify}_f(G)$ confirms that $f(G,q)>0$, then we return $q$;
+otherwise we continue.
+\end{itemize}
+
+If no pair leads to returning a vertex, then we output the distinguished answer
+\textsc{none}.
+
+\smallskip
+\noindent\textbf{No false positives.}
+Suppose first that we are in the case \cref{it:binary-f} and the algorithm
+returns a value while processing some pair $(i,j)$.
+Then $A_{i,j}=1$, that is,
+\[
+\sum_{v\in V(G)} f(G,v)\,w^{(0)}_{i,j}(v)=1.
+\]
+Since $w^{(0)}_{i,j}$ is the indicator of $S_{i,j}$, this is equivalent to
+\[
+\sum_{v\in S_{i,j}} f(G,v)=1.
+\]
+Now every summand belongs to $\{0,1\}$ by \cref{it:binary-f}.
+Therefore there exists exactly one vertex $x\in S_{i,j}$ such that
+$f(G,x)=1$, and every other vertex $v\in S_{i,j}\setminus\{x\}$ satisfies
+$f(G,v)=0$.
+Consequently,
+\[
+B_{i,j}
+= \sum_{v\in S_{i,j}} f(G,v)\,v
+= x.
+\]
+Thus the algorithm returns the vertex $x$, and this vertex satisfies
+$f(G,x)=1>0$.
+Since $x\in V(G)=\{1,\dots,n\}$, the returned value is indeed a valid vertex
+label.
+
+Now suppose that we are in the case \cref{it:general-f}.
+Then the algorithm returns a vertex only after first checking that the
+candidate $q$ is an integer in $\{1,\dots,n\}$ and then asking
+$\mathsf{Verify}_f(G)$, which confirms that the returned vertex $q$ indeed
+satisfies
+$f(G,q)>0$.
+Hence every returned vertex is correct.
+Note that such a returned vertex $q$ need not belong to the currently
+processed set $S_{i,j}$: when several positive vertices contribute,
+$q=B_{i,j}/A_{i,j}$ is a weighted average of their labels and may accidentally
+equal the label of a vertex outside $S_{i,j}$.
+This is irrelevant, because the required output is any vertex with positive
+$f$-value and $\mathsf{Verify}_f(G)$ confirms $f(G,q)>0$ before returning~$q$.
+
+Therefore the data structure has no false positives in both cases.
+If the algorithm outputs \textsc{none}, then it makes no positive claim, so
+again no false positive occurs.
+
+\smallskip
+\noindent\textbf{Probability of a false negative.}
+Fix an arbitrary time step of the execution and suppose that a query is made at
+this state.
+Let $G$ denote the graph at that moment.
+Because the adversary is oblivious, this graph state depends only on the fixed
+update sequence and not on the random family $\{S_{i,j}\}$ sampled at
+initialization.
+Define $X := \{v\in V(G)\mid f(G,v)>0\}$ and $m := |X|.$
+Thus $X$ is a fixed subset of $V(G)$ from the point of view of the probability
+space governing the initial sampling of the family $\{S_{i,j}\}$.
+In particular, $X$ is independent of that sampling.
+
+If $m=0$, then $f(G,v)=0$ for every vertex $v\in V(G)$.
+Therefore for every pair $(i,j)$ we have
+\[
+A_{i,j}
+= \sum_{v\in V(G)} f(G,v)\,w^{(0)}_{i,j}(v)
+= 0,
+\]
+so the algorithm reaches the answer \textsc{none}, and this answer is correct.
+Hence only the case $m\ge 1$ requires further analysis.
+
+Set $i^\star := \lfloor \log_2 m\rfloor + 1.$
+Since $1\le m\le n$, we have $1=\lfloor \log_2 1\rfloor + 1 \le i^\star \le \lfloor \log_2 n\rfloor + 1 = L.$
+Let $p := p_{i^\star}=2^{-(i^\star+1)}.$
+Exponentiating base~$2$ yields $2^{i^\star-1}\le m < 2^{i^\star}$
+and therefore $\tfrac{1}{4} = 2^{i^\star-1}\cdot 2^{-(i^\star+1)} \le mp < 2^{i^\star}\cdot 2^{-(i^\star+1)} = \tfrac{1}{2}.$
+In particular, $p < \tfrac{1}{2m}.$
+
+Fix any $j\in\{1,\dots,\lambda\}$ and consider the random variable $Y := |S_{i^\star,j}\cap X|.$
+Since every vertex of $X$ is included in $S_{i^\star,j}$ independently with
+probability $p$, we have $Y\sim\mathrm{Bin}(m,p)$.
+Therefore $\Pr(Y=1)=m\,p\,(1-p)^{m-1}.$
+Since $p<1/(2m)\le 1/2<1$, Bernoulli's inequality gives $(1-p)^{m-1}\ge 1-(m-1)p.$
+Because $p<1/(2m)$, we have
+$(m-1)p < \tfrac{m-1}{2m} < \tfrac{1}{2},$
+so $1-(m-1)p > \tfrac{1}{2}.$
+Consequently, $(1-p)^{m-1} > \tfrac{1}{2}.$
+Combining this with $mp\ge 1/4$, we get
+$
+\Pr(Y=1)
+= m\,p\,(1-p)^{m-1}
+> \tfrac{1}{4}\cdot\tfrac{1}{2}
+= \tfrac{1}{8}.
+$
+Thus, for every fixed $j$, $\Pr\bigl(|S_{i^\star,j}\cap X|=1\bigr) > \tfrac{1}{8}.$
+
+The sets $S_{i^\star,1},\dots,S_{i^\star,\lambda}$ are sampled independently,
+so the events $\bigl\{|S_{i^\star,j}\cap X|=1\bigr\},$ $j=1,\dots,\lambda,$ are independent.
+Hence
+\[
+\Pr\Bigl(\forall j\in\{1,\dots,\lambda\}\colon
+|S_{i^\star,j}\cap X|\neq 1\Bigr)
+\le \left(1-\tfrac{1}{8}\right)^\lambda
+\le \exp\!\left(-\tfrac{\lambda}{8}\right)
+\le \eps.
+\]
+The last inequality holds by the definition of $\lambda$.
+
+It remains to prove that if
+$|S_{i^\star,j}\cap X|=1$ for some $j\in\{1,\dots,\lambda\}$, then the query
+algorithm returns a correct vertex no later than when it processes the pair
+$(i^\star,j)$.
+Let $x$ be the unique element of $S_{i^\star,j}\cap X$.
+Then $f(G,x)>0$ by the definition of $X$.
+If the algorithm has already returned a vertex for an earlier pair, then that
+earlier returned vertex is correct by the no-false-positives property.
+So suppose that the pair $(i^\star,j)$ is actually processed.
+
+\begin{itemize}
+\item In the case \cref{it:binary-f}, every vertex
+$v\in S_{i^\star,j}\setminus\{x\}$ satisfies $v\notin X$, hence $f(G,v)=0$,
+while $f(G,x)=1$ because $f(G,\cdot)\in\{0,1\}$.
+Therefore
+\[
+A_{i^\star,j}
+= \sum_{v\in S_{i^\star,j}} f(G,v)
+= 1
+\qquad\text{and}\qquad
+B_{i^\star,j}
+= \sum_{v\in S_{i^\star,j}} f(G,v)\,v
+= x.
+\]
+Thus the algorithm returns the correct vertex $x$.
+\item In the case \cref{it:general-f}, every vertex
+$v\in S_{i^\star,j}\setminus\{x\}$ satisfies $v\notin X$, hence
+$f(G,v)$ is not positive.
+Since $f(G,v)\ge 0$ by the assumptions of the lemma, this yields
+$f(G,v)=0$.
+Hence
+\[
+A_{i^\star,j}=f(G,x)>0
+\qquad\text{and}\qquad
+B_{i^\star,j}=f(G,x)\cdot x.
+\]
+Therefore $q=B_{i^\star,j} / A_{i^\star,j}=x.$
+Since $x\in\{1,\dots,n\}$, the algorithm queries
+$\mathsf{Verify}_f(G)$ on $x$, receives confirmation that $f(G,x)>0$, and
+returns $x$.
+\end{itemize}
+
+Thus a false negative can occur only if
+$|S_{i^\star,j}\cap X|\neq 1$ for every $j\in\{1,\dots,\lambda\}$, and this
+happens with probability at most $\eps$.
+Therefore, for every fixed query asked at any fixed time step, the probability
+that the data structure outputs \textsc{none} despite $X\neq\varnothing$
+is at most $\eps$.
+
+\smallskip
+\noindent\textbf{Complexity.}
+Before the first operation, the reduction samples and stores all sets $S_{i,j}$.
+This one-time preprocessing takes
+$
+O(n(L+1)\lambda)
+=
+O\!\left(
+|G|\cdot (1+\log |G|)\cdot \left(1+\log\tfrac{1}{\eps}\right)
+\right)
+$
+time and space.
+
+For the update complexity, observe that every outer update is relayed to all
+$2(L+1)\lambda$ maintained instances of $\mathsf{WeightedSum}$ and, in the case
+\cref{it:general-f}, also to the single maintained instance of
+$\mathsf{Verify}_f(G)$.
+Therefore the amortized cost of one outer update is
+$
+O\!\bigl((L+1)\lambda\cdot T_R + T_V\bigr),
+$
+which is also
+$
+O\!\bigl((T_R+T_V)(L+1)\lambda\bigr)
+$
+because $(L+1)\lambda\ge 1$.
+
+For the query complexity, one outer query inspects at most $(L+1)\lambda$
+pairs $(i,j)$.
+For every processed pair it performs two queries to maintained instances of
+$\mathsf{WeightedSum}$ and, in the case \cref{it:general-f}, at most one query
+to $\mathsf{Verify}_f(G)$.
+Hence the total time spent on black-box queries during one outer query is
+$
+O\!\bigl((T_R+T_V)(L+1)\lambda\bigr).
+$
+Besides these calls, the reduction performs only the control logic of the loop
+and the arithmetic tests based on $A_{i,j}$ and $B_{i,j}$.
+Under the standard word-RAM convention, these arithmetic tests contribute only
+$O(1)$ time per processed pair; otherwise their cost has to be added
+separately.
+
+For the space complexity, the maintained instances of $\mathsf{WeightedSum}$
+use
+$
+O\!\bigl(2(L+1)\lambda\cdot S_R\bigr)
+=
+O\!\bigl(S_R(L+1)\lambda\bigr)
+$
+space.
+In the case \cref{it:general-f}, the maintained instance of
+$\mathsf{Verify}_f(G)$ uses $O(S_V)$ space.
+The explicitly stored family $\{S_{i,j}\}$ contributes additional space
+$O(n(L+1)\lambda)$.
+Hence the whole construction uses
+\[
+O\!\bigl(S_R(L+1)\lambda + S_V + n(L+1)\lambda\bigr)
+=
+O\!\left(
+(S_R+S_V+|G|)\cdot (1+\log |G|)\cdot
+\left(1+\log\tfrac{1}{\eps}\right)
+\right)
+\]
+space.
+The term $|G|$ here comes solely from the explicit storage of the sampled
+family $\{S_{i,j}\}$.
+
+In the case \cref{it:binary-f} we set $T_V=S_V=0$, exactly as in the statement.
+This proves the correctness of the construction and the quantitative bounds
+derived in this proof.
+\end{proof}
+
+\bbinline{Przy jawnym przechowywaniu zbiorów $S_{i,j}$ rzeczywista pamięć tej
+konstrukcji zawiera dodatkowy składnik
+$\Oh(|G|(1+\log |G|)(1+\log \frac{1}{\eps}))$.
+Dlatego oszacowanie pamięci w wypowiedzi lematu powinno zostać zmienione na
+$\Oh((S_R+S_V+|G|)\cdot \log |G| \cdot \log \frac{1}{\eps})$ albo na wariant z
+czynnikami $(1+\log |G|)$ i $(1+\log \frac{1}{\eps})$.}
+
+\bbinline{Ta redukcja ma również jednorazowy koszt inicjalizacji:
+losowanie i zapis wszystkich zbiorów $S_{i,j}$ zajmuje
+$\Oh(|G|(1+\log |G|)(1+\log \frac{1}{\eps}))$ czasu i pamięci przed pierwszą
+operacją. Jeśli ma to być ujęte w formalnej tezie lematu, trzeba to dopisać
+osobno.}
+
+\bbinline{Aby formalnie zamknąć rachunek czasu zapytania, wypowiedź lematu albo
+globalny model obliczeń powinny jawnie wyjaśnić, jak rozliczamy arytmetykę na
+liczbach $A_{i,j}$ i $B_{i,j}$, w szczególności test podzielności oraz iloraz
+$B_{i,j}/A_{i,j}$ w przypadku \cref{it:general-f}; w szczególności trzeba
+wyjaśnić, czy wartości $f(G,v)$ są całkowite albo szerzej: czy używana jest
+arytmetyka dokładna na liczbach zwracanych przez $\mathsf{WeightedSum}$.}
