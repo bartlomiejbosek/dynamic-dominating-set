@@ -1,3 +1,485 @@
-\section{Distance-$1$ domination}
+\section{Distance-\texorpdfstring{$1$}{1} domination}\label{sec:distone}
 
-Here we give the data structure for distance-$1$ dominating sets in graphs of bounded arboricity. This boils down to arguing the three ingredients from \cref{sec:ladders}: no long semi-ladders and implementation of both oracles.
+In this section we restate Theorem~\ref{thm:NearVertex} and Theorem~\ref{thm:FarVertex} after specializing them to distance $r=1$ and to dynamic $d$-degenerate graphs on a fixed vertex set $V=\{1,\ldots,n\}$, where $n \ge 2$ and $d\ge 1$.
+We maintain an orientation $\vec{G}$ with maximum out-degree $\Delta := 4d$ using the Brodal--Fagerberg data structure~\cite{BrodalF99}.
+We write $N(v)$ for the open neighborhood of $v$, $N[v]:=\{v\}\cup N(v)$ for the closed neighborhood, and $N[S]:=\bigcup_{v\in S}N[v]$ for $S\subseteq V$.
+
+\subsection{Arboricity and dynamic orientation}\label{sec:distone-arboricity}
+
+A $d$-degenerate graph has arboricity at most $d$.
+
+We use the following result of Brodal and Fagerberg~\cite[Theorem~3]{BrodalF99}.
+
+\begin{theorem}[Brodal--Fagerberg]\label{thm:bf}
+There exists a deterministic data structure that maintains a graph of arboricity at most $\alpha$ under edge insertions and deletions.
+The data structure stores an orientation $\vec{G}$ of $G$ with maximum out-degree $4\alpha$, i.e., for every vertex $u$ we have $|N^+(u)| \le 4\alpha$.
+An edge insertion has amortized cost $\Oh(1)$, an edge deletion has amortized cost $\Oh(\alpha + \log n)$, and the amortized number of edges that change orientation in a single operation is $\Oh(\alpha + \log n)$.
+The data structure uses $\Oh(n + m)$ memory.
+\end{theorem}
+
+\begin{lemma}[Reporting reoriented edges]\label{lem:bf-report}
+There exists an implementation of the data structure from Theorem~\ref{thm:bf} such that each update additionally outputs the list of edges whose orientation changed during this update.
+If $r$ is the number of edges reoriented during this update, then producing this list takes $\Oh(r)$ additional time.
+\end{lemma}
+\begin{proof}
+We augment the update procedure as follows.
+Whenever the implementation changes the orientation of an edge, it appends this edge to a temporary list associated with the current update.
+Thus each reoriented edge contributes $\Oh(1)$ additional work and is recorded exactly once, so producing the whole list takes $\Oh(r)$ time.
+\end{proof}
+
+\subsection{Deterministic toolkit}\label{sec:distone-infra}
+
+Throughout this section we assume $n\ge 2$ and $d\ge 1$.
+By the arboricity bound above, Theorem~\ref{thm:bf}, and Lemma~\ref{lem:bf-report}, the current $d$-degenerate graph admits a maintained orientation $\vec G$ of maximum out-degree $\Delta := 4d$.
+We write $N^+(u):=\{v\in V : (u,v)\in \vec E\}$.
+This subsection describes one deterministic toolkit for distance $1$ in dynamic $d$-degenerate graphs.
+Later data structures instantiate this toolkit independently; the description is common only at the level of exposition.
+
+The toolkit architecture replaces graph search with bucket arithmetic plus inspection of a few short out-neighborhoods.
+The orientation guarantees that every set $N^+(u)$ has size at most $\Delta$.
+Buckets compress the statement ``$Z\subseteq N^+(u)$'' into one dictionary lookup: instead of scanning all vertices, we consult the single list $B(Z):=\{u\in V^+ : Z\subseteq N^+(u)\}$.
+
+We explicitly maintain the following objects at all times.
+\begin{itemize}
+\item The set $V^+:=\{u\in V : \deg_G(u)>0\}$, represented by a Boolean array, an iterable list of its current elements, and its current cardinality.
+\item The set of isolated vertices $V\setminus V^+$ as a dictionary of disjoint maximal identifier intervals; this supports finding the smallest isolated vertex, or the next one after a given identifier, in $\Oh(\log n)$ time.
+\item The neighbor dictionaries $N(u)$ and $N^+(u)$ for every $u\in V^+$.
+\item The bucket family $B(Z):=\{u\in V^+ : Z\subseteq N^+(u)\}$ for sets $Z\subseteq V$ with $|Z|\le \Delta$, stored as linked lists inside a dictionary keyed by the sorted representation of $Z$.
+\item A registration list for every $u \in V^+$, tracking its $2^{|N^+(u)|} \le 2^\Delta$ bucket memberships.
+\end{itemize}
+For every $u\in V^+$, the dictionaries $N(u)$ and $N^+(u)$ are keyed by vertex identifiers.
+Hence for every $v\in V$, the membership tests $v\in N(u)$ and $v\in N^+(u)$ can be performed in $\Oh(\log n)$ time.
+
+Only nonempty buckets are materialized in the bucket dictionary.
+Every bucket key $Z$ is stored explicitly as the sorted list of its elements, so it occupies $\Oh(|Z|)\le \Oh(\Delta)=\Oh(d)$ machine words.
+Every maintained bucket stores a pointer to its first element and its current cardinality.
+Consequently, one bucket lookup, insertion, or deletion by key costs $\Oh(d)$, while after the bucket is found, accessing the first element of a nonempty bucket costs $\Oh(1)$, checking whether a vertex belongs to $V^+$ costs $\Oh(1)$, and reading $|B(Z)|$ or $|V^+|$ costs $\Oh(1)$.
+The edgeless graph on $V$ is initialized in $\Oh(1)$ time by setting $V^+=\emptyset$, the isolated-vertex dictionary to the single interval $[1,n]$, and all neighbor and bucket dictionaries to be empty.
+
+For later use in weighted structures, every update of one toolkit instance additionally outputs a transient log consisting of:
+\begin{itemize}
+\item the list $L_{\mathrm{in}}^+$ of vertices that entered $V^+$;
+\item the list $L_{\mathrm{out}}^+$ of vertices that left $V^+$;
+\item the list $\Lambda^+$ of added bucket registrations $(u,Z)$;
+\item the list $\Lambda^-$ of deleted bucket registrations $(u,Z)$.
+\end{itemize}
+The proof below shows that these items are already traversed by the update routine, and in particular every logged registration event is emitted while the corresponding bucket object is already identified, so emitting the log does not change the asymptotic complexity.
+
+\begin{lemma}[Deterministic toolkit]\label{lem:infra-update}
+Assume $n \geq 2$ and $d\ge 1$.
+One instance of the deterministic toolkit of this subsection can be initialized on the edgeless graph on $V$ in $\Oh(1)$ time.
+It uses $\Oh(nd\cdot 2^{4d})$ words of space.
+An edge insertion or deletion updates the toolkit in $\Oh(2^{4d}\cdot(d^3+\log^3 n))$ amortized time and outputs the complete log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
+The total number of logged items is $\Oh(2^{4d}(d+\log n))$ in amortized time.
+\end{lemma}
+\begin{proof}
+Initialization is exactly the constant-time setup described above, so only updates require analysis.
+
+Consider one edge insertion or deletion.
+First, we update the two affected neighbor dictionaries $N(\cdot)$, the Boolean flags for membership in $V^+$, the iterable list of $V^+$, and the interval dictionary for $V\setminus V^+$.
+Each endpoint can change its isolated/non-isolated status at most once during this step, so this first stage costs $\Oh(\log n)$ time.
+Whenever an endpoint enters $V^+$ we append it to $L_{\mathrm{in}}^+$, and whenever an endpoint leaves $V^+$ we append it to $L_{\mathrm{out}}^+$.
+Thus the total size of these two lists is $\Oh(1)$.
+
+Second, we update the Brodal--Fagerberg orientation.
+By Theorem~\ref{thm:bf}, the amortized number of reoriented edges is $\Oh(d+\log n)$.
+By Lemma~\ref{lem:bf-report}, we obtain the whole list of those edges, hence also the set of vertices whose out-neighborhood changed.
+Each reoriented edge contributes at most its two endpoints.
+In addition, the updated edge contributes only its two endpoints, because only these endpoints can change their membership in $V^+$.
+Therefore the amortized number of vertices for which either the set $N^+(u)$ or the predicate $u\in V^+$ may change is $\Oh(d+\log n)$.
+
+Fix one such vertex $u$.
+Let $A_{\mathrm{old}}:=N^+_{\mathrm{old}}(u)$ and $A_{\mathrm{new}}:=N^+_{\mathrm{new}}(u)$.
+Because buckets are defined only for vertices in $V^+$, the old registrations of $u$ form the family $\mathcal{R}_{\mathrm{old}}(u):=\{Z\subseteq A_{\mathrm{old}} : u\in V^+_{\mathrm{old}}\}$, while the new registrations form $\mathcal{R}_{\mathrm{new}}(u):=\{Z\subseteq A_{\mathrm{new}} : u\in V^+_{\mathrm{new}}\}$.
+Equivalently, if $u\notin V^+_{\mathrm{old}}$, then $\mathcal{R}_{\mathrm{old}}(u)=\emptyset$, and if $u\notin V^+_{\mathrm{new}}$, then $\mathcal{R}_{\mathrm{new}}(u)=\emptyset$.
+In particular, if an endpoint becomes isolated after deleting its last incident edge, then it is inserted into no bucket after the update, not even into $B(\emptyset)$.
+Likewise, if a previously isolated endpoint becomes non-isolated, then it had no old registrations and acquires exactly the registrations indexed by subsets of $A_{\mathrm{new}}$.
+Since $|A_{\mathrm{old}}|,|A_{\mathrm{new}}|\le \Delta$, both families have size at most $2^\Delta$.
+We enumerate all sets in $\mathcal{R}_{\mathrm{old}}(u)$ and delete the corresponding registrations, then enumerate all sets in $\mathcal{R}_{\mathrm{new}}(u)$ and insert the new registrations.
+Producing one subset key and performing the corresponding bucket lookup, insertion, or deletion costs $\Oh(\Delta)=\Oh(d)$, because the key has size at most $\Delta$.
+Whenever one old registration $(u,Z)$ is deleted, we append $(u,Z)$ to $\Lambda^-$, and whenever one new registration $(u,Z)$ is inserted, we append $(u,Z)$ to $\Lambda^+$.
+Recording these events costs $\Oh(1)$ per registration, so the whole work caused by the vertex $u$ is still $\Oh((|\mathcal{R}_{\mathrm{old}}(u)|+|\mathcal{R}_{\mathrm{new}}(u)|)\cdot \Delta)=\Oh(2^\Delta\cdot \Delta)$.
+
+Multiplying by the amortized number $\Oh(d+\log n)$ of changed vertices per graph update yields amortized update time $\Oh((d+\log n)\cdot 2^\Delta\cdot \Delta)$.
+Since $\Delta=4d$, this is $\Oh(2^{4d}\cdot d(d+\log n))$, which is subsumed by $\Oh(2^{4d}\cdot(d^3+\log^3 n))$.
+The factor $2^{4d}$ comes from enumerating all subsets of an out-neighborhood of size at most $\Delta=4d$.
+The same calculation shows that the combined size of $\Lambda^+$ and $\Lambda^-$ is $\Oh(2^\Delta(d+\log n))$ in amortized time.
+Together with the two lists of vertices entering or leaving $V^+$, this proves the bound on the update log.
+
+For the persistent space bound, the orientation, the Boolean array for $V^+$, the iterable list of $V^+$, the neighbor dictionaries, and the interval dictionary use $\Oh(nd)$ words because every $d$-degenerate graph on $V$ has at most $d(n-1)$ edges.
+For every $u\in V^+$, its registration list contains at most $2^{|N^+(u)|}\le 2^\Delta$ entries.
+Each such entry is associated with a bucket key $Z\subseteq N^+(u)$, and if this key is stored as a sorted list of identifiers, then it uses $\Oh(|Z|)\le \Oh(\Delta)$ words.
+Hence all registrations and bucket incidences together use at most $\Oh\!\left(\sum_{u\in V^+} 2^{|N^+(u)|}\cdot \Delta\right)=\Oh(n\cdot 2^\Delta\cdot \Delta)$ words.
+The number of materialized buckets is at most the number of nonempty registrations plus one, so their headers, including the stored keys, satisfy the same bound.
+Since $\Delta=4d$ and $d\ge 1$, the whole toolkit uses $\Oh(nd\cdot 2^{4d})$ words.
+\end{proof}
+
+\begin{claim}[Decomposition of $U(S)$]\label{lem:distone-U1-bound}
+Assume $n\ge 2$.
+Let $S\subseteq V$ be nonempty and define $U(S):=\{u\in V\setminus S : S\subseteq N(u)\}$.
+Let $U_2(S):=\{u\in U(S) : S\subseteq N^+(u)\}$ and $U_1(S):=U(S)\setminus U_2(S)$.
+Then $U(S)=U_1(S)\cup U_2(S)$ is a disjoint union and $U_1(S)\subseteq \bigcup_{s\in S}N^+(s)$.
+In particular, $|U_1(S)|\le \Delta\cdot |S|$.
+\end{claim}
+\begin{claimproof}[Proof.]
+The decomposition $U(S)=U_1(S)\cup U_2(S)$ is immediate from the definitions.
+Let $u\in U_1(S)$.
+Then $S\subseteq N(u)$ but $S\not\subseteq N^+(u)$, so there exists $s\in S$ with $s\notin N^+(u)$.
+Since $\{u,s\}\in E$ and the edge is not oriented out of $u$, it must be oriented as $(s,u)$.
+Hence $u\in N^+(s)$.
+\end{claimproof}
+
+\begin{claim}[Bucket characterization of $U_2(S)$]\label{lem:distone-U2-bucket}
+Assume $n\ge 2$.
+Let $S\subseteq V$ be nonempty.
+If $|S|\le \Delta$, then $U_2(S)=B(S)$.
+If $|S|>\Delta$, then $U_2(S)=\emptyset$.
+\end{claim}
+\begin{claimproof}[Proof.]
+If $|S|>\Delta$, then $U_2(S)=\emptyset$ because every out-neighborhood has size at most $\Delta$.
+Assume now that $|S|\le \Delta$.
+Let $u\in U_2(S)$.
+Then $u\in U(S)$ and $S\subseteq N^+(u)$, so $u\in B(S)$.
+Conversely, let $u\in B(S)$.
+Then $u\in V^+$ and $S\subseteq N^+(u)\subseteq N(u)$.
+Since $S\subseteq N^+(u)$ and a vertex cannot be an out-neighbor of itself in a simple graph, we have $u\notin S$.
+Therefore $u\in U(S)$, and together with $S\subseteq N^+(u)$ this yields $u\in U_2(S)$.
+\end{claimproof}
+
+\begin{claim}[Explicit candidate set for $\near{S}$]\label{cl:distone-near-candidates}
+Assume $n\ge 2$, let $S\subseteq V$ be nonempty, and suppose every vertex of $S$ is non-isolated.
+If a vertex $v$ satisfies $S\subseteq N[v]$, then one of the following holds:
+\begin{itemize}
+\item $v\in S$;
+\item $v\in \bigcup_{s\in S}N^+(s)$;
+\item $|S|\le \Delta$ and $v\in B(S)$.
+\end{itemize}
+In particular, apart from the single bucket lookup for $B(S)$, there are at most $|S|+\Delta\cdot |S|=\Oh(d\cdot |S|)$ explicit candidates.
+\end{claim}
+\begin{claimproof}[Proof.]
+If $v\in S$, we are in the first case.
+Assume therefore that $v\notin S$.
+Then $v\in U(S)$.
+If $v\in U_1(S)$, Claim~\ref{lem:distone-U1-bound} yields $v\in \bigcup_{s\in S}N^+(s)$.
+If $v\in U_2(S)$, Claim~\ref{lem:distone-U2-bucket} yields either $|S|>\Delta$, impossible, or $v\in B(S)$.
+\end{claimproof}
+
+\subsection{Data structure for \texorpdfstring{$\near{S}$}{near(S)}}\label{sec:distone-near}
+
+\paragraph{The data structure \texorpdfstring{$\nearVertexDS{1,n}$}{NearVertex[1,n]}.}
+The structure $\nearVertexDS{1,n}$ consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}; it stores no additional persistent fields.
+
+\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\nearVertexDS{1,n}$}{Init for NearVertex[1,n]}.}
+\begin{enumerate}
+\item Initialize one instance of the deterministic toolkit on the edgeless graph on $V$.
+\item For every edge $uv\in E(G)$, execute the insertion procedure of Lemma~\ref{lem:infra-update}.
+\end{enumerate}
+Because every intermediate graph is a subgraph of $G$, it is still $d$-degenerate, and because $G$ has at most $d(n-1)$ edges, this takes $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$ time.
+
+\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\nearVertexDS{1,n}$}{Add for NearVertex[1,n]}.}
+\begin{enumerate}
+\item Execute the insertion procedure of Lemma~\ref{lem:infra-update} in the unique toolkit instance.
+\end{enumerate}
+This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
+
+\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\nearVertexDS{1,n}$}{Remove for NearVertex[1,n]}.}
+\begin{enumerate}
+\item Execute the deletion procedure of Lemma~\ref{lem:infra-update} in the unique toolkit instance.
+\end{enumerate}
+This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
+
+\paragraph{Procedure \texorpdfstring{$\near{S}$ for $\nearVertexDS{1,n}$}{nearVertex(S) for NearVertex[1,n]}.}
+\begin{enumerate}
+\item If $S=\emptyset$, return vertex $1$.
+\item Scan the vertices of $S$ and test whether they belong to $V^+$.
+\item If some $s\in S$ is isolated, then return $s$ when $S=\{s\}$, and return $\bot$ otherwise.
+\item For every $v\in S$, test whether $S\setminus\{v\}\subseteq N(v)$. If this holds for some $v$, return $v$.
+\item Build the temporary de-duplicated list of candidates from $\bigcup_{s\in S}N^+(s)$.
+\item For every candidate $u$ from Step~5, test whether $S\subseteq N(u)$. If this holds for some $u$, return $u$.
+\item If $|S|\le \Delta$, inspect the bucket $B(S)$. If it is nonempty, return its first element.
+\item Return $\bot$.
+\end{enumerate}
+Steps~2--3 take $\Oh(|S|)$ time, Step~4 takes $\Oh(|S|^2\log n)$ time, Steps~5--6 take $\Oh(d|S|\log n+d|S|^2\log n)$ time, and Step~7 takes $\Oh(d)$ time.
+
+\begin{lemma}[Specialized form of Theorem~\ref{thm:NearVertex}]\label{lem:distone-near}
+Assume $n\ge 2$ and $d\ge 1$.
+There exists a data structure $\nearVertexDS{1,n}$ that maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
+\begin{itemize}
+\item $\init{G}$ initializes the structure in time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$;
+\item $\add{uv}$ and $\remove{uv}$ update the structure in amortized time $\Oh(2^{4d}(d^3+\log^3 n))$;
+\item $\near{S}$ returns a vertex $v$ with $S\subseteq N[v]$ if such a vertex exists, and returns $\bot$ otherwise, in time $\Oh(|S| + d|S|^2\log n)$.
+\end{itemize}
+The structure uses $\Oh(nd\cdot 2^{4d})$ words of space.
+\end{lemma}
+
+\begin{proof}
+The data structure consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}, so the paragraphs above already define the full persistent state and all supported procedures.
+The bounds for $\init{G}$ and for the updates $\add{uv}$ and $\remove{uv}$ are exactly the ones stated after those procedures, and they follow directly from Lemma~\ref{lem:infra-update}.
+
+It remains to analyze one query $\near{S}$.
+Step~1 handles the case $S=\emptyset$ in $\Oh(1)$ time, so assume from now on that $S\neq\emptyset$.
+Steps~2--3 inspect all vertices of $S$ and test in $\Oh(1)$ time per vertex whether they belong to $V^+$, hence together they take $\Oh(|S|)$ time.
+If some $s\in S$ is isolated, then any vertex $v$ with $S\subseteq N[v]$ must equal $s$.
+Consequently, Step~3 is correct: it returns $s$ when $S=\{s\}$ and returns $\bot$ when $|S|\ge 2$.
+
+Assume now that every vertex of $S$ is non-isolated.
+Any witness $v$ with $S\subseteq N[v]$ is either an internal candidate, meaning $v\in S$, or an external candidate, meaning $v\notin S$.
+Step~4 tests every internal candidate explicitly.
+To verify one such candidate it suffices to check whether every vertex of $S\setminus\{v\}$ belongs to $N(v)$.
+This uses $|S|-1$ lookups in the neighbor dictionary of $v$, hence $\Oh(|S|\log n)$ time per candidate and $\Oh(|S|^2\log n)$ time in total for Step~4.
+
+For external candidates we use Claim~\ref{cl:distone-near-candidates}.
+It tells us that every external witness lies either in the explicit union $\bigcup_{s\in S}N^+(s)$ or, when $|S|\le \Delta$, in the single bucket $B(S)$.
+Step~5 enumerates the union of out-neighborhoods by scanning the lists $N^+(s)$ for all $s\in S$; their total size is at most $\Delta|S|$.
+We de-duplicate the resulting list using a temporary dictionary, so Step~5 costs $\Oh(\Delta|S|\log n)=\Oh(d|S|\log n)$.
+Step~6 then verifies every explicit external candidate by checking the condition $S\subseteq N(u)$ through $|S|$ dictionary lookups, hence one candidate costs $\Oh(|S|\log n)$ and all explicit candidates together cost $\Oh(\Delta|S|^2\log n)=\Oh(d|S|^2\log n)$.
+
+If $|S|\le \Delta$, then Step~7 inspects the bucket $B(S)$.
+The lookup of that bucket by the explicit key $S$ costs $\Oh(|S|)\le \Oh(\Delta)=\Oh(d)$.
+If the bucket is nonempty, then its first element is a correct witness and can be returned in $\Oh(1)$ time, because every vertex in $B(S)$ satisfies $S\subseteq N^+(u)\subseteq N(u)$.
+If $|S|>\Delta$, Claim~\ref{lem:distone-U2-bucket} says that there is no bucket witness and Step~7 can be skipped.
+Finally, if none of Steps~3, 4, 6, and 7 returns a vertex, then Claim~\ref{cl:distone-near-candidates} shows that no witness exists, so Step~8 correctly returns $\bot$.
+
+The total query time is therefore $\Oh(|S| + |S|^2\log n + d|S|\log n + d|S|^2\log n + d)$, which simplifies to $\Oh(|S| + d|S|^2\log n)$, since $d\ge 1$, $|S|\ge 1$, and $\log n\ge 1$.
+
+For the space bound, Lemma~\ref{lem:infra-update} gives $\Oh(nd\cdot 2^{4d})$ words for the unique toolkit instance, and the structure stores no additional persistent fields.
+\end{proof}
+
+\subsection{Data structure for \texorpdfstring{$\far{v}$}{far(v)}}\label{sec:distone-far}
+
+\begin{claim}\label{cl:distone-Nv-decomp}
+If $v$ is isolated, then $N_G[v]\cap V^+=\emptyset$.
+Otherwise, we have a disjoint union $N_G[v]\cap V^+=N^+(v)\cup U_2(\{v\})\cup(\{v\}\cap V^+)$.
+Moreover, if the key $\{v\}$ is present in the bucket dictionary, then $U_2(\{v\})=B(\{v\})$, while if the key $\{v\}$ is absent, then $U_2(\{v\})=\emptyset$.
+\end{claim}
+\begin{claimproof}[Proof.]
+If $v$ is isolated, then $v\notin V^+$ and $N(v)=\emptyset$, hence $N_G[v]\cap V^+=\emptyset$.
+Assume now that $v$ is non-isolated.
+Since $U(\{v\})=N(v)$, Claim~\ref{lem:distone-U1-bound} yields a disjoint decomposition $N(v)=U_1(\{v\})\cup U_2(\{v\})$ and implies $U_1(\{v\})\subseteq N^+(v)$.
+If $u\in N^+(v)$, then the edge $vu$ is oriented as $(v,u)$, so $v\notin N^+(u)$ and therefore $u\notin U_2(\{v\})$.
+As $u\in N(v)=U(\{v\})$, we conclude that $u\in U_1(\{v\})$.
+Thus $U_1(\{v\})=N^+(v)$.
+
+Every vertex of $N(v)$ has positive degree, so $N(v)\subseteq V^+$.
+Hence $N_G[v]\cap V^+=(N(v)\cup\{v\})\cap V^+=N(v)\cup(\{v\}\cap V^+)$.
+Using $N(v)=U_1(\{v\})\cup U_2(\{v\})=N^+(v)\cup U_2(\{v\})$, we obtain $N_G[v]\cap V^+=N^+(v)\cup U_2(\{v\})\cup(\{v\}\cap V^+)$.
+The union is disjoint because $N(v)\cap\{v\}=\emptyset$ and $U_1(\{v\})\cap U_2(\{v\})=\emptyset$.
+
+Since $|\{v\}|=1\le \Delta$, Claim~\ref{lem:distone-U2-bucket} gives $U_2(\{v\})=B(\{v\})$.
+If the key $\{v\}$ is present, this is exactly the maintained bucket.
+If the key $\{v\}$ is absent, then, because only nonempty buckets are materialized, we have $B(\{v\})=\emptyset$, hence $U_2(\{v\})=\emptyset$.
+\end{claimproof}
+
+\paragraph{The predicate for \texorpdfstring{$\far{v}$}{far(v)}.}
+Fix one auxiliary marker vertex $x\notin V$.
+Let $\widehat G$ be obtained from the current graph $G$ by adding $x$ and either keeping $x$ isolated or joining $x$ with exactly one vertex of $V$.
+If $x$ has a neighbor in $\widehat G$, denote it by $q(\widehat G)$; otherwise set $q(\widehat G):=\bot$.
+Define a binary function $f$ on pairs $(\widehat G,u)$ by setting $f(\widehat G,x):=0$ and, for $u\in V$, setting $f(\widehat G,u):=1$ if and only if $q(\widehat G)\neq \bot$ and $u\in V^+\setminus N_G[q(\widehat G)]$.
+Thus, whenever $q(\widehat G)=v$, the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[v]$.
+Isolated vertices are intentionally excluded from $f$ and will be handled separately in the construction of $\farVertexDS{1,n}$.
+
+\paragraph{The data structure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}(\widehat G)$}{WeightedSum}.}
+For a fixed weight function $w\colon V\cup\{x\}\to\Z$, assume that every value $w(u)$ and every maintained counter fits in $\Oh(1)$ machine words.
+The structure consists of:
+\begin{itemize}
+\item one private instance of the deterministic toolkit of Section~\ref{sec:distone-infra} for the induced graph $G=\widehat G[V]$;
+\item a variable $p\in V\cup\{\bot\}$ storing the unique neighbor of $x$ in $\widehat G$, or $\bot$ if $x$ is isolated;
+\item the global counter $W_w^{\mathrm{all}}:=\sum_{u\in V^+} w(u)$;
+\item for every materialized bucket $B(Z)$, its header stores the counter $W_{w,Z}:=\sum_{u\in B(Z)} w(u)$.
+\end{itemize}
+
+\paragraph{The structure \texorpdfstring{$\mathsf{Verify}_{f}(\widehat G)$}{Verify}.}
+We are in the binary case of Lemma~\ref{lem:restore-by-sampling}, because $f(\widehat G,u)\in\{0,1\}$ for every valid pair $(\widehat G,u)$.
+Therefore no separate instance of $\mathsf{Verify}_{f}(\widehat G)$ is maintained.
+
+\paragraph{Procedure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}.\mathsf{Init}$}{WeightedSum.Init}.}
+\begin{enumerate}
+\item Initialize one private instance of the deterministic toolkit on the edgeless graph on $V$.
+\item Set $p:=\bot$, set $W_w^{\mathrm{all}}:=0$, and note that no bucket header stores a weighted counter because no bucket is materialized yet.
+\item For every edge $uv\in E(G)$, execute the edge-update procedure of $\mathsf{WeightedSum}_{f,w}$ for $\add{uv}$.
+\item If $x$ has a neighbor $v$ in $\widehat G$, execute the marker-update procedure for $\add{xv}$.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\add{uv}$ and $\remove{uv}$ inside $\mathsf{WeightedSum}_{f,w}$}{WeightedSum edge update}.}
+\begin{enumerate}
+\item \begin{sloppypar}Execute the corresponding update in the private toolkit and read the resulting log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.\end{sloppypar}
+\item For every vertex $u\in L_{\mathrm{out}}^+$, subtract $w(u)$ from $W_w^{\mathrm{all}}$.
+\item For every vertex $u\in L_{\mathrm{in}}^+$, add $w(u)$ to $W_w^{\mathrm{all}}$.
+\item For every deleted registration $(u,Z)\in \Lambda^-$, subtract $w(u)$ from the weighted counter field stored in the corresponding materialized bucket $B(Z)$; if this deletion empties the bucket, then that field disappears together with the bucket object.
+\item For every added registration $(u,Z)\in \Lambda^+$, if the corresponding bucket $B(Z)$ has just become materialized, initialize its weighted counter field to $0$, and then add $w(u)$ to that field.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\add{xv}$ and $\remove{xv}$ inside $\mathsf{WeightedSum}_{f,w}$}{WeightedSum marker update}.}
+\begin{enumerate}
+\item If the operation is $\add{xv}$, set $p:=v$.
+\item If the operation is $\remove{xv}$, set $p:=\bot$.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$}{WeightedSum.Report}.}
+\begin{enumerate}
+\item If $p=\bot$, return $0$.
+\item If $p\notin V^+$, return $W_w^{\mathrm{all}}$.
+\item Compute $A:=\sum_{u\in N^+(p)} w(u)$ by scanning the list $N^+(p)$.
+\item Let $B$ be the weighted counter stored in the bucket $B(\{p\})$ if that bucket is materialized, and let $B:=0$ otherwise.
+\item Return $W_w^{\mathrm{all}}-A-B-w(p)$.
+\end{enumerate}
+
+\begin{lemma}[Weighted sums for the hard part of \texorpdfstring{$\far{v}$}{far(v)}]\label{lem:distone-weighted-sum}
+Assume $n\ge 2$ and $d\ge 1$.
+For any fixed weight function $w\colon V\cup\{x\}\to\Z$, there exists a data structure $\mathsf{WeightedSum}_{f,w}(\widehat G)$ that maintains a dynamic graph $\widehat G$ of the form described above and, after each update, reports $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)$.
+\begin{itemize}
+\item initialization takes time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$;
+\item every edge insertion or deletion inside the induced graph $G=\widehat G[V]$ is handled in amortized time $\Oh(2^{4d}(d^3+\log^3 n))$;
+\item insertion or deletion of the unique edge incident with the marker $x$ is handled in amortized time $\Oh(1)$;
+\item $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$ takes amortized time $\Oh(d)$.
+\end{itemize}
+The structure uses $\Oh(nd\cdot 2^{4d})$ words of space besides the read-only representation of $w$.
+\end{lemma}
+\begin{proof}
+The private toolkit contributes $\Oh(1)$ initialization time on the edgeless graph, $\Oh(2^{4d}(d^3+\log^3 n))$ amortized time per edge insertion or deletion inside $G$, and $\Oh(nd\cdot 2^{4d})$ words of space by Lemma~\ref{lem:infra-update}.
+It remains to justify the additional fields and the report formula.
+
+In $\mathsf{WeightedSum}_{f,w}.\mathsf{Init}$, Step~1 initializes the private toolkit.
+Step~2 sets $p:=\bot$, initializes the global counter to $0$, and, because the graph is still edgeless, leaves all bucket headers absent.
+Step~3 then inserts the edges of $G$ one by one by calling the edge-update procedure of $\mathsf{WeightedSum}_{f,w}$, while Step~4 handles the unique edge incident with $x$ if it exists.
+Because $G$ has at most $d(n-1)=\Oh(nd)$ edges and Step~4 costs $\Oh(1)$ time, the total initialization time is $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$.
+
+Consider one edge insertion or deletion inside $G$.
+Step~1 of the edge-update procedure updates the private toolkit and outputs the log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
+By Lemma~\ref{lem:infra-update}, the total number of logged items is $\Oh(2^{4d}(d+\log n))$ in amortized time.
+Steps~2--5 perform one $\Oh(1)$ arithmetic operation per logged item.
+Indeed, whenever a registration event is read from the toolkit log, the corresponding bucket object has already been identified in Step~1, so updating its weighted counter field costs $\Oh(1)$; if a bucket becomes materialized, its new field is initialized once, and if a bucket becomes empty, that field disappears together with the bucket object.
+Hence the counter maintenance takes $\Oh(2^\Delta(d+\log n))$ amortized time, which is absorbed by the amortized cost $\Oh(2^{4d}(d^3+\log^3 n))$ of Step~1.
+
+If the updated edge is incident with the marker $x$, then the edge belongs to $\widehat G$ but not to the induced graph $G=\widehat G[V]$.
+In this case the private toolkit does not change, and the marker-update procedure only modifies the variable $p$.
+Therefore such an update costs amortized time $\Oh(1)$, exactly as stated in the lemma.
+
+It remains to justify $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$.
+If $p=\bot$, then Step~1 returns $0$, and this is correct because $f(\widehat G,u)=0$ for every $u\in V\cup\{x\}$.
+Assume next that $p\neq\bot$ and $p\notin V^+$.
+Then $p$ is isolated in $G$, so Claim~\ref{cl:distone-Nv-decomp} gives $N_G[p]\cap V^+=\emptyset$.
+Hence every vertex of $V^+$ lies outside $N_G[p]$, and therefore $f(\widehat G,u)=1$ exactly for $u\in V^+$.
+Consequently, $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)=W_w^{\mathrm{all}}$, which is exactly what Step~2 returns.
+
+It remains to consider the case $p\in V^+$.
+Now Claim~\ref{cl:distone-Nv-decomp} gives the disjoint decomposition $N_G[p]\cap V^+=N^+(p)\cup U_2(\{p\})\cup\{p\}$, where $U_2(\{p\})$ is exactly the bucket $B(\{p\})$ if this bucket is materialized and is empty otherwise.
+Therefore the positive vertices of $f$ are exactly the vertices of $V^+\setminus N_G[p]$, and so $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)=W_w^{\mathrm{all}}-\sum_{u\in N^+(p)} w(u)-B-w(p)$, where $B$ is the weighted counter stored in the bucket $B(\{p\})$ when that bucket is materialized and $B:=0$ otherwise.
+This is precisely the value returned by Steps~3--5.
+
+For the running time, Step~1 takes $\Oh(1)$ time and Step~2 takes $\Oh(1)$ time.
+Only in the case $p\in V^+$ does Step~3 scan the list $N^+(p)$, whose size is at most $\Delta=4d$.
+Step~4 only checks whether the bucket $B(\{p\})$ is materialized and, if so, reads its stored weighted counter, so it takes $\Oh(1)$ time; Step~5 performs one final arithmetic expression in $\Oh(1)$ time.
+Thus $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$ runs in $\Oh(\Delta)=\Oh(d)$ time.
+
+For the space bound, the private toolkit uses $\Oh(nd\cdot 2^{4d})$ words.
+The variable $p$ and the counter $W_w^{\mathrm{all}}$ contribute $\Oh(1)$ words.
+Finally, each materialized bucket header stores one additional weighted counter field.
+The number of materialized buckets is at most the total number of registrations plus one, and every vertex has at most $2^\Delta$ registrations.
+Hence all additional weighted counter fields together use $\Oh(n\cdot 2^\Delta)=\Oh(nd\cdot 2^{4d})$ words.
+Therefore the whole structure uses $\Oh(nd\cdot 2^{4d})$ words.
+\end{proof}
+
+\paragraph{The data structure \texorpdfstring{$\farVertexDS{1,n}$}{FarVertex[1,n]}.}
+The structure consists of:
+\begin{itemize}
+\item one auxiliary marker vertex $x\notin V$, kept isolated outside the execution of a query;
+\item one private instance of the deterministic toolkit of Section~\ref{sec:distone-infra}, used only to inspect isolated vertices of $G$;
+\item one randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ obtained from Lemma~\ref{lem:restore-by-sampling} applied black-box to the full structure $\mathsf{WeightedSum}_{f,w}(\widehat G)$.
+\end{itemize}
+
+\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\farVertexDS{1,n}$}{Init for FarVertex[1,n]}.}
+\begin{enumerate}
+\item Initialize one private instance of the deterministic toolkit on the edgeless graph on $V$.
+\item For every edge $uv\in E(G)$, execute the insertion procedure of Lemma~\ref{lem:infra-update} in this toolkit instance.
+\item Keep the marker vertex $x$ isolated and form the graph $\widehat G:=G+x$.
+\item Initialize $\mathsf{RetrieveVertex}_{f}(\widehat G)$ on $\widehat G$.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\farVertexDS{1,n}$}{Add for FarVertex[1,n]}.}
+\begin{enumerate}
+\item Relay the insertion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\farVertexDS{1,n}$}{Remove for FarVertex[1,n]}.}
+\begin{enumerate}
+\item Relay the deletion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\end{enumerate}
+
+\paragraph{Procedure \texorpdfstring{$\far{v}$ for $\farVertexDS{1,n}$}{farVertex(v) for FarVertex[1,n]}.}
+\begin{enumerate}
+\item Query the interval dictionary of the private toolkit for the smallest isolated vertex.
+\item If an isolated vertex different from $v$ exists, return it immediately.
+\item If the only isolated vertex found so far is $v$, query the interval dictionary for the next isolated vertex after $v$; if it exists, return it.
+\item Temporarily execute $\add{xv}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\item Query $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\item Temporarily execute $\remove{xv}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\item If the retrieval structure reported a vertex, return it; otherwise return $\bot$.
+\end{enumerate}
+
+\paragraph{Randomness model.}
+The random choices inside Lemma~\ref{lem:restore-by-sampling} are fixed during the initialization of $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+The adversary is oblivious to these choices with respect to the entire operation sequence seen by this randomized retrieval structure, including the temporary marker updates $\add{xv}$ and $\remove{xv}$ performed inside a query $\far{v}$.
+
+\begin{lemma}[Specialized form of Theorem~\ref{thm:FarVertex}]\label{lem:distone-far}
+Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
+There exists a randomized data structure $\farVertexDS{1,n}$ that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
+\begin{itemize}
+\item $\init{G}$ initializes the structure in time
+$\Oh\!\left(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$;
+\item $\add{uv}$ and $\remove{uv}$ update the structure in amortized time
+$\Oh\!\left(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$;
+\item $\far{v}$ behaves as follows:
+ \begin{itemize}
+ \item if $V\setminus N_G[v]=\emptyset$, it returns $\bot$;
+ \item if $V\setminus N_G[v]\neq\emptyset$, it never returns a vertex of $N_G[v]$, and it returns some vertex of $V\setminus N_G[v]$ with probability at least $1-\eps$.
+ \end{itemize}
+\end{itemize}
+The amortized query time is $\Oh\!\left(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$.
+The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ words of space.
+\end{lemma}
+
+\begin{proof}
+The predicate $f$ was defined above so that, after temporarily adding the edge $xv$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[v]$.
+Thus the only witnesses not represented by $f$ are isolated vertices, and these will be handled by the private toolkit stored directly in $\farVertexDS{1,n}$.
+
+By Lemma~\ref{lem:distone-weighted-sum}, one full instance of $\mathsf{WeightedSum}_{f,w}(\widehat G)$ has initialization time
+$I_R=\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$,
+amortized update time
+$T_R=\Oh(2^{4d}(d^3+\log^3 n))$,
+amortized query time
+$Q_R=\Oh(d)$,
+and space
+$S_R=\Oh(nd\cdot 2^{4d})$.
+Because $f$ is binary, we apply Lemma~\ref{lem:restore-by-sampling} in the case \cref{it:binary-f}, hence $I_V=T_V=Q_V=S_V=0$.
+Since $|\widehat G|=n+1=\Oh(n)$, $d\ge 1$, and $\eps\in(0,1/2)$, this yields a randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with initialization time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized update time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized query time $\Oh(d\log n \log \frac{1}{\eps})$, and space $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+
+We now construct $\farVertexDS{1,n}$ from one private toolkit instance together with $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+By the randomness paragraph above, the oblivious-adversary guarantee applies to the entire operation sequence seen by $\mathsf{RetrieveVertex}_{f}(\widehat G)$, including the temporary marker updates inside a call to $\far{v}$.
+In $\init{G}$, Steps~1--2 initialize the private toolkit on the input graph in time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}.
+Step~3 is constant time, and Step~4 initializes $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with the bound stated above.
+This gives the claimed initialization time.
+
+For one later update $\add{uv}$ or $\remove{uv}$, the private toolkit contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}, while the black-box structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$.
+This proves the claimed update bound.
+
+We next analyze one call to $\far{v}$.
+Steps~1--3 inspect isolated vertices using the interval dictionary of the private toolkit, so they take $\Oh(\log n)$ time.
+If one of these steps returns a vertex, then the answer is correct because every isolated vertex distinct from $v$ belongs to $V\setminus N_G[v]$.
+
+Assume now that Steps~1--3 do not return.
+Then every isolated vertex is equal to $v$ or there are no isolated vertices at all, so every remaining witness is non-isolated.
+By the definition of $f$, after Step~4 the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[v]$.
+Since Steps~1--3 did not return, every remaining valid witness is non-isolated, hence the positive vertices of $f$ are exactly the remaining witnesses for $\far{v}$.
+Step~4 is one update to $\mathsf{RetrieveVertex}_{f}(\widehat G)$, Step~5 is one query to $\mathsf{RetrieveVertex}_{f}(\widehat G)$, and Step~6 is one more update to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+Therefore Steps~4--6 take amortized time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, because $d\le 2^{4d}(d^3+\log^3 n)$ for $d\ge 1$.
+
+If Step~5 reports a vertex, then by the no-false-positives guarantee of Lemma~\ref{lem:restore-by-sampling} this vertex satisfies $f(\widehat G,u)>0$, hence $u\in V\setminus N_G[v]$.
+If Step~5 reports no vertex, then Step~7 returns $\bot$.
+When $V\setminus N_G[v]=\emptyset$, both the isolated-vertex stage and the retrieval stage correctly report failure.
+When $V\setminus N_G[v]\neq\emptyset$, the isolated-vertex stage finds a witness whenever an isolated one exists; otherwise the witness set is exactly the set of positive vertices of $f$ after Step~4, so Lemma~\ref{lem:restore-by-sampling} guarantees that Step~5 returns some witness with probability at least $1-\eps$.
+This proves the one-sided error model stated in the lemma.
+
+Finally, the space of $\farVertexDS{1,n}$ is the sum of the space of one private toolkit instance, namely $\Oh(nd\cdot 2^{4d})$, and the space of $\mathsf{RetrieveVertex}_{f}(\widehat G)$, namely $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+Hence the total space is $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+\end{proof}
