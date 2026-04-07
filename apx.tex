@@ -1,3 +1,217 @@
-\section{Dynamic approximation of distance-$1$ dominating sets}
+\providecommand{\WReach}{\operatorname{WReach}}
+\providecommand{\wcol}{\operatorname{wcol}}
+\section{Dynamic approximation of distance-\texorpdfstring{$1$}{1} dominating sets}\label{sec:apx}
 
-Here we give a dynamic constant-factor approximation for the domination number in graphs of bounded arboricity.
+Here we give a dynamic constant-factor approximation for the domination number in graphs of bounded degeneracy.
+We first record the general weak-reachability argument behind the approximation and only afterwards specialize it to the distance-$1$ representation used by the dynamic implementation.
+Throughout this section, for a graph $G$ we denote by $\gamma(G)$ the minimum size of a dominating set in $G$.
+
+\subsection{Combinatorial core}
+
+Fix a graph $G$, an order $\sigma$ on $V(G)$, and a radius $r\in\N$.
+For $v\in V(G)$, let $\WReach_r[G,\sigma,v]$ be the set of vertices $u\in V(G)$ for which there exists a path $u=p_0,\ldots,p_\ell=v$ of length $\ell\le r$ such that $\sigma(u)\le \sigma(p_i)$ for every $i\in\set{1,\ldots,\ell}$.
+Further, let $\wcol_r(G,\sigma)\coloneqq\max_{v\in V(G)} |\WReach_r[G,\sigma,v]|$ and $\mathcal{F}_r(\sigma)\coloneqq\setof{\WReach_r[G,\sigma,v]}{v\in V(G)}$.
+The family $\mathcal{F}_r(\sigma)$ is the general combinatorial source of the approximation: it works for every radius $r$, whereas the dynamic construction below will retain only the case $r=1$.
+The next two lemmas formalize the matching-transversal argument showing that weak reachable sets yield a constant-factor approximation of minimum distance-$r$ domination.
+
+\begin{lemma}\label{lem:apx-wreach-domination}
+Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a matching maximal with respect to inclusion.
+Then $D\coloneqq\bigcup_{X\in \mathcal{M}} X$ is an $r$-dominating set in $G$.
+\end{lemma}
+\begin{proof}
+Take any vertex $x\in V(G)$.
+If $x\in D$, then $x$ is $r$-dominated by itself.
+Assume now that $x\notin D$.
+Since $\mathcal{M}$ is maximal, the set $\WReach_r[G,\sigma,x]\in \mathcal{F}_r(\sigma)$ is not disjoint from all sets in $\mathcal{M}$.
+Choose $X\in \mathcal{M}$ and $d\in \WReach_r[G,\sigma,x]\cap X$.
+By the definition of $\WReach_r[G,\sigma,x]$, there exists a path $d=p_0,\ldots,p_\ell=x$ of length $\ell\le r$.
+Since $d\in X\subseteq D$, this shows that $x$ is $r$-dominated by a vertex of $D$.
+\end{proof}
+
+\begin{lemma}\label{lem:apx-wreach-transversal}
+Let $D^*$ be an $r$-dominating set in $G$ and define $T\coloneqq\bigcup_{d\in D^*} \WReach_r[G,\sigma,d]$.
+Then $T$ intersects every set in $\mathcal{F}_r(\sigma)$.
+\end{lemma}
+\begin{proof}
+Fix any vertex $v\in V(G)$.
+Since $D^*$ is an $r$-dominating set, there exists $d\in D^*$ with $\dist_G(v,d)\le r$.
+Let $P$ be a shortest $v$-$d$ path and let $u$ be the vertex of $P$ with minimum position in $\sigma$.
+The subpath of $P$ from $u$ to $v$ has length at most $r$, and every internal vertex of this subpath has position at least $\sigma(u)$.
+Hence $u\in \WReach_r[G,\sigma,v]$.
+By the same argument applied to the subpath of $P$ from $u$ to $d$, we obtain $u\in \WReach_r[G,\sigma,d]\subseteq T$.
+Therefore $\WReach_r[G,\sigma,v]\cap T\neq \emptyset$.
+\end{proof}
+
+\begin{lemma}\label{lem:apx-wreach-static}
+Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a matching maximal with respect to inclusion, let $D\coloneqq\bigcup_{X\in \mathcal{M}} X$, and let $D^*$ be a minimum $r$-dominating set in $G$.
+Then $D$ is an $r$-dominating set in $G$ and satisfies $|D|\le \wcol_r(G,\sigma)^2\cdot |D^*|$.
+Consequently, whenever $\wcol_r(G,\sigma)\le c$, the family $\mathcal{F}_r(\sigma)$ yields an $r$-dominating set of size at most $c^2$ times the optimum.
+\end{lemma}
+\begin{proof}
+By \cref{lem:apx-wreach-domination}, the set $D$ is an $r$-dominating set.
+
+Let $T\coloneqq\bigcup_{d\in D^*} \WReach_r[G,\sigma,d]$.
+By \cref{lem:apx-wreach-transversal}, every set in $\mathcal{M}$ intersects $T$.
+Since $\mathcal{M}$ is a matching, its sets are pairwise disjoint, hence $|\mathcal{M}|\le |T|$.
+Using the definition of $\wcol_r(G,\sigma)$, we infer
+$|\mathcal{M}|\le |T|\le \sum_{d\in D^*} |\WReach_r[G,\sigma,d]|\le \wcol_r(G,\sigma)\cdot |D^*|$.
+Again by the definition of $\wcol_r(G,\sigma)$, every set in $\mathcal{M}$ has size at most $\wcol_r(G,\sigma)$, so
+$|D| = \sum_{X\in \mathcal{M}} |X| \le \wcol_r(G,\sigma)\cdot |\mathcal{M}| \le \wcol_r(G,\sigma)^2\cdot |D^*|$.
+\end{proof}
+
+Thus \cref{lem:apx-wreach-static} already contains the whole approximation argument.
+From now on we only need the case $r=1$.
+If $\vec{G}_\sigma$ is the orientation obtained by directing every edge towards the smaller endpoint in $\sigma$, then $\WReach_1[G,\sigma,v]=\set{v}\cup N^+_{\vec{G}_\sigma}(v)$ for every vertex $v$.
+The dynamic part, however, does not maintain such an order and instead receives from the Brodal--Fagerberg orientation theorem together with its reporting lemma only a maintained orientation of bounded out-degree together with the corresponding reports of reoriented edges.
+Therefore we now rewrite the distance-$1$ specialization in this orientation language.
+The sets $S(v)$ introduced below are not a substitute for the preceding $\WReach_r$ argument; they are exactly its distance-$1$ implementation-level representation.
+
+Let $G$ be a graph equipped with an orientation $\vec{G}$.
+For every vertex $v\in V(G)$, let $N^+_{\vec{G}}(v)$ be the out-neighborhood of $v$ in $\vec{G}$ and define $S(v)\coloneqq\set{v}\cup N^+_{\vec{G}}(v)$.
+We regard the family $\setof{S(v)}{v\in V(G)}$ as a hypergraph on the vertex set $V(G)$, with one labelled hyperedge for each vertex of $G$.
+
+\begin{lemma}\label{lem:apx-domination}
+Let $M\subseteq V(G)$ be such that the family $\setof{S(v)}{v\in M}$ is a matching that is maximal with respect to inclusion.
+Then $D\coloneqq\bigcup_{v\in M} S(v)$ is a dominating set in $G$.
+\end{lemma}
+\begin{proof}
+Take any vertex $x\in V(G)$.
+If $x\in D$, then $x$ is dominated.
+Assume now that $x\notin D$.
+By maximality, the set $S(x)$ is not disjoint from at least one set $S(v)$ with $v\in M$.
+Choose $v\in M$ and $y\in S(x)\cap S(v)$.
+Since $y\in S(v)\subseteq D$, we have $y\neq x$.
+Therefore $y\in N^+_{\vec{G}}(x)$, which implies that $xy\in E(G)$.
+Hence $x$ is dominated by the vertex $y\in D$.
+\end{proof}
+
+\begin{lemma}\label{lem:apx-transversal}
+Let $D^*$ be a dominating set in $G$ and define $T\coloneqq\bigcup_{d\in D^*} S(d)$.
+Then $T$ intersects every set $S(v)$ with $v\in V(G)$.
+\end{lemma}
+\begin{proof}
+Fix any vertex $v\in V(G)$.
+Since $D^*$ is a dominating set, there exists $d\in D^*$ with $d\in N[v]$.
+If $d=v$, then $v\in S(v)\cap T$.
+Assume therefore that $d\neq v$.
+If the edge $vd$ is oriented from $v$ to $d$, then $d\in S(v)\cap S(d)\subseteq S(v)\cap T$.
+Otherwise the edge $vd$ is oriented from $d$ to $v$, and then $v\in S(v)\cap S(d)\subseteq S(v)\cap T$.
+Thus $S(v)\cap T\neq \emptyset$.
+\end{proof}
+
+\begin{lemma}\label{lem:apx-static}
+Assume that $\vec{G}$ has maximum out-degree at most $\Delta$.
+Let $M\subseteq V(G)$ be such that the family $\setof{S(v)}{v\in M}$ is a matching that is maximal with respect to inclusion.
+Then $D\coloneqq\bigcup_{v\in M} S(v)$ is a dominating set in $G$ and satisfies $|D|\le (\Delta+1)^2\cdot \gamma(G)$.
+\end{lemma}
+\begin{proof}
+By \cref{lem:apx-domination}, the set $D$ is a dominating set.
+
+Let $D^*$ be a minimum dominating set in $G$ and let $T\coloneqq\bigcup_{d\in D^*} S(d)$.
+By \cref{lem:apx-transversal}, every set $S(v)$ with $v\in M$ intersects $T$.
+Since the family $\setof{S(v)}{v\in M}$ is a matching, these sets are pairwise disjoint, hence $|M|\le |T|$.
+Every set $S(d)$ has size at most $\Delta+1$, so $|M|\le |T|\le \sum_{d\in D^*} |S(d)|\le (\Delta+1)\cdot |D^*| = (\Delta+1)\cdot \gamma(G)$.
+Using again that $|S(v)|\le \Delta+1$ for every $v\in V(G)$, we obtain $|D| = \sum_{v\in M} |S(v)|\le (\Delta+1)\cdot |M| \le (\Delta+1)^2\cdot \gamma(G)$.
+\end{proof}
+
+\subsection{Dynamic data structure}
+
+Throughout this subsection, we assume $n\ge 2$ and $d\ge 1$, and we consider a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\set{1,\ldots,n}$.
+To invoke the dynamic orientation toolkit given by the Brodal--Fagerberg orientation theorem together with its reporting lemma, we use only the standard fact that every $d$-degenerate graph has arboricity at most $d$.
+Hence we may invoke the Brodal--Fagerberg orientation theorem together with its reporting lemma with $\alpha\coloneqq d$.
+Thus every current graph $G_t$ is equipped with an orientation $\vec{G}_t$ of maximum out-degree at most $4d$.
+For every vertex $v\in V$, let $S_t(v)\coloneqq\set{v}\cup N^+_{\vec{G}_t}(v)$.
+
+\paragraph{Persistent state.}
+At time $t$, the complete persistent state of the data structure consists of the following objects.
+\begin{itemize}
+\item The orientation component implementing the Brodal--Fagerberg orientation theorem together with its reporting lemma, storing the current graph $G_t$ together with its orientation $\vec{G}_t$ and, on every graph update, reporting the updated edge together with the list of all edges reoriented during this update.
+\item The explicit labelled hypergraph $\mathcal{H}_t\coloneqq\setof{S_t(v)}{v\in V}$ on the vertex set $V$, with one permanent label $v$ for every hyperedge $S_t(v)$. For every $v\in V$, we store the current members of $S_t(v)$ explicitly; equivalently, we store the permanent element $v$ together with the current out-neighborhood $N^+_{\vec{G}_t}(v)$.
+\item The randomized dynamic hypergraph-matching component of Assadi--Solomon~\cite{AssadiSolomon21}, executed on the labelled hypergraph $\mathcal{H}_t$. It maintains a matching maximal with respect to inclusion and stores the current matching as an iterable list of matched hyperedge labels.
+\end{itemize}
+No further persistent fields are needed. In particular, the current dominating set is not stored separately: it is represented implicitly by the currently matched hyperedges.
+
+The hypergraph-matching component supports insertions and deletions of vertices inside labelled hyperedges of a dynamic hypergraph of rank at most $q$.
+Against an oblivious adversary, every such hypergraph update takes expected amortized time $\Oh(q^2)$, and the component uses $\Oh(qN)$ words of space for $N$ hyperedges.
+In our application, we have $N=n$ and $q\le 4d+1$.
+
+\paragraph{Interface.}
+The data structure supports four operations, where $G_0$ denotes the edgeless graph on $V$.
+\begin{itemize}
+\item $\init{G_0}$ initializes the whole structure on $G_0$.
+\item $\add{xy}$ inserts the edge $xy$ and updates all maintained components.
+\item $\remove{xy}$ deletes the edge $xy$ and updates all maintained components.
+\item $\mathtt{QueryDominatingSet()}$ returns the current dominating set represented by the matching component.
+\end{itemize}
+Their guarantees and complexities are summarized in \cref{thm:apx-dynamic}; we now describe them explicitly.
+
+\paragraph{Synchronization with orientation changes.}
+Whenever a graph update changes the oriented status of an edge $xy$, only the hyperedges indexed by $x$ and $y$ may change.
+More precisely, creating an oriented edge $(x,y)$ inserts $y$ into the labelled hyperedge $S(x)$, deleting an oriented edge $(x,y)$ deletes $y$ from $S(x)$, and flipping the orientation of $xy$ from $(x,y)$ to $(y,x)$ is implemented as deleting $y$ from $S(x)$ and inserting $x$ into $S(y)$.
+Thus every changed oriented edge yields at most two hypergraph updates, each performed immediately in the matching component.
+By the Brodal--Fagerberg orientation theorem together with its reporting lemma, one graph update produces $\Oh(d+\log n)$ such hypergraph updates in amortized time: the updated graph edge contributes one change, and every reoriented edge reported during the update contributes two more.
+
+\paragraph{Procedure $\init{G_0}$.}
+\begin{enumerate}
+\item Initialize the orientation component on the edgeless graph on $V$.
+\item For every vertex $v\in V$, create the singleton labelled hyperedge $S(v)=\set{v}$.
+\item Initialize the Assadi--Solomon component on the family of these $n$ labelled hyperedges.
+\end{enumerate}
+After these steps the orientation is correct, the explicit hypergraph is exactly $\setof{\set{v}}{v\in V}$, and the matching component stores a maximal matching in this hypergraph.
+The initialization time is $\Oh(n)$, because we create $n$ singleton hyperedges and initialize the matching component on $n$ labels.
+
+\paragraph{Procedure $\add{xy}$.}
+\begin{enumerate}
+\item Execute the insertion of $xy$ in the deterministic orientation component.
+\item Read the newly oriented copy of $xy$ and the list of edges reoriented during this update.
+\item For every changed oriented edge, apply the corresponding hypergraph modification described above and relay it to the matching component.
+\end{enumerate}
+Only the hyperedges incident with endpoints of changed oriented edges are modified, hence after Step~3 every labelled hyperedge again equals the current set $S_t(v)$.
+Since the matching component is updated after every hypergraph modification, it ends in a maximal matching of the new hypergraph.
+The amortized number of hypergraph updates is $\Oh(d+\log n)$.
+Each of them touches a hyperedge of size at most $4d+1$, hence costs expected amortized time $\Oh((4d+1)^2)=\Oh(d^2)$ in the Assadi--Solomon component.
+Therefore $\add{xy}$ runs in expected amortized time $\Oh(d^2(d+\log n))$.
+
+\paragraph{Procedure $\remove{xy}$.}
+\begin{enumerate}
+\item Execute the deletion of $xy$ in the deterministic orientation component.
+\item Read the deleted oriented copy of $xy$ and the list of edges reoriented during this update.
+\item For every changed oriented edge, apply the corresponding hypergraph modification described above and relay it to the matching component.
+\end{enumerate}
+The same invariant argument as above shows that after Step~3 the explicit hypergraph is exactly $\mathcal{H}_t$, and the matching component stores a maximal matching in it.
+Again there are amortized $\Oh(d+\log n)$ hypergraph updates, each of rank at most $4d+1$, so $\remove{xy}$ also runs in expected amortized time $\Oh(d^2(d+\log n))$.
+
+\paragraph{Procedure $\mathtt{QueryDominatingSet()}$.}
+Let $M_t\subseteq V$ be the set of labels of the hyperedges currently selected by the matching component.
+The query traverses the iterable list of labels in $M_t$ and outputs the union $D_t\coloneqq\bigcup_{v\in M_t} S_t(v)$.
+No duplicate elimination is needed, because matched hyperedges are pairwise disjoint.
+By \cref{lem:apx-static} applied with $\Delta\coloneqq 4d$, the returned set $D_t$ is a dominating set in $G_t$ and satisfies $|D_t|\le (4d+1)^2\cdot \gamma(G_t)$.
+Since the query outputs exactly the vertices contained in these disjoint hyperedges, its running time is $\Oh(|D_t|)$.
+
+\paragraph{Memory usage.}
+Let $m_t\coloneqq|E(G_t)|$.
+The orientation component uses $\Oh(n+m_t)$ words by the Brodal--Fagerberg orientation theorem.
+The explicit hypergraph also uses $\Oh(n+m_t)$ words: every hyperedge contributes its permanent vertex label once, accounting for $n$ stored incidences, and every graph edge contributes exactly one additional stored incidence, namely to the hyperedge of its tail in $\vec{G}_t$.
+The Assadi--Solomon component stores a hypergraph of rank at most $4d+1$ with $n$ labelled hyperedges, so it uses $\Oh(dn)$ words.
+The dominating set returned by $\mathtt{QueryDominatingSet()}$ is not stored persistently, so it contributes no additional space.
+Hence the whole structure occupies $\Oh(n+m_t)+\Oh(n+m_t)+\Oh(dn)=\Oh(dn+m_t)$ words.
+
+\begin{theorem}\label{thm:apx-dynamic}
+Assume $n\ge 2$ and $d\ge 1$.
+There exists a randomized data structure that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\set{1,\ldots,n}$ and supports a query that returns a dominating set $D$ of $G$ satisfying $|D|\le (4d+1)^2\cdot \gamma(G)$.
+The structure can be initialized on the edgeless graph in $\Oh(n)$ time, uses $\Oh(dn+m)$ words of space where $m$ denotes the current number of edges, processes each edge insertion and deletion in expected amortized time $\Oh(d^2(d+\log n))$, and answers the query in time $\Oh(|D|)$.
+\end{theorem}
+\begin{proof}
+The description above already specifies the whole persistent state, all supported operations, and their local invariants.
+Initialization takes $\Oh(n)$ time by the analysis of $\init{G_0}$.
+At every later moment $t$, the query procedure returns $D_t\coloneqq\bigcup_{v\in M_t} S_t(v)$, where $M_t$ is the label set of the maintained maximal matching.
+Because $\vec{G}_t$ has maximum out-degree at most $4d$, \cref{lem:apx-static} yields that $D_t$ is a dominating set in $G_t$ and satisfies $|D_t|\le (4d+1)^2\cdot \gamma(G_t)$.
+The matched hyperedges are pairwise disjoint, so reporting their union takes time $\Oh(|D_t|)$.
+
+For updates, the orientation algorithm is deterministic, hence the sequence of hypergraph updates depends only on the graph update sequence and not on the random choices of the matching component.
+Therefore the oblivious-adversary guarantee of Assadi--Solomon applies to the whole execution.
+The analyses of $\add{xy}$ and $\remove{xy}$ show that each graph update performs amortized $\Oh(d+\log n)$ hypergraph updates, each of expected amortized cost $\Oh((4d+1)^2)$.
+Thus every edge insertion and deletion runs in expected amortized time $\Oh(d^2(d+\log n))$.
+
+Finally, the memory analysis above gives the space bound $\Oh(dn+m_t)$ at time $t$, which is exactly the claimed $\Oh(dn+m)$ bound.
+\end{proof}
