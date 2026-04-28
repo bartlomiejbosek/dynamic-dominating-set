@@ -3,60 +3,60 @@
 \section{Dynamic approximation of distance-\texorpdfstring{$1$}{1} dominating sets}\label{sec:apx}
 
 Here we give a dynamic constant-factor approximation for the domination number in graphs of bounded degeneracy.
-We first record the general weak-reachability argument behind the approximation and only afterwards specialize it to the distance-$1$ representation used by the dynamic implementation.
-Throughout this section, for a graph $G$ we denote by $\gamma(G)$ the minimum size of a dominating set in $G$.
+We first explain the general weak-reachability argument behind the approximation and only afterwards specialize it to the distance-$1$ representation used by the dynamic implementation. The reason for this is that the general argument applies to an arbitrary distance, but we are able to dynamically maintain the relevant structures only for distance $1$.
+Throughout this section, for a graph $G$ we denote by $\gamma(G)$ the minimum size of a (distance-$1$) dominating set in $G$. A \emph{packing} in a family of sets $\mathcal{F}$ is a subfamily $\mathcal{M}\subseteq \mathcal{F}$ consisting of pairwise disjoint members of $\mathcal{F}$. A packing $\mathcal{M}$ is \emph{maximal} if no superset of $\mathcal{M}$ is a packing; equivalently, every set $F\in \mathcal{F}\setminus \mathcal{M}$ intersects a member of $\mathcal{M}$.
 
 \subsection{Combinatorial core}
 
-Fix a graph $G$, an order $\sigma$ on $V(G)$, and a radius $r\in\N$.
+Fix a graph $G$, an ordering $\sigma$ of $V(G)$, and a radius $r\in\N$.
 For $v\in V(G)$, let $\WReach_r[G,\sigma,v]$ be the set of vertices $u\in V(G)$ for which there exists a path $u=p_0,\ldots,p_\ell=v$ of length $\ell\le r$ such that $\sigma(u)\le \sigma(p_i)$ for every $i\in\set{1,\ldots,\ell}$.
 Further, let $\wcol_r(G,\sigma)\coloneqq\max_{v\in V(G)} |\WReach_r[G,\sigma,v]|$ and $\mathcal{F}_r(\sigma)\coloneqq\setof{\WReach_r[G,\sigma,v]}{v\in V(G)}$.
 The family $\mathcal{F}_r(\sigma)$ is the general combinatorial source of the approximation: it works for every radius $r$, whereas the dynamic construction below will retain only the case $r=1$.
-The next two lemmas formalize the matching-transversal argument showing that weak reachable sets yield a constant-factor approximation of minimum distance-$r$ domination.
+The next two lemmas formalize the hitting-packing argument showing that weak reachable sets yield a constant-factor approximation of minimum distance-$r$ domination.
 
 \begin{lemma}\label{lem:apx-wreach-domination}
-Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a matching maximal with respect to inclusion.
-Then $D\coloneqq\bigcup_{X\in \mathcal{M}} X$ is an $r$-dominating set in $G$.
+Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a maximal packing in $\mathcal{F}_r(\sigma)$.
+Then $D\coloneqq\bigcup_{X\in \mathcal{M}} X$ is a distance-$r$ dominating set in $G$.
 \end{lemma}
 \begin{proof}
 Take any vertex $x\in V(G)$.
-If $x\in D$, then $x$ is $r$-dominated by itself.
-Assume now that $x\notin D$.
-Since $\mathcal{M}$ is maximal, the set $\WReach_r[G,\sigma,x]\in \mathcal{F}_r(\sigma)$ is not disjoint from all sets in $\mathcal{M}$.
+If $x\in D$, then $x$ is distance-$r$ dominated by itself.
+So suppose that $x\notin D$.
+As $\mathcal{M}$ is maximal, the set $\WReach_r[G,\sigma,x]\in \mathcal{F}_r(\sigma)$ intersects some member of $\mathcal{M}$.
 Choose $X\in \mathcal{M}$ and $d\in \WReach_r[G,\sigma,x]\cap X$.
-By the definition of $\WReach_r[G,\sigma,x]$, there exists a path $d=p_0,\ldots,p_\ell=x$ of length $\ell\le r$.
-Since $d\in X\subseteq D$, this shows that $x$ is $r$-dominated by a vertex of $D$.
+By the definition of $\WReach_r[G,\sigma,x]$, there is a $d$-$x$ path of length at most $r$.
+Since $d\in X\subseteq D$, this shows that $x$ is distance-$r$ dominated by a vertex of~$D$.
 \end{proof}
 
 \begin{lemma}\label{lem:apx-wreach-transversal}
-Let $D^*$ be an $r$-dominating set in $G$ and define $T\coloneqq\bigcup_{d\in D^*} \WReach_r[G,\sigma,d]$.
+Let $D^*$ be a distance-$r$ dominating set in $G$. Define $T\coloneqq\bigcup_{d\in D^*} \WReach_r[G,\sigma,d]$.
 Then $T$ intersects every set in $\mathcal{F}_r(\sigma)$.
 \end{lemma}
 \begin{proof}
 Fix any vertex $v\in V(G)$.
-Since $D^*$ is an $r$-dominating set, there exists $d\in D^*$ with $\dist_G(v,d)\le r$.
+Since $D^*$ is a distance-$r$ dominating set, there exists $d\in D^*$ with $\dist_G(v,d)\le r$.
 Let $P$ be a shortest $v$-$d$ path and let $u$ be the vertex of $P$ with minimum position in $\sigma$.
 The subpath of $P$ from $u$ to $v$ has length at most $r$, and every internal vertex of this subpath has position at least $\sigma(u)$.
 Hence $u\in \WReach_r[G,\sigma,v]$.
-By the same argument applied to the subpath of $P$ from $u$ to $d$, we obtain $u\in \WReach_r[G,\sigma,d]\subseteq T$.
+By the same argument applied to the subpath of $P$ from $u$ to~$d$, we obtain $u\in \WReach_r[G,\sigma,d]\subseteq T$.
 Therefore $\WReach_r[G,\sigma,v]\cap T\neq \emptyset$.
 \end{proof}
 
 \begin{lemma}\label{lem:apx-wreach-static}
-Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a matching maximal with respect to inclusion, let $D\coloneqq\bigcup_{X\in \mathcal{M}} X$, and let $D^*$ be a minimum $r$-dominating set in $G$.
-Then $D$ is an $r$-dominating set in $G$ and satisfies $|D|\le \wcol_r(G,\sigma)^2\cdot |D^*|$.
-Consequently, whenever $\wcol_r(G,\sigma)\le c$, the family $\mathcal{F}_r(\sigma)$ yields an $r$-dominating set of size at most $c^2$ times the optimum.
+Let $\mathcal{M}\subseteq \mathcal{F}_r(\sigma)$ be a maximal packing in $\mathcal{F}_r(\sigma)$, $D\coloneqq\bigcup_{X\in \mathcal{M}} X$, and $D^*$ be a minimum distance-$r$ dominating set in $G$.
+Then $D$ is a distance-$r$ dominating set in $G$ satisfying \mbox{$|D|\le \wcol_r(G,\sigma)^2\cdot |D^*|$.}
+Consequently, whenever $\wcol_r(G,\sigma)\le c$, the set $D$ is a distance-$r$ dominating set of size at most $c^2$ times the optimum.
 \end{lemma}
 \begin{proof}
-By \cref{lem:apx-wreach-domination}, the set $D$ is an $r$-dominating set.
+By \cref{lem:apx-wreach-domination}, the set $D$ is a distance-$r$ dominating set.
 
 Let $T\coloneqq\bigcup_{d\in D^*} \WReach_r[G,\sigma,d]$.
 By \cref{lem:apx-wreach-transversal}, every set in $\mathcal{M}$ intersects $T$.
-Since $\mathcal{M}$ is a matching, its sets are pairwise disjoint, hence $|\mathcal{M}|\le |T|$.
-Using the definition of $\wcol_r(G,\sigma)$, we infer
-$|\mathcal{M}|\le |T|\le \sum_{d\in D^*} |\WReach_r[G,\sigma,d]|\le \wcol_r(G,\sigma)\cdot |D^*|$.
+Since $\mathcal{M}$ is a packing, its sets are pairwise disjoint, hence $|\mathcal{M}|\le |T|$.
+Using the definition of $\wcol_r(G,\sigma)$, we infer that
+\[|\mathcal{M}|\le |T|\le \sum_{d\in D^*} |\WReach_r[G,\sigma,d]|\le \wcol_r(G,\sigma)\cdot |D^*|.\]
 Again by the definition of $\wcol_r(G,\sigma)$, every set in $\mathcal{M}$ has size at most $\wcol_r(G,\sigma)$, so
-$|D| = \sum_{X\in \mathcal{M}} |X| \le \wcol_r(G,\sigma)\cdot |\mathcal{M}| \le \wcol_r(G,\sigma)^2\cdot |D^*|$.
+\[|D| = \sum_{X\in \mathcal{M}} |X| \le \wcol_r(G,\sigma)\cdot |\mathcal{M}| \le \wcol_r(G,\sigma)^2\cdot |D^*|.\qedhere\]
 \end{proof}
 
 Thus \cref{lem:apx-wreach-static} already contains the whole approximation argument.
