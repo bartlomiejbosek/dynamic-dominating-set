@@ -38,12 +38,36 @@ using these procedures.
     \caption{An algorithm computing an $r$-dominating set of size $k$ in a graph $G$}
 \end{algorithm}
 
+\begin{definition}
+The $\nearVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
+\begin{itemize}
+ \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
+ \item $\add{uv}$ - inserts an edge $uv$ to $G$
+ \item $\remove{uv}$ - removes an edge $uv$ from $G$
+ \item $\near{S}$ - returns a vertex at distance at most $r$ from all vertices in $S$ if such vertex exists, otherwise it returns $\bot$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
+\begin{itemize}
+ \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
+ \item $\add{uv}$ - inserts an edge $uv$ to $G$
+ \item $\remove{uv}$ - removes an edge $uv$ from $G$
+ \item $\far{S}$ - returns a vertex at distance at most $r$ from all vertices in $S$ if such vertex exists, otherwise it returns $\bot$.
+\end{itemize}
+\end{definition}
+
+
 \begin{theorem}
 Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data structures of Theorem~\ref{thm:NearVertex}
 and Theorem~\ref{thm:FarVertex},
 one can implement Algorithm~\ref{alg:1} in time \azinline{here sth depentent on the ladder index or such.}
 \end{theorem}
 
+\begin{theorem}
+
+\end{theorem}
 
 \begin{theorem}\label{thm:NearVertex}
 There is a $\nearVertexDS{r,n}$ data structure that maintains a dynamic graph $G$ of bounded
