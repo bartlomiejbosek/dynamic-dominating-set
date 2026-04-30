@@ -117,14 +117,12 @@ Using again that $|S(v)|\le \Delta+1$ for every $v\in V(G)$, we obtain \[|D| = \
 
 We now propose a dynamic data structure that maintains an approximation domination number of a graph of bounded degeneracy based on the approximation method yielded by \cref{lem:apx-static}. We will exploit the following two results.
 
-\michalin{The theorems below need fixing details.}
-
 \begin{theorem}[Brodal--Fagerberg orientation data structure,~\cite{BrodalF99}]\label{thm:BF}
-	For every $d\in \N$, there is a dynamic data structure that for a fully dynamic $n$-vertex graph $G$ whose degeneracy is always bounded by $d$, maintains an orientation $\vec{G}$ with maximum out-degree bounded by $4d$. Every update (edge insertion or deletion) can be executed in amortized time $\Oh(TODO)$ and triggers $\Oh(TODO)$ reorientations in $\vec{G}$ in the amortized sense. The data structure can be initialized in time $\Oh(n)$ on an edgeless $n$-vertex graph, and uses $\Oh(n+m)$ words of memory, where $m$ is the edge count of $G$. TODO: reporting component.
+	For every $d\in \N$, there is a deterministic dynamic data structure that for a fully dynamic $n$-vertex graph $G$ whose degeneracy is always bounded by $d$, maintains an orientation $\vec{G}$ with maximum out-degree bounded by $4d$, using $\Oh(n+m)$ words of memory, where $m$ is the current edge count of $G$. It can be initialized on the edgeless $n$-vertex graph in time $\Oh(n)$. It supports edge insertions in amortized time $\Oh(1)$ and edge deletions in amortized time $\Oh(d+\log n)$. Moreover, after each update it can report all edges whose orientation changed during this update, and the amortized number of such edges is $\Oh(d+\log n)$.
 \end{theorem}
 
 \begin{theorem}[Assadi--Solomon maximal packing data structure,~\cite{AssadiSolomon21}]\label{thm:AS}
-	For every $\Delta\in \N$, there is a randomized dynamic data structure that for a fully dynamic set system $\mathcal{F}$ over an $n$-vertex universe $U$, whose arity is always bounded by $\Delta$, maintains a maximal packing $\mathcal{M}$ in $\mathcal{F}$. TODO: time/space complexity bounds, adversary.
+	For every $\Delta\in \N$, there is a randomized dynamic data structure that, against an oblivious adversary, maintains a maximal packing in a fully dynamic labelled set system over a universe $U$ and of arity at most $\Delta$. It supports insertions and deletions of sets in expected amortized time $\Oh(\Delta^2)$, with the same bound holding with high probability, and can be implemented using $\Oh(|U|+\Delta N)$ words of space, where $N$ is the number of maintained labelled sets.
 \end{theorem}
 
 We note that Brodal and Fagerberg state their result for graphs of bounded \emph{arboricity} instead of degeneracy, however it is well-known that every $d$-degenerate graph has arboricity at most $d$. 
@@ -143,12 +141,6 @@ At time step $t$, the complete persistent state of the data structure consists o
 \end{itemize}
 No further persistent objects are needed. In particular, the current dominating set is not stored explicitly: it is represented implicitly by the packing $\mathcal{M}_t$.
 
-\michalin{The paragraph below should be removed from here and moved to the statement of \cref{thm:AS}.}
-
-The packing component supports insertions and deletions of vertices inside labelled hyperedges of a dynamic hypergraph of rank at most $q$.
-Against an oblivious adversary, every such hypergraph update takes expected amortized time $\Oh(q^2)$, and the component uses $\Oh(qN)$ words of space for $N$ hyperedges.
-In our application, we have $N=n$ and $q\le 4d+1$.
-
 \paragraph{Interface.}
 As announced in \cref{thm:apx-dynamic}, our data structure supports five methods.
 \begin{itemize}
@@ -164,6 +156,7 @@ Their guarantees and complexities are summarized in \cref{thm:apx-dynamic}. We n
 Whenever a graph update touches an edge $xy$, the set system $\mathcal{S}_t=\{S_t(v)\colon v\in V\}$ needs to be modified only by updating the sets indexed by $x$ and $y$.
 More precisely, creating an oriented edge $(x,y)$ inserts $y$ into the $S_t(x)$, deleting an oriented edge $(x,y)$ deletes $y$ from $S_t(x)$, and flipping the orientation of $xy$ from $(x,y)$ to $(y,x)$ is implemented as deleting $y$ from $S_t(x)$ and inserting $x$ into $S_t(y)$.
 Thus, every changed oriented edge yields at most two updates to $\mathcal{S}_t$, each also relayed immediately to the packing component.
+In the packing component, each modification of a labelled set is implemented by deleting its old version and inserting its updated version.
 By \cref{thm:BF}, one update to $G_t$ produces $\Oh(d+\log n)$ updates to $\vec{G}_t$ in the amortized sense: the updated graph edge contributes one update to $\mathcal{S}_t$, and every reorientation performed during the update contributes two more.
 
 \paragraph{Method $\init{n}$} is implemented as follows:
@@ -178,8 +171,8 @@ The initialization time is $\Oh(n)$, because we create $n$ singleton sets.
 \paragraph{Method $\add{xy}$} is implemented as follows:
 \begin{enumerate}
 \item Execute the insertion of $xy$ in the orientation component.
-\item Read the newly oriented copy of $xy$ and the list of edges reoriented in during this update.
-\item For every chaged oriented edge (inserted, removed, or reoriented), relay the modification to appropriately update $\mathcal{S}_t$ and the packing component, as described in the Synchronization paragraph above.
+\item Read the newly oriented copy of $xy$ and the list of edges reoriented during this update.
+\item For every changed oriented edge (inserted, removed, or reoriented), relay the modification to appropriately update $\mathcal{S}_t$ and the packing component, as described in the Synchronization paragraph above.
 \end{enumerate}
 Only the sets labelled with endpoints of changed oriented edges are modified, hence after Step~3 every set labelled with $v\in V$ stored in the set system again equals the current set $S_t(v)$, hence the set system is indeed equal to $\mathcal{S}_t$.
 Since the packing component is updated after every modification of $\mathcal{S}_t$, at the end it stores a maximal packing in the updated set system.
@@ -209,8 +202,8 @@ Since the query outputs exactly the vertices contained in the members of $\mathc
 Let $m_t\coloneqq|E(G_t)|$. By \cref{thm:BF},
 the orientation component uses $\Oh(n+m_t)$ words.
 The explicitly stored set system $\mathcal{S}_t$ also uses $\Oh(n+m_t)$ words, because the total sum of cardinalities of the members of $\mathcal{S}_t$ is exactly $n+m_t$. %every member of $\mathcal{S}_t$ contributes its permanent vertex label once, accounting for $n$ stored incidences, and every graph edge contributes exactly one additional stored incidence, namely to the hyperedge of its tail in $\vec{G}_t$.
-The packing component stores a set system of arity at most $4d+1$ and cardinality $n$, so by \cref{thm:AS}, it uses $\Oh(dn)$ words.
-The dominating set returned by $\mathtt{QueryDominatingSet()}$ is not stored explicitly, so it contributes no additional space.
+The packing component is maintained over the universe $V$, with $n$ labelled sets of arity at most $4d+1$, so by \cref{thm:AS}, it uses $\Oh(n+(4d+1)n)=\Oh(dn)$ words.
+The dominating set returned by $\mathtt{DominatingSet()}$ is not stored explicitly, so it contributes no additional space.
 Hence the whole data structure occupies $\Oh(n+m_t)+\Oh(n+m_t)+\Oh(dn)=\Oh(dn+m_t)$ words.
 
 \michalin{The theorem below should go to intro. We should explain there also what is an oblivious adversary.}
