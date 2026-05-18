@@ -1,4 +1,4 @@
-\section{(Semi-)ladder algorithms for domination and independence}\label{sec:ladders}
+\section{Semi-ladder algorithms for domination and independence}\label{sec:ladders}
 
 Here we recall \cite{FabianskiPST19}, where the authors propose efficient parameterized
 algorithms for a variety of problems, including \drds{r} and \dris{r}.
@@ -11,8 +11,13 @@ returns a vertex that is not $r$-dominated by $S$ if such vertex exists, otherwi
 if such set exists, otherwise $\bot$
 \end{itemize}
 
-The algorithm to compute $r$-domination set of size $k$ is then implemented as follows
-using these procedures.
+The algorithm to compute $r$-domination set of size $k$ is then implemented using these procedures
+and the technique called by the authors \emph{progressive exploration}.
+The progressive exploration technique constructs a sequence of candidate solutions. For each
+candidate solution that it constructs, it then tries to invalidate it by finding a witness vertex
+that is not dominated by it. Then the next candidate solution is constructed to dominate both the
+current witness and previously explored witnesses. This process is shown in
+Algorithm~\ref{alg:1}.
 
 \begin{algorithm}\label{alg:1}
     \SetKwInOut{Input}{Input}
@@ -38,6 +43,61 @@ using these procedures.
     \caption{An algorithm computing an $r$-dominating set of size $k$ in a graph $G$}
 \end{algorithm}
 
+To obtain a bound on the running time of this simple algorithm the
+the authors introduce a number of tools from logic and combinatorial graph theory.
+In particular, they define a bipartite graph induced by what they call
+a distance formula. This fomula is a logical sentence stating
+some specific property of a graph $G$ that is an input instance to the
+$r$-dominating set problrem.
+For the $r$-dominating set problem, the
+distance formula is
+$\delta^k_r(\overline{x},y)=\bigvee_{i=1}^k \delta_r(x_i,y)$,
+stating that there is some $x_i$ in a touple
+$\overline{x}=(x_1,\ldots,x_k)$ such that the distance from $x_i$ to $y$
+is at most $r$. This is a First Order Logic formula, whose length
+depends linearly on two parameters: $k$-the size of $\overline{x}$ and
+$r$ - the distance. The bipartite graph $B(\delta^k_r)$ induced
+by formula
+$\delta^k_r$ is then defined as follows. The left side $L$
+consists of all tuples $(v_1,\ldots,v_k) \subseteq V^k$ of
+vertices of the input graph $G$. The left side $L$ represents
+the universum of all candidate solutions for the $r$-dominating
+set that we seek. The right side $R$ consists of
+all vertices $v \in V(G)$. The right side is viewed as a set of
+witnesses. There is an edge between a candidate
+$(v_1,\ldots,v_k) \in L$ and a witness $v \in R$ if and only if
+$\delta^k_r((v_1,\ldots,v_k),v)$ holds, i.e., $v$ is at
+distance $r$ from some vertex in $(v_1,\ldots,v_k)$. Clearly,
+a feasible solution is a neighbour in $B(\delta^k_r)$ to all
+vertices $v \in R$. Unfortunately we cannot afford to construct
+the entire graph $B(\delta^k_r)$.
+Algorithm~\ref{alg:1} searches $B(\delta^k_r)$ by successively
+exploring new candidates and witnesses, one candidate and one
+witness in each round of the while loop.
+It is easy to observe (see~\cite{FabianskiPST19}), that the
+candidates and witnesses explored by the algorithm induce a
+semi-ladder in $B(\delta^k_r)$. Thus, the authors define the
+semi-ladder index $\sli(B)$ of a bipartite graph $B$ as the size of the
+largest induced semi-ladder contained in $B$. Thus, the number of
+rounds executed by Algorithm~\ref{alg:1} is bounded by
+$\sli(B(\delta^k_r))$. This in turn, as we shall see later,
+is nicely bounded from above
+for some specific graph classes, in particular bounded expansion graphs.
+
+%By Theorem 11 and Corollary 10 in \cite{FabianskiPST19}, we get that on nowhere dense graphs
+%the progressive exploration algorithm (Algorithm~\ref{alg:1})
+%performs a bounded number rounds, since the number of rounds corresponds to the size
+%of a semi-ladder in a bipartite graph induced by a distance formula
+%(see \cite{FabianskiPST19} for the details).
+
+In this work, we use the above framework to implement efficient
+dynamic algorithms for the $r$-dominating set problem.
+We explore the fact that we have the bound on the number of rounds
+of Algorithm~\ref{alg:1} at hand. What remains to show is how
+to efficiently answer $\candidate{W}$ and $\notDominated{S}$
+queries in a dynamically changing graph. For that, we introduce
+two dynamic data structures that are the building blocks for the above.
+
 \begin{definition}
 The $\nearVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
 \begin{itemize}
@@ -54,7 +114,8 @@ The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
  \item $\add{uv}$ - inserts an edge $uv$ to $G$
  \item $\remove{uv}$ - removes an edge $uv$ from $G$
- \item $\far{S}$ - returns a vertex at distance at most $r$ from all vertices in $S$ if such vertex exists, otherwise it returns $\bot$.
+ \item $\far{v}$ - returns a vertex at distance at least $r$ from
+  $v$ if such vertex exists, otherwise it returns $\bot$.
 \end{itemize}
 \end{definition}
 
@@ -62,8 +123,12 @@ The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing
 \begin{theorem}
 Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data structures of Theorem~\ref{thm:NearVertex}
 and Theorem~\ref{thm:FarVertex},
-one can implement Algorithm~\ref{alg:1} in time \azinline{here sth depentent on the ladder index or such.}
+one can implement Algorithm~\ref{alg:1} in time \azinline{some time.}
 \end{theorem}
+\begin{proof}We show how to implement procedures $\candidate{W}$ and $\notDominated{S}$.
+\paragraph*{Candidate.} We implement procedure $\candidate{W}$ as follows. We enumerate all
+distance profiles for every vertex in $W$.
+\end{proof}
 
 \begin{theorem}
 
