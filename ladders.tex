@@ -44,7 +44,7 @@ Algorithm~\ref{alg:1}.
 \end{algorithm}
 
 To obtain a bound on the running time of this simple algorithm the
-the authors introduce a number of tools from logic and combinatorial graph theory.
+authors introduce a number of tools from logic and combinatorial graph theory.
 In particular, they define a bipartite graph induced by what they call
 a distance formula. This fomula is a logical sentence stating
 some specific property of a graph $G$ that is an input instance to the
@@ -114,20 +114,59 @@ The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
  \item $\add{uv}$ - inserts an edge $uv$ to $G$
  \item $\remove{uv}$ - removes an edge $uv$ from $G$
- \item $\far{v}$ - returns a vertex at distance at least $r$ from
+ \item $\far{v}$ - returns a vertex at distance at least $r+1$ from
   $v$ if such vertex exists, otherwise it returns $\bot$.
 \end{itemize}
 \end{definition}
 
 
 \begin{theorem}
-Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data structures of Theorem~\ref{thm:NearVertex}
-and Theorem~\ref{thm:FarVertex},
-one can implement Algorithm~\ref{alg:1} in time \azinline{some time.}
+Using $\nearVertexDS{r,n}$ and $\farVertexDS{r+1,n+1}$ data
+structures,
+one can implement Algorithm~\ref{alg:1} in time
+$\sli(B(\delta^k_r)) \cdot ( k^{\sli(B(\delta^k_r))+1}
+\mathsf{Q_{nv}} +
+2k \cdot \mathsf{U_{fv}} + \mathsf{Q_{fv}})$, where
+$\mathsf{Q_{nv}}$ is the query time
+of $\nearVertexDS{r,n}$ and $\mathsf{U_{fv}}$ and
+$\mathsf{Q_{fv}}$ is the update
+and the query time of
+$\farVertexDS{r+1,n+1}$ respectively.
 \end{theorem}
 \begin{proof}We show how to implement procedures $\candidate{W}$ and $\notDominated{S}$.
-\paragraph*{Candidate.} We implement procedure $\candidate{W}$ as follows. We enumerate all
-distance profiles for every vertex in $W$.
+\paragraph*{Candidate.}We set up and maintain a
+$\nearVertexDS{r,n}$ data structure on the
+input dynamic graph $G$. We implement query $\candidate{W}$
+as follows.
+We enumerate all
+the partitions of vertices in $W=W_1 \cup \ldots \cup W_k$
+into $k$ subsets. There is at most $k^{|W|}$ such partitions.
+For each
+such partition and each $i \in [k]$ we issue $v_i=\near{W_i}$
+query, that returns a vertex at distance at most $r$ from
+all vertices in $W_i$. If for some partition we can find near
+vertices for all $i \in [k]$, then the set
+$S=\{v_1,\ldots,v_k \}$ is a feasible candidate and we return
+it. Otherwise, we return $\bot$. Thus, the total
+number of queries issued to $\nearVertexDS{r,n}$ is
+$k^{|W|+1}$.
+
+\paragraph*{Witness.} We set up and maintain a
+$\farVertexDS{r+1,n+1}$ data
+structure on the input dynamic graph $G$ and some auxiliary
+vertex $q \notin V(G)$. Each time a query
+$\notDominated{S}$ is used by Algorithm~\ref{alg:1}, we issue
+$k$ addition operations $\add(q,u)$ for each $u \in S$. We
+then issue $\far{q}$ query, which returns a vertex $v$ at
+distance at least $r+2$ from $q$. Thus, $v$ is at distance at
+least $r+1$ from all the vertices of $S$ in $G$. Thus, $v$ is
+a valid witness that $S$ is not a feasible solution, or, in
+other words $\delta^k_r(S,v)$ does not hold. After that,
+we remove all the previously added edges incident to the
+auxiliary vertex $q$, and we return a vertex $v$ if it exists,
+or $\bot$ otherwise. This takes $k$ addition and removal operations
+and one query operation on $\farVertexDS{r+1,n+1}$ data structure.
+
 \end{proof}
 
 \begin{theorem}
