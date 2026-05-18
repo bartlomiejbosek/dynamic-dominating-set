@@ -245,45 +245,78 @@ The total query time is therefore $\Oh(|S| + |S|^2\log n + d|S|\log n + d|S|^2\l
 For the space bound, Lemma~\ref{lem:infra-update} gives $\Oh(nd\cdot 2^{4d})$ words for the unique toolkit instance, and the structure stores no additional persistent fields.
 \end{proof}
 
-\subsection{Data structure for \texorpdfstring{$\far{v}$}{far(v)}}\label{sec:distone-far}
+\subsection{Data structure for \texorpdfstring{$\far{S}$}{far(S)}}\label{sec:distone-far}
 
-\begin{claim}\label{cl:distone-Nv-decomp}
-If $v$ is isolated, then $N_G[v]\cap V^+=\emptyset$.
-Otherwise, we have a disjoint union $N_G[v]\cap V^+=N^+(v)\cup U_2(\{v\})\cup(\{v\}\cap V^+)$.
-Moreover, if the key $\{v\}$ is present in the bucket dictionary, then $U_2(\{v\})=B(\{v\})$, while if the key $\{v\}$ is absent, then $U_2(\{v\})=\emptyset$.
+The report procedure below will use inclusion-exclusion over closed neighborhoods.
+We first record how to compute the weighted contribution of an intersection of closed neighborhoods using the same open-neighborhood decomposition as in the near-vertex structure.
+For a nonempty set $T\subseteq V$ let
+\[
+U(T):=\{u\in V\setminus T : T\subseteq N(u)\},
+\]
+and split
+\[
+U_2(T):=\{u\in U(T): T\subseteq N^+(u)\},
+\qquad
+U_1(T):=U(T)\setminus U_2(T).
+\]
+Recall that $U_1(T)\subseteq \bigcup_{t\in T}N^+(t)$ and that $U_2(T)=B(T)$ when $|T|\le \Delta$, while $U_2(T)=\emptyset$ when $|T|>\Delta$.
+The only additional issue for closed neighborhoods is that vertices of $T$ themselves may belong to the intersection.
+This is handled by the following claim.
+
+\begin{claim}\label{cl:distone-closed-decomp}
+Let $T\subseteq V$ be nonempty and define
+\[
+C(T):=V^+\cap\bigcap_{t\in T}N_G[t],
+\qquad
+A(T):=\{a\in T\cap V^+ : T\setminus\{a\}\subseteq N(a)\}.
+\]
+Then the sets $A(T)$, $U_1(T)$, and $U_2(T)$ are pairwise disjoint and
+\[
+C(T)=A(T)\cup U_1(T)\cup U_2(T).
+\]
 \end{claim}
 \begin{claimproof}[Proof.]
-If $v$ is isolated, then $v\notin V^+$ and $N(v)=\emptyset$, hence $N_G[v]\cap V^+=\emptyset$.
-Assume now that $v$ is non-isolated.
-Since $U(\{v\})=N(v)$, Claim~\ref{lem:distone-U1-bound} yields a disjoint decomposition $N(v)=U_1(\{v\})\cup U_2(\{v\})$ and implies $U_1(\{v\})\subseteq N^+(v)$.
-If $u\in N^+(v)$, then the edge $vu$ is oriented as $(v,u)$, so $v\notin N^+(u)$ and therefore $u\notin U_2(\{v\})$.
-As $u\in N(v)=U(\{v\})$, we conclude that $u\in U_1(\{v\})$.
-Thus $U_1(\{v\})=N^+(v)$.
+Let $u\in C(T)$.
+If $u\in T$, then $u\in V^+$ and, for every $t\in T\setminus\{u\}$, the condition $u\in N_G[t]$ implies $t\in N(u)$.
+Thus $u\in A(T)$.
+If $u\notin T$, then $u\in V\setminus T$ and $T\subseteq N(u)$, so $u\in U(T)$ and hence $u\in U_1(T)\cup U_2(T)$.
 
-Every vertex of $N(v)$ has positive degree, so $N(v)\subseteq V^+$.
-Hence $N_G[v]\cap V^+=(N(v)\cup\{v\})\cap V^+=N(v)\cup(\{v\}\cap V^+)$.
-Using $N(v)=U_1(\{v\})\cup U_2(\{v\})=N^+(v)\cup U_2(\{v\})$, we obtain $N_G[v]\cap V^+=N^+(v)\cup U_2(\{v\})\cup(\{v\}\cap V^+)$.
-The union is disjoint because $N(v)\cap\{v\}=\emptyset$ and $U_1(\{v\})\cap U_2(\{v\})=\emptyset$.
-
-Since $|\{v\}|=1\le \Delta$, Claim~\ref{lem:distone-U2-bucket} gives $U_2(\{v\})=B(\{v\})$.
-If the key $\{v\}$ is present, this is exactly the maintained bucket.
-If the key $\{v\}$ is absent, then, because only nonempty buckets are materialized, we have $B(\{v\})=\emptyset$, hence $U_2(\{v\})=\emptyset$.
+Conversely, every vertex of $A(T)$ belongs to $V^+$ and to every closed neighborhood $N_G[t]$ with $t\in T$.
+Every vertex of $U_1(T)\cup U_2(T)$ belongs to $U(T)$, hence is adjacent to every vertex of $T$ and has positive degree.
+Thus all three sets are contained in $C(T)$.
+Finally, $A(T)\subseteq T$, while $U_1(T)$ and $U_2(T)$ are contained in $V\setminus T$, and $U_1(T)\cap U_2(T)=\emptyset$ by definition.
+Hence the three sets are pairwise disjoint.
 \end{claimproof}
 
-\paragraph{The predicate for \texorpdfstring{$\far{v}$}{far(v)}.}
+\paragraph{The predicate for \texorpdfstring{$\far{S}$}{far(S)}.}
 Fix one auxiliary marker vertex $x\notin V$.
-Let $\widehat G$ be obtained from the current graph $G$ by adding $x$ and either keeping $x$ isolated or joining $x$ with exactly one vertex of $V$.
-If $x$ has a neighbor in $\widehat G$, denote it by $q(\widehat G)$; otherwise set $q(\widehat G):=\bot$.
-Define a binary function $f$ on pairs $(\widehat G,u)$ by setting $f(\widehat G,x):=0$ and, for $u\in V$, setting $f(\widehat G,u):=1$ if and only if $q(\widehat G)\neq \bot$ and $u\in V^+\setminus N_G[q(\widehat G)]$.
-Thus, whenever $q(\widehat G)=v$, the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[v]$.
+We assign the marker vertex the fixed identifier $\id(x):=n+1$; thus the fixed universe of $\widehat G$ is identified with $\{1,\ldots,n+1\}$ when Lemma~\ref{lem:restore-by-sampling} is applied.
+Let $\widehat G$ be obtained from the current graph $G$ by adding $x$ and by possibly joining $x$ with an arbitrary finite set $P\subseteq V$.
+Let
+\[
+P(\widehat G):=N_{\widehat G}(x)\cap V
+\]
+be the marker-neighborhood of $x$.
+Outside the execution of a query the marker vertex is isolated, so $P(\widehat G)=\emptyset$.
+During a query $\far{S}$ we temporarily set $P(\widehat G)=S$ by adding the edges $xs$ for all $s\in S$ and removing them after the retrieval query.
+We use the convention $N_G[\emptyset]=\emptyset$.
+
+Define a binary function $f$ on pairs $(\widehat G,u)$ by setting $f(\widehat G,x):=0$ and, for $u\in V$, setting
+\[
+f(\widehat G,u)=1
+\quad\Longleftrightarrow\quad
+u\in V^+\setminus N_G[P(\widehat G)].
+\]
+Thus, whenever $P(\widehat G)=S$, the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[S]$.
 Isolated vertices are intentionally excluded from $f$ and will be handled separately in the construction of $\farVertexDS{1,n}$.
 
 \paragraph{The data structure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}(\widehat G)$}{WeightedSum}.}
 For a fixed weight function $w\colon V\cup\{x\}\to\Z$, assume that every value $w(u)$ and every maintained counter fits in $\Oh(1)$ machine words.
+In the application through Lemma~\ref{lem:restore-by-sampling}, the only weights used are the sampled indicators and sampled identifier weights, so this word-size assumption is satisfied.
 The structure consists of:
 \begin{itemize}
 \item one private instance of the deterministic toolkit of Section~\ref{sec:distone-infra} for the induced graph $G=\widehat G[V]$;
-\item a variable $p\in V\cup\{\bot\}$ storing the unique neighbor of $x$ in $\widehat G$, or $\bot$ if $x$ is isolated;
+\item the current marker set $P=N_{\widehat G}(x)\cap V$, represented by a dynamic array, a Boolean membership array, and positions in the array, so insertions and deletions take $\Oh(1)$ time;
 \item the global counter $W_w^{\mathrm{all}}:=\sum_{u\in V^+} w(u)$;
 \item for every materialized bucket $B(Z)$, its header stores the counter $W_{w,Z}:=\sum_{u\in B(Z)} w(u)$.
 \end{itemize}
@@ -295,9 +328,9 @@ Therefore no separate instance of $\mathsf{Verify}_{f}(\widehat G)$ is maintaine
 \paragraph{Procedure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}.\mathsf{Init}$}{WeightedSum.Init}.}
 \begin{enumerate}
 \item Initialize one private instance of the deterministic toolkit on the edgeless graph on $V$.
-\item Set $p:=\bot$, set $W_w^{\mathrm{all}}:=0$, and note that no bucket header stores a weighted counter because no bucket is materialized yet.
+\item Set $P:=\emptyset$, set $W_w^{\mathrm{all}}:=0$, and note that no bucket header stores a weighted counter because no bucket is materialized yet.
 \item For every edge $uv\in E(G)$, execute the edge-update procedure of $\mathsf{WeightedSum}_{f,w}$ for $\add{uv}$.
-\item If $x$ has a neighbor $v$ in $\widehat G$, execute the marker-update procedure for $\add{xv}$.
+\item For every marker-neighbor $v\in N_{\widehat G}(x)\cap V$, execute the marker-update procedure for $\add{xv}$.
 \end{enumerate}
 
 \paragraph{Procedure \texorpdfstring{$\add{uv}$ and $\remove{uv}$ inside $\mathsf{WeightedSum}_{f,w}$}{WeightedSum edge update}.}
@@ -311,27 +344,37 @@ Therefore no separate instance of $\mathsf{Verify}_{f}(\widehat G)$ is maintaine
 
 \paragraph{Procedure \texorpdfstring{$\add{xv}$ and $\remove{xv}$ inside $\mathsf{WeightedSum}_{f,w}$}{WeightedSum marker update}.}
 \begin{enumerate}
-\item If the operation is $\add{xv}$, set $p:=v$.
-\item If the operation is $\remove{xv}$, set $p:=\bot$.
+\item If the operation is $\add{xv}$, insert $v$ into $P$.
+\item If the operation is $\remove{xv}$, remove $v$ from $P$.
 \end{enumerate}
+The private deterministic toolkit is not updated for edges incident with $x$, because it is maintained only for the induced graph $G=\widehat G[V]$.
 
 \paragraph{Procedure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$}{WeightedSum.Report}.}
 \begin{enumerate}
-\item If $p=\bot$, return $0$.
-\item If $p\notin V^+$, return $W_w^{\mathrm{all}}$.
-\item Compute $A:=\sum_{u\in N^+(p)} w(u)$ by scanning the list $N^+(p)$.
-\item Let $B$ be the weighted counter stored in the bucket $B(\{p\})$ if that bucket is materialized, and let $B:=0$ otherwise.
-\item Return $W_w^{\mathrm{all}}-A-B-w(p)$.
+\item Let $P:=N_{\widehat G}(x)\cap V$.
+\item If $P=\emptyset$, return $W_w^{\mathrm{all}}$.
+\item Set $\mathsf{Ans}:=W_w^{\mathrm{all}}$.
+\item For every nonempty subset $T\subseteq P$:
+ \begin{enumerate}
+ \item Set $E_T:=0$ and initialize an empty temporary set $\mathsf{seen}$.
+ Enumerate the candidates from $T\cup\bigcup_{t\in T}N^+(t)$.
+ For every enumerated candidate $u$ not yet in $\mathsf{seen}$, insert $u$ into $\mathsf{seen}$ and add $w(u)$ to $E_T$ if $u\in V^+$ and $T\subseteq N_G[u]$.
+ Here $T\subseteq N_G[u]$ means that, for every $t\in T$, either $t=u$ or $t\in N(u)$, and these membership tests use the maintained neighbor dictionaries.
+ \item Let $B_T$ be the stored weighted bucket counter $W_{w,T}$ if $|T|\le \Delta$ and $B(T)$ is materialized; otherwise let $B_T:=0$.
+ \item Set $C_T:=E_T+B_T$.
+ \item If $|T|$ is odd, set $\mathsf{Ans}:=\mathsf{Ans}-C_T$; if $|T|$ is even, set $\mathsf{Ans}:=\mathsf{Ans}+C_T$.
+ \end{enumerate}
+\item Return $\mathsf{Ans}$.
 \end{enumerate}
 
-\begin{lemma}[Weighted sums for the hard part of \texorpdfstring{$\far{v}$}{far(v)}]\label{lem:distone-weighted-sum}
+\begin{lemma}[Weighted sums for the hard part of \texorpdfstring{$\far{S}$}{far(S)}]\label{lem:distone-weighted-sum}
 Assume $n\ge 2$ and $d\ge 1$.
 For any fixed weight function $w\colon V\cup\{x\}\to\Z$, there exists a data structure $\mathsf{WeightedSum}_{f,w}(\widehat G)$ that maintains a dynamic graph $\widehat G$ of the form described above and, after each update, reports $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)$.
 \begin{itemize}
 \item initialization takes time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$;
 \item every edge insertion or deletion inside the induced graph $G=\widehat G[V]$ is handled in amortized time $\Oh(2^{4d}(d^3+\log^3 n))$;
-\item insertion or deletion of the unique edge incident with the marker $x$ is handled in amortized time $\Oh(1)$;
-\item $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$ takes amortized time $\Oh(d)$.
+\item insertion or deletion of an edge incident with the marker $x$ is handled in amortized time $\Oh(1)$;
+\item $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$ takes amortized time $\Oh(1)$ when $P=\emptyset$, and $\Oh(2^s\cdot d\cdot s^2\log n)$ when $s:=|P|\ge 1$.
 \end{itemize}
 The structure uses $\Oh(nd\cdot 2^{4d})$ words of space besides the read-only representation of $w$.
 \end{lemma}
@@ -340,9 +383,9 @@ The private toolkit contributes $\Oh(1)$ initialization time on the edgeless gra
 It remains to justify the additional fields and the report formula.
 
 In $\mathsf{WeightedSum}_{f,w}.\mathsf{Init}$, Step~1 initializes the private toolkit.
-Step~2 sets $p:=\bot$, initializes the global counter to $0$, and, because the graph is still edgeless, leaves all bucket headers absent.
-Step~3 then inserts the edges of $G$ one by one by calling the edge-update procedure of $\mathsf{WeightedSum}_{f,w}$, while Step~4 handles the unique edge incident with $x$ if it exists.
-Because $G$ has at most $d(n-1)=\Oh(nd)$ edges and Step~4 costs $\Oh(1)$ time, the total initialization time is $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$.
+Step~2 initializes the marker set and the global counter, and, because the graph is still edgeless, leaves all bucket headers absent.
+Step~3 then inserts the edges of $G$ one by one by calling the edge-update procedure of $\mathsf{WeightedSum}_{f,w}$, while Step~4 handles all current edges incident with $x$.
+Because $G$ has at most $d(n-1)=\Oh(nd)$ edges and every marker update costs $\Oh(1)$ time, the total initialization time is $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$.
 
 Consider one edge insertion or deletion inside $G$.
 Step~1 of the edge-update procedure updates the private toolkit and outputs the log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
@@ -352,32 +395,51 @@ Indeed, whenever a registration event is read from the toolkit log, the correspo
 Hence the counter maintenance takes $\Oh(2^\Delta(d+\log n))$ amortized time, which is absorbed by the amortized cost $\Oh(2^{4d}(d^3+\log^3 n))$ of Step~1.
 
 If the updated edge is incident with the marker $x$, then the edge belongs to $\widehat G$ but not to the induced graph $G=\widehat G[V]$.
-In this case the private toolkit does not change, and the marker-update procedure only modifies the variable $p$.
-Therefore such an update costs amortized time $\Oh(1)$, exactly as stated in the lemma.
+In this case the private toolkit does not change, and the marker-update procedure only modifies the current marker set $P$.
+The array representation described above supports this in $\Oh(1)$ time.
 
 It remains to justify $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$.
-If $p=\bot$, then Step~1 returns $0$, and this is correct because $f(\widehat G,u)=0$ for every $u\in V\cup\{x\}$.
-Assume next that $p\neq\bot$ and $p\notin V^+$.
-Then $p$ is isolated in $G$, so Claim~\ref{cl:distone-Nv-decomp} gives $N_G[p]\cap V^+=\emptyset$.
-Hence every vertex of $V^+$ lies outside $N_G[p]$, and therefore $f(\widehat G,u)=1$ exactly for $u\in V^+$.
-Consequently, $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)=W_w^{\mathrm{all}}$, which is exactly what Step~2 returns.
+If $P=\emptyset$, then $N_G[P]=\emptyset$, so the positive vertices of $f$ are exactly $V^+$ and Step~2 correctly returns $W_w^{\mathrm{all}}$.
+Assume therefore that $P\neq\emptyset$.
+By inclusion-exclusion,
+\[
+\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)
+=
+W_w^{\mathrm{all}}
++
+\sum_{\emptyset\neq T\subseteq P}(-1)^{|T|}
+W(C(T)),
+\]
+where $W(C(T)):=\sum_{u\in C(T)}w(u)$ and $C(T)=V^+\cap\bigcap_{t\in T}N_G[t]$.
 
-It remains to consider the case $p\in V^+$.
-Now Claim~\ref{cl:distone-Nv-decomp} gives the disjoint decomposition $N_G[p]\cap V^+=N^+(p)\cup U_2(\{p\})\cup\{p\}$, where $U_2(\{p\})$ is exactly the bucket $B(\{p\})$ if this bucket is materialized and is empty otherwise.
-Therefore the positive vertices of $f$ are exactly the vertices of $V^+\setminus N_G[p]$, and so $\sum_{u\in V\cup\{x\}} f(\widehat G,u)w(u)=W_w^{\mathrm{all}}-\sum_{u\in N^+(p)} w(u)-B-w(p)$, where $B$ is the weighted counter stored in the bucket $B(\{p\})$ when that bucket is materialized and $B:=0$ otherwise.
-This is precisely the value returned by Steps~3--5.
+Fix one nonempty $T\subseteq P$.
+By Claim~\ref{cl:distone-closed-decomp}, the sets $A(T)$, $U_1(T)$, and $U_2(T)$ are pairwise disjoint and
+\[
+C(T)=A(T)\cup U_1(T)\cup U_2(T).
+\]
+The explicit enumeration in Step~4a contains $A(T)$ because $A(T)\subseteq T$, and it contains $U_1(T)$ by Claim~\ref{lem:distone-U1-bound}.
+The test $u\in V^+$ and $T\subseteq N_G[u]$ then accepts exactly the enumerated vertices of $C(T)$.
+The remaining part is $U_2(T)$.
+By Claim~\ref{lem:distone-U2-bucket}, this is the bucket $B(T)$ when $|T|\le \Delta$, and is empty when $|T|>\Delta$.
+Thus $B_T$ is exactly the weighted contribution of $U_2(T)$.
+Moreover, the bucket contribution is disjoint from the explicit part: if $u\in B(T)$, then $T\subseteq N^+(u)$, so for every $t\in T$ the edge $ut$ is oriented from $u$ to $t$; hence $u\notin N^+(t)$, and also $u\notin T$.
+Therefore $u$ is never enumerated from $T\cup\bigcup_{t\in T}N^+(t)$.
+Consequently $C_T=E_T+B_T=W(C(T))$, and the signs in Step~4d implement the displayed inclusion-exclusion formula.
 
-For the running time, Step~1 takes $\Oh(1)$ time and Step~2 takes $\Oh(1)$ time.
-Only in the case $p\in V^+$ does Step~3 scan the list $N^+(p)$, whose size is at most $\Delta=4d$.
-Step~4 only checks whether the bucket $B(\{p\})$ is materialized and, if so, reads its stored weighted counter, so it takes $\Oh(1)$ time; Step~5 performs one final arithmetic expression in $\Oh(1)$ time.
-Thus $\mathsf{WeightedSum}_{f,w}.\mathsf{Report}$ runs in $\Oh(\Delta)=\Oh(d)$ time.
+For the running time, the case $P=\emptyset$ takes $\Oh(1)$ time.
+Let $s:=|P|\ge 1$.
+There are $2^s-1$ nonempty subsets $T\subseteq P$.
+For one such $T$, Step~4a enumerates at most $|T|+\Delta|T|=\Oh(d|T|)$ candidates.
+For each candidate it checks $T\subseteq N_G[u]$ using $\Oh(|T|)$ neighbor-dictionary lookups, hence $\Oh(|T|\log n)$ time per candidate.
+The bucket lookup costs $\Oh(|T|)\le \Oh(d|T|)$ when $|T|\le \Delta$ and is skipped otherwise.
+Thus the work for one $T$ is $\Oh(d|T|^2\log n)$, and the whole report time is $\Oh(2^s\cdot d\cdot s^2\log n)$.
 
 For the space bound, the private toolkit uses $\Oh(nd\cdot 2^{4d})$ words.
-The variable $p$ and the counter $W_w^{\mathrm{all}}$ contribute $\Oh(1)$ words.
+The counter $W_w^{\mathrm{all}}$ contributes $\Oh(1)$ words, and the marker set representation contributes $\Oh(n)$ words.
 Finally, each materialized bucket header stores one additional weighted counter field.
 The number of materialized buckets is at most the total number of registrations plus one, and every vertex has at most $2^\Delta$ registrations.
 Hence all additional weighted counter fields together use $\Oh(n\cdot 2^\Delta)=\Oh(nd\cdot 2^{4d})$ words.
-Therefore the whole structure uses $\Oh(nd\cdot 2^{4d})$ words.
+Since $d\ge 1$, the marker-set storage is absorbed, and the whole structure uses $\Oh(nd\cdot 2^{4d})$ words.
 \end{proof}
 
 \paragraph{The data structure \texorpdfstring{$\farVertexDS{1,n}$}{FarVertex[1,n]}.}
@@ -406,20 +468,21 @@ The structure consists of:
 \item Relay the deletion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 \end{enumerate}
 
-\paragraph{Procedure \texorpdfstring{$\far{v}$ for $\farVertexDS{1,n}$}{farVertex(v) for FarVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\far{S}$ for $\farVertexDS{1,n}$}{farVertex(S) for FarVertex[1,n]}.}
 \begin{enumerate}
-\item Query the interval dictionary of the private toolkit for the smallest isolated vertex.
-\item If an isolated vertex different from $v$ exists, return it immediately.
-\item If the only isolated vertex found so far is $v$, query the interval dictionary for the next isolated vertex after $v$; if it exists, return it.
-\item Temporarily execute $\add{xv}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\item Canonicalize $S$ as a set and build a temporary membership dictionary for it.
+\item Query the interval dictionary of the private toolkit for the smallest isolated vertex $z$.
+\item While such a vertex $z$ exists and $z\in S$, query the interval dictionary for the next isolated vertex after $z$.
+\item If the resulting isolated vertex $z$ exists, return it immediately.
+\item Temporarily execute $\add{xs}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$ for every $s\in S$.
 \item Query $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
-\item Temporarily execute $\remove{xv}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+\item Temporarily execute $\remove{xs}$ on $\mathsf{RetrieveVertex}_{f}(\widehat G)$ for every $s\in S$.
 \item If the retrieval structure reported a vertex, return it; otherwise return $\bot$.
 \end{enumerate}
 
 \paragraph{Randomness model.}
 The random choices inside Lemma~\ref{lem:restore-by-sampling} are fixed during the initialization of $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
-The adversary is oblivious to these choices with respect to the entire operation sequence seen by this randomized retrieval structure, including the temporary marker updates $\add{xv}$ and $\remove{xv}$ performed inside a query $\far{v}$.
+The adversary is oblivious to these choices with respect to the entire operation sequence seen by this randomized retrieval structure, including the temporary marker updates $\add{xs}$ and $\remove{xs}$ for all $s\in S$ performed inside a query $\far{S}$.
 
 \begin{lemma}[Specialized form of Theorem~\ref{thm:FarVertex}]\label{lem:distone-far}
 Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
@@ -429,57 +492,73 @@ There exists a randomized data structure $\farVertexDS{1,n}$ that, against an ob
 $\Oh\!\left(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$;
 \item $\add{uv}$ and $\remove{uv}$ update the structure in amortized time
 $\Oh\!\left(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$;
-\item $\far{v}$ behaves as follows:
+\item $\far{S}$, for any $S\subseteq V$, behaves as follows:
  \begin{itemize}
- \item if $V\setminus N_G[v]=\emptyset$, it returns $\bot$;
- \item if $V\setminus N_G[v]\neq\emptyset$, it never returns a vertex of $N_G[v]$, and it returns some vertex of $V\setminus N_G[v]$ with probability at least $1-\eps$.
+ \item if $V\setminus N_G[S]=\emptyset$, it returns $\bot$;
+ \item if $V\setminus N_G[S]\neq\emptyset$, it never returns a vertex of $N_G[S]$, and it returns some vertex of $V\setminus N_G[S]$ with probability at least $1-\eps$.
  \end{itemize}
 \end{itemize}
-The amortized query time is $\Oh\!\left(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$.
+The amortized query time on input $S$, where $s:=\max(1,|S|)$, is
+\[
+\Oh\!\left((s+2^s d s^2\log n)\log n \log \frac{1}{\eps}\right).
+\]
 The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ words of space.
 \end{lemma}
 
 \begin{proof}
-The predicate $f$ was defined above so that, after temporarily adding the edge $xv$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[v]$.
-Thus the only witnesses not represented by $f$ are isolated vertices, and these will be handled by the private toolkit stored directly in $\farVertexDS{1,n}$.
+The predicate $f$ was defined above so that, after temporarily adding the marker edges $xs$ for all $s\in S$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[S]$.
+Thus the only witnesses not represented by $f$ are isolated vertices, and these are handled by the private toolkit stored directly in $\farVertexDS{1,n}$.
+An isolated vertex $z$ is a valid witness for $\far{S}$ exactly when $z\notin S$.
 
 By Lemma~\ref{lem:distone-weighted-sum}, one full instance of $\mathsf{WeightedSum}_{f,w}(\widehat G)$ has initialization time
 $I_R=\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$,
 amortized update time
 $T_R=\Oh(2^{4d}(d^3+\log^3 n))$,
-amortized query time
-$Q_R=\Oh(d)$,
+amortized report time
+$Q_R(s)=\Oh(2^s\cdot d\cdot s^2\log n)$ for $s:=\max(1,|P|)$,
 and space
 $S_R=\Oh(nd\cdot 2^{4d})$.
 Because $f$ is binary, we apply Lemma~\ref{lem:restore-by-sampling} in the case \cref{it:binary-f}, hence $I_V=T_V=Q_V=S_V=0$.
-Since $|\widehat G|=n+1=\Oh(n)$, $d\ge 1$, and $\eps\in(0,1/2)$, this yields a randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with initialization time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized update time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized query time $\Oh(d\log n \log \frac{1}{\eps})$, and space $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+Since $|\widehat G|=n+1=\Oh(n)$, $d\ge 1$, and $\eps\in(0,1/2)$, this yields a randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with initialization time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized update time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized query time $\Oh(Q_R(s)\log n \log \frac{1}{\eps})$ when the current marker set has size at most $s$, and space $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 
 We now construct $\farVertexDS{1,n}$ from one private toolkit instance together with $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
-By the randomness paragraph above, the oblivious-adversary guarantee applies to the entire operation sequence seen by $\mathsf{RetrieveVertex}_{f}(\widehat G)$, including the temporary marker updates inside a call to $\far{v}$.
+By the randomness paragraph above, the oblivious-adversary guarantee applies to the entire operation sequence seen by $\mathsf{RetrieveVertex}_{f}(\widehat G)$, including the temporary marker updates inside a call to $\far{S}$.
 In $\init{G}$, Steps~1--2 initialize the private toolkit on the input graph in time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}.
-Step~3 is constant time, and Step~4 initializes $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with the bound stated above.
+Step~3 is constant time and starts with $P(\widehat G)=\emptyset$, and Step~4 initializes $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with the bound stated above.
 This gives the claimed initialization time.
 
-For one later update $\add{uv}$ or $\remove{uv}$, the private toolkit contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}, while the black-box structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$.
+For one later update $\add{uv}$ or $\remove{uv}$, the graph edge $uv$ is relayed to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+The private toolkit contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}, while the black-box structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ contributes amortized time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$.
+Marker updates do not occur in ordinary $\add{uv}$ and $\remove{uv}$ operations; they are performed only temporarily inside queries.
 This proves the claimed update bound.
 
-We next analyze one call to $\far{v}$.
-Steps~1--3 inspect isolated vertices using the interval dictionary of the private toolkit, so they take $\Oh(\log n)$ time.
-If one of these steps returns a vertex, then the answer is correct because every isolated vertex distinct from $v$ belongs to $V\setminus N_G[v]$.
+We next analyze one call to $\far{S}$.
+The canonicalization and temporary membership dictionary for $S$ take $\Oh(|S|\log n)$ time.
+Steps~2--4 inspect isolated vertices using the interval dictionary of the private toolkit.
+The loop can skip only isolated vertices that belong to $S$, so it iterates at most $|S|$ times and costs $\Oh((|S|+1)\log n)$ time.
+If this stage returns an isolated vertex $z$, then $z\notin S$, and since $z$ has no neighbors, $z\notin N_G[S]$.
+Thus the returned vertex is a correct witness.
 
-Assume now that Steps~1--3 do not return.
-Then every isolated vertex is equal to $v$ or there are no isolated vertices at all, so every remaining witness is non-isolated.
-By the definition of $f$, after Step~4 the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[v]$.
-Since Steps~1--3 did not return, every remaining valid witness is non-isolated, hence the positive vertices of $f$ are exactly the remaining witnesses for $\far{v}$.
-Step~4 is one update to $\mathsf{RetrieveVertex}_{f}(\widehat G)$, Step~5 is one query to $\mathsf{RetrieveVertex}_{f}(\widehat G)$, and Step~6 is one more update to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
-Therefore Steps~4--6 take amortized time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, because $d\le 2^{4d}(d^3+\log^3 n)$ for $d\ge 1$.
+Assume now that Steps~2--4 do not return.
+Then no isolated vertex outside $S$ exists, so every remaining witness in $V\setminus N_G[S]$ is non-isolated.
+After Step~5, the current marker set is $P(\widehat G)=S$, and by the definition of $f$ the positive vertices for $f$ are exactly $V^+\setminus N_G[S]$.
+Since every remaining witness is non-isolated, these positive vertices are exactly the remaining witnesses for $\far{S}$.
+Step~5 performs $|S|$ marker-edge insertions and Step~7 performs $|S|$ marker-edge deletions.
+Each such update costs $\Oh(\log n \log \frac{1}{\eps})$ through $\mathsf{RetrieveVertex}_{f}(\widehat G)$, because the corresponding update in $\mathsf{WeightedSum}_{f,w}$ costs $\Oh(1)$.
+Step~6 is one retrieval query and, while $P(\widehat G)=S$, costs
+\[
+\Oh\!\left(2^{|S|}d|S|^2\log^2 n \log \frac{1}{\eps}\right)
+\]
+for $|S|\ge 1$; the case $S=\emptyset$ is covered by using $s=\max(1,|S|)$.
+Together with the isolated-vertex stage, this gives the displayed query bound.
 
-If Step~5 reports a vertex, then by the no-false-positives guarantee of Lemma~\ref{lem:restore-by-sampling} this vertex satisfies $f(\widehat G,u)>0$, hence $u\in V\setminus N_G[v]$.
-If Step~5 reports no vertex, then Step~7 returns $\bot$.
-When $V\setminus N_G[v]=\emptyset$, both the isolated-vertex stage and the retrieval stage correctly report failure.
-When $V\setminus N_G[v]\neq\emptyset$, the isolated-vertex stage finds a witness whenever an isolated one exists; otherwise the witness set is exactly the set of positive vertices of $f$ after Step~4, so Lemma~\ref{lem:restore-by-sampling} guarantees that Step~5 returns some witness with probability at least $1-\eps$.
+If Step~6 reports a vertex, then by the no-false-positives guarantee of Lemma~\ref{lem:restore-by-sampling} this vertex satisfies $f(\widehat G,u)>0$, hence $u\in V\setminus N_G[S]$.
+If Step~6 reports no vertex, then Step~8 returns $\bot$.
+When $V\setminus N_G[S]=\emptyset$, the isolated-vertex stage cannot find a valid isolated witness and the retrieval stage has no positive vertex to return.
+When $V\setminus N_G[S]\neq\emptyset$, the isolated-vertex stage finds a witness whenever an isolated witness exists; otherwise the witness set is exactly the set of positive vertices of $f$ after Step~5, so Lemma~\ref{lem:restore-by-sampling} guarantees that Step~6 returns some witness with probability at least $1-\eps$.
 This proves the one-sided error model stated in the lemma.
 
 Finally, the space of $\farVertexDS{1,n}$ is the sum of the space of one private toolkit instance, namely $\Oh(nd\cdot 2^{4d})$, and the space of $\mathsf{RetrieveVertex}_{f}(\widehat G)$, namely $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+The marker set $P$ inside the weighted structures contributes only $\Oh(n)$ words per instance and is absorbed in the same bound because $d\ge 1$.
 Hence the total space is $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 \end{proof}
