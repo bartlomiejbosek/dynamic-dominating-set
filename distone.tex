@@ -201,7 +201,7 @@ This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
 \end{enumerate}
 Steps~2--3 take $\Oh(|S|)$ time, Step~4 takes $\Oh(|S|^2\log n)$ time, Steps~5--6 take $\Oh(d|S|\log n+d|S|^2\log n)$ time, and Step~7 takes $\Oh(d)$ time.
 
-\begin{lemma}[Specialized form of Theorem~\ref{thm:NearVertex}]\label{lem:distone-near}
+\begin{theorem*}[\ref{thm:distone-near}]
 Assume $n\ge 2$ and $d\ge 1$.
 There exists a data structure $\nearVertexDS{1,n}$ that maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
@@ -210,7 +210,7 @@ There exists a data structure $\nearVertexDS{1,n}$ that maintains a dynamic $d$-
 \item $\near{S}$ returns a vertex $v$ with $S\subseteq N[v]$ if such a vertex exists, and returns $\bot$ otherwise, in time $\Oh(|S| + d|S|^2\log n)$.
 \end{itemize}
 The structure uses $\Oh(nd\cdot 2^{4d})$ words of space.
-\end{lemma}
+\end{theorem*}
 
 \begin{proof}
 The data structure consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}, so the paragraphs above already define the full persistent state and all supported procedures.
@@ -484,7 +484,7 @@ The structure consists of:
 The random choices inside Lemma~\ref{lem:restore-by-sampling} are fixed during the initialization of $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 The adversary is oblivious to these choices with respect to the entire operation sequence seen by this randomized retrieval structure, including the temporary marker updates $\add{xs}$ and $\remove{xs}$ for all $s\in S$ performed inside a query $\far{S}$.
 
-\begin{lemma}[Specialized form of Theorem~\ref{thm:FarVertex}]\label{lem:distone-far}
+\begin{theorem*}[\ref{thm:distone-far}]
 Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
 There exists a randomized data structure $\farVertexDS{1,n}$ that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
@@ -503,7 +503,7 @@ The amortized query time on input $S$, where $s:=\max(1,|S|)$, is
 \Oh\!\left((s+2^s d s^2\log n)\log n \log \frac{1}{\eps}\right).
 \]
 The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ words of space.
-\end{lemma}
+\end{theorem*}
 
 \begin{proof}
 The predicate $f$ was defined above so that, after temporarily adding the marker edges $xs$ for all $s\in S$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[S]$.
