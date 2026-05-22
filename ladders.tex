@@ -56,11 +56,11 @@ stating that there is some $x_i$ in a touple
 $\overline{x}=(x_1,\ldots,x_k)$ such that the distance from $x_i$ to $y$
 is at most $r$. This is a First Order Logic formula, whose length
 depends linearly on two parameters: $k$-the size of $\overline{x}$ and
-$r$ - the distance. The bipartite graph $B(\delta^k_r)$ induced
+$r$ - the distance. The bipartite graph $B(\delta^k_r,G)$ induced
 by formula
-$\delta^k_r$ is then defined as follows. The left side $L$
-consists of all tuples $(v_1,\ldots,v_k) \subseteq V^k$ of
-vertices of the input graph $G$. The left side $L$ represents
+$\delta^k_r$ on a graph $G$ is then defined as follows. The left side
+$L$ consists of all tuples $(v_1,\ldots,v_k) \subseteq V^k$ of
+vertices of $G$. The left side $L$ represents
 the universum of all candidate solutions for the $r$-dominating
 set that we seek. The right side $R$ consists of
 all vertices $v \in V(G)$. The right side is viewed as a set of
@@ -68,19 +68,19 @@ witnesses. There is an edge between a candidate
 $(v_1,\ldots,v_k) \in L$ and a witness $v \in R$ if and only if
 $\delta^k_r((v_1,\ldots,v_k),v)$ holds, i.e., $v$ is at
 distance $r$ from some vertex in $(v_1,\ldots,v_k)$. Clearly,
-a feasible solution is a neighbour in $B(\delta^k_r)$ to all
+a feasible solution is a neighbour in $B(\delta^k_r,G)$ to all
 vertices $v \in R$. Unfortunately we cannot afford to construct
-the entire graph $B(\delta^k_r)$.
-Algorithm~\ref{alg:1} searches $B(\delta^k_r)$ by successively
+the entire graph $B(\delta^k_r,G)$.
+Algorithm~\ref{alg:1} searches $B(\delta^k_r,G)$ by successively
 exploring new candidates and witnesses, one candidate and one
 witness in each round of the while loop.
 It is easy to observe (see~\cite{FabianskiPST19}), that the
 candidates and witnesses explored by the algorithm induce a
-semi-ladder in $B(\delta^k_r)$. Thus, the authors define the
+semi-ladder in $B(\delta^k_r,G)$. Thus, the authors define the
 semi-ladder index $\sli(B)$ of a bipartite graph $B$ as the size of the
 largest induced semi-ladder contained in $B$. Thus, the number of
 rounds executed by Algorithm~\ref{alg:1} is bounded by
-$\sli(B(\delta^k_r))$. This in turn, as we shall see later,
+$\sli(B(\delta^k_r,G))$. This in turn, as we shall see later,
 is nicely bounded from above
 for some specific graph classes, in particular bounded expansion graphs.
 
@@ -124,7 +124,7 @@ The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing
 Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data
 structures,
 one can implement Algorithm~\ref{alg:1} in time
-$\sli(B(\delta^k_r)) \cdot ( k^{\sli(B(\delta^k_r))+1}
+$\sli(B(\delta^k_r,G)) \cdot ( k^{\sli(B(\delta^k_r,G))+1}
 \mathsf{Q_{nv}} +
 2k \cdot \mathsf{U_{fv}} + \mathsf{Q_{fv}})$, where
 $\mathsf{Q_{nv}}$ is the query time
@@ -166,6 +166,20 @@ to a query operation on $\farVertexDS{r,n}$ data structure.
 
 \end{proof}
 
+The first step to use the above theorem is to bound the ladder index
+$\sli(B(\delta_r^k,G))$ for specific classes of graphs.
+After~\cite{FabianskiPST19} we get the following result.
+
+\begin{theorem}[Theorem 11 and Lemma 5 in ~\cite{FabianskiPST19}]
+For any $r,k \in \N$ and a nowhere dense class $\mathcal{C}$ of graphs
+it holds that
+$\sli(B(\delta_r^k,G)) \in k^{\Oh_{\mathcal{C},r}(1)}$ for any
+$G \in \mathcal{C}$.
+\end{theorem}
+
+In Section~\ref{sec:distone} we develop the
+following data structures for degenerate graphs.
+
 \begin{theorem}\label{thm:distone-near}
 Assume $n\ge 2$ and $d\ge 1$.
 There exists
@@ -199,8 +213,23 @@ $\Oh\!\left(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$ time;
 The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ words of space.
 \end{theorem}
 
+By \cite{grohe_et_al:LIPIcs.FSTTCS.2013.21} bounded expansion graphs
+are both nowhere dense and have bounded degeneracy. As a corollary, we
+obtain the following result.
+
+
 \begin{corollary}
-There exists a fully dynamic algorithm for $1$-dominating set TODO: details.
+Let $\mathcal{C}$ be a bounded expansion class of graphs.
+There exists a fully dynamic $\dominatingSetDS{n}$ data structure,
+that maintains a graph $G \in \mathcal{C}$ by supporting the following
+operations:
+\begin{itemize}
+\item $\init{G}$: initializas the data structure in time
+\item $\add{uv}$ and $\remove{uv}$:
+\item $\ds{k}$:
+\end{itemize}
+
+TODO: details.
 \end{corollary}
 
 \azinline{i need section 5 to write the conclusions}
