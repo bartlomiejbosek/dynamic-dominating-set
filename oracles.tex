@@ -1,3 +1,62 @@
+\newcommand{\Labs}{\Lambda}
+\newcommand{\lab}{\lambda}
+\newcommand{\length}{\mathsf{len}}
+%\newcommand{\wei}{\mathbb{w}}
+
+\newcommand{\Mm}{\mathcal{M}}
+
 \section{Implementation of oracles in classes of bounded expansion}\label{sec:implementation}
 
 Here we implement the oracles for an arbitrary distance $d$ in classes of bounded expansion.
+
+\subsection{Faithful augmentations}
+
+Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$.
+
+\begin{definition}
+	Let $\Lambda$ be a finite set of labels and $d\in \N$.
+	A \emph{$(\Lambda,d)$-decorated oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [d]$. The subscript can be omitted if clear from the context.
+	
+	For an undirected graph $G$, we say that a $(\Lambda,d)$-decorated oriented graph $D$ is a \emph{faithful $(\Lambda,d)$-augmentation} of $G$ if the following conditions are satisfied:
+	\begin{itemize}
+		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
+		\item For every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab$. (Note that this in particular means that the maximum outdegree in $D$ is at most $|\Lambda|$.)
+		\item For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length(u,v)$.
+		\item For every path $(u_0,u_1,\ldots,u_{d'})$ in $G$ of length $d'\leq d$, there exist indices 
+		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=d',\]
+		for some $s,t\in \N$, such that 
+		\begin{itemize}
+			\item for every $i\in [s]$, the edge $(u_{\alpha_{i-1}},u_{\alpha_i})$ is present in $D$ and $\length(u_{\alpha_{i-1}},u_{\alpha_i})\leq \alpha_i-\alpha_{i-1}$; and 
+			\item for every $j\in [t]$, the edge $(u_{\beta_{j-1}},u_{\beta_j})$ is present in $D$ and $\length(u_{\beta_{j-1}},u_{\beta_j})\leq \beta_{j-1}-\beta_{j}$. 
+		\end{itemize}
+		The subgraph of $D$ consisting of the edges  $(u_{\alpha_{i-1}},u_{\alpha_i})$, for $i\in [s]$, and  $(u_{\beta_{j-1}},u_{\beta_j})$, for $j\in [t]$, will be called a \emph{shortcut} of $P$. 
+	\end{itemize}
+\end{definition}
+
+Homomorphisms of decorated oriented graph are defined naturally, as for general relational structures.
+
+We now show that in any class $\Cc$ of bounded expansion, faithful augmentations on any fixed depth can be maintained in polylogarithmic amortized update time. The proof is a (careful) repetition of the arguments from \cite{DvorakT13}.
+
+\begin{lemma}
+	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$. Then there exists a finite set of labels $\Lambda$ such that every graph $G\in \Cc$ has a faithful $(\Lambda,d)$-augmentation $D$. 
+	
+	Moreover, there is a dynamic data structure that for a fully dynamic $n$-vertex graph $G\in \Cc$, maintains its faithful $(\Lambda,d)$-orientation $D$ with amortized update time $\log^{\Oh_{\Cc,d}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n)$ and occupies $\Oh_{\Cc,d}(n)$ space at all times. 
+\end{lemma}
+\begin{proof}
+	\wninline{Todo}
+\end{proof}
+
+The next lemma is the combinatorial core of our method for the implementation of the $\farVertexDS{\cdot}$ oracle. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
+
+\begin{lemma}
+	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function of the vertices of $G$, $v$ be a vertex of $G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
+	\begin{itemize}
+		\item $|\Mm|\leq \Oh_{\Cc,d,\Lambda}(1)$;
+		\item every element of $\Mm$ is a triple $(H,f,\sigma)$, where $H$ is a $(\Lambda,d)$-decorated oriented graph with $\Oh_{\Cc,d,\Lambda}(1)$ vertices, $f\colon V(D)\times V(G)\to \Z$ is a weight function, and $\sigma\in \{-1,+1\}$; and
+		\item we have
+		\[\sum_{\substack{u\in V(G)\\ \dist_G(u,v)>d}} \wei(u) = \sum_{u\in V(G)} \wei(u) + \sum_{(H,f,\sigma)\in \Mm} \sigma\cdot \val_f(\Hom(H,D)).\]
+	\end{itemize}
+\end{lemma}
+\begin{proof}
+	\mpinline{Todo. The statement will need to be adjusted to export the shape of functions $f$ in $\Mm$.}
+\end{proof}
