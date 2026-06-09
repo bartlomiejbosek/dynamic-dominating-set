@@ -15,12 +15,11 @@ Recall that an \emph{oriented graph} is a loopless directed graph where for ever
 
 \begin{definition}
 	Let $\Lambda$ be a finite set of labels and $d\in \N$.
-	A \emph{$(\Lambda,d)$-decorated oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [d]$. The subscript can be omitted if clear from the context.
+	A \emph{$(\Lambda,d)$-oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [d]$ satisfying the following: for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. (Note that this in particular means that the maximum outdegree in $D$ is at most $|\Lambda|$.) The subscript can be omitted if $D$ is clear from the context.
 	
-	For an undirected graph $G$, we say that a $(\Lambda,d)$-decorated oriented graph $D$ is a \emph{faithful $(\Lambda,d)$-augmentation} of $G$ if the following conditions are satisfied:
+	For an undirected graph $G$, we say that a $(\Lambda,d)$-oriented graph $D$ is a \emph{faithful $(\Lambda,d)$-augmentation} of $G$ if the following conditions are satisfied:
 	\begin{itemize}
 		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
-		\item For every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab$. (Note that this in particular means that the maximum outdegree in $D$ is at most $|\Lambda|$.)
 		\item For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length(u,v)$.
 		\item For every path $(u_0,u_1,\ldots,u_{d'})$ in $G$ of length $d'\leq d$, there exist indices 
 		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=d',\]
@@ -46,17 +45,54 @@ We now show that in any class $\Cc$ of bounded expansion, faithful augmentations
 	\wninline{Todo}
 \end{proof}
 
+\michalin{The following definition should be moved to \cref{sec:dvorak}}
+
+\begin{definition}
+	A \emph{rooted graph} is a graph $G$ together with a tuple $\tup u$ of vertices of $G$ (not necessarily distinct), called the \emph{roots}; we denote it by $\rt{G}{\tup u}$. Similarly, we may speak about rooted relational structures. The notions of homomorphisms, subgraphs, and induced subgraphs are naturally extended to rooted graphs or rooted induced subgraphs, by requiring that the source graph and the target graph have the same number of roots and that the $i$th root of the source graph is mapped to the $i$th root of the target graph, for every relevant $i$. In particular, if $\rt{H}{\tup x}$ and $\rt{G}{\tup u}$ are rooted graphs with $|\tup x|=|\tup u|$, then by $\Hom(\rt{H}{\tup x},\rt{G}{\tup u})$ we denote the set of all homomorphisms from $\rt{H}{\tup x}$ to $\rt{G}{\tup u}$; and similarly for subgraphs and induced subgraphs.
+\end{definition}
+
 The next lemma is the combinatorial core of our method for the implementation of the $\farVertexDS{\cdot}$ oracle. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
 
 \begin{lemma}
-	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function of the vertices of $G$, $v$ be a vertex of $G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
+	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function of the vertices of $G$, $u$ be a vertex of $G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
 	\begin{itemize}
-		\item $|\Mm|\leq \Oh_{\Cc,d,\Lambda}(1)$;
-		\item every element of $\Mm$ is a triple $(H,f,\sigma)$, where $H$ is a $(\Lambda,d)$-decorated oriented graph with $\Oh_{\Cc,d,\Lambda}(1)$ vertices, $f\colon V(D)\times V(G)\to \Z$ is a weight function, and $\sigma\in \{-1,+1\}$; and
+		\item every element of $\Mm$ is a pair $(s, \rt{H}{x,y})$, where $s\in \{-1,+1\}$ and $\rt{H}{x,y}$ is a $(\Lambda,d)$-oriented graph with $\Oh_{\Cc,d,\Lambda}(1)$ vertices and two roots $x,y$; and
 		\item we have
-		\[\sum_{\substack{u\in V(G)\\ \dist_G(u,v)>d}} \wei(u) = \sum_{u\in V(G)} \wei(u) + \sum_{(H,f,\sigma)\in \Mm} \sigma\cdot \val_f(\Hom(H,D)).\]
+		\[\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>d}} \wei(v) = \sum_{v\in V(G)} \wei(v) + \sum_{(s,\rt{H}{x,y})\in \Mm}\ \sum_{v\in V(G)} s\cdot \wei(v)\cdot |\Sub(\rt{H}{x,y},\rt{D}{u,v})|.\]
 	\end{itemize}
 \end{lemma}
 \begin{proof}
-	\mpinline{Todo. The statement will need to be adjusted to export the shape of functions $f$ in $\Mm$.}
+	Let a \emph{pattern} be a pair of finite sequences $\sigma,\tau$, each with entries in $\Lambda\times [d]$, such that the total sum of the second coordinates of the entries of $\sigma$ and $\tau$ is at most $d$. Note that this in particular means that $|\sigma|+|\tau|\leq d$. Let $\Pi$ be the set of all possible patterns; note that $|\Pi|\leq \Oh_{\Lambda,d}(1)$.
+	
+	Given a rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$ and a pattern $\pi=(\sigma,\tau)\in \Pi$, we say that $\pi$ is \emph{realized} in $\rt{D}{u,v}$ if in $H$ there exists oriented walks $P_\sigma=(a_0,a_1,\ldots,a_{|\sigma|})$ and $P_\tau=(b_0,b_1,\ldots,b_{|\tau|})$ such that
+	\begin{itemize}
+		\item for each $i\in [|\sigma|]$, the pair $(\lab_D((a_{i-1},a_i)),\length_D((a_{i-1},a_i)))$ is equal to the $i$th entry of $\sigma$;
+		\item for each $j\in [|\sigma|]$, the pair $(\lab_D((b_{j-1},b_j)),\length_D((b_{j-1},b_j)))$ is equal to the $j$th entry of $\tau$; and
+		\item $a_0=x$, $b_0=y$, and $a_{|\sigma|}=b_{|\tau|}$. %, and except for sharing $a_{|\sigma|}=b_{|\tau|}$ the paths $P_\sigma,P_\tau$ are vertex-disjoint.
+	\end{itemize}
+	The subgraph of $\rt{D}{u,v}$ consisting of the union of the walks $P_\sigma$ and $P_\tau$ will be called the \emph{realization} of $\pi$ in $\rt{D}{u,v}$; we consider it, again, to be rooted at $u$ and $v$. Note that since the edge outgoing from any vertex of $D$ have pairwise different labels, the realization of $\pi$ in $\rt{D}{u,v}$, if existent, is unique.
+	
+	Next,
+	call a rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$ \emph{unambigious} if every vertex of $H$ is reachable from $x$ or from $y$ in $H$. We note the following.
+	
+	\begin{claim}
+		Suppose $\rt{H}{x,y}$ and $\rt{G}{u,v}$ are rooted $(\Lambda,d)$-oriented graphs such that $\rt{H}{x,y}$ is unambigious. Then $|\Hom(\rt{H}{x,y},\rt{G}{u,v})|\in \{0,1\}$.
+	\end{claim}
+	\begin{claimproof}
+		Consider any $\varphi\in \Sub(\rt{H}{x,y},\rt{G}{u,v})$. Observe that for any edge $(s,t)\in E(H)$, if $\varphi(s)=w$, then $\varphi(t)$ must be the unique out-neighbor of $s$ in $D$ such that the edge $(\varphi(s),\varphi(t))$ has label $\lab_H((s,t))$, if existent. Since we require that $\varphi(x)=u$ and $\varphi(y)=v$, the unambiguity of $\rt{H}{x,y}$ implies that all the images of all the vertices of $H$ under $\varphi$ are determined, or no such $\varphi$ exists.
+	\end{claimproof}
+	 
+	\begin{claim}
+		For every set of patterns $\Gamma\subseteq \Pi$, one of the following two conditions holds:
+		\begin{itemize}
+			\item There is no rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$ in which all the patterns of $\Gamma$ are realized.
+			\item There exists an unambigious rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$ on at most $2+(d-1)|\Gamma|$ vertices such that for any rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$, we have
+			\[\textrm{all the patterns of }\Gamma\textrm{ are realized in } \rt{D}{u,v}\qquad \textrm{if and only if}\qquad |\Hom(\rt{H}{x,y},\rt{D}{u,v})|=1.\]
+		\end{itemize}
+	\end{claim}
+	\begin{claimproof}
+		todo
+	\end{claimproof}
+	
+	\mpinline{Todo}
 \end{proof}
