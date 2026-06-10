@@ -15,13 +15,16 @@ Recall that an \emph{oriented graph} is a loopless directed graph where for ever
 
 \begin{definition}
 	Let $\Lambda$ be a finite set of labels and $d\in \N$.
-	A \emph{$(\Lambda,d)$-oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [d]$ satisfying the following: for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. (Note that this in particular means that the maximum outdegree in $D$ is at most $|\Lambda|$.) The subscript can be omitted if $D$ is clear from the context.
+	A \emph{$(\Lambda,d)$-oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [d]$. The subscript can be omitted if $D$ is clear from the context. 
+	
+	We say that a $(\Lambda,d)$-oriented graph $D$ is \emph{unambigious} if for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. Note that this in particular implies that the maximum outdegree in $D$ is at most $|\Lambda|$.
 	
 	For an undirected graph $G$, we say that a $(\Lambda,d)$-oriented graph $D$ is a \emph{faithful $(\Lambda,d)$-augmentation} of $G$ if the following conditions are satisfied:
-	\begin{itemize}
+	\begin{enumerate}[label={(A\arabic*)}]
 		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
-		\item For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length(u,v)$.
-		\item For every path $(u_0,u_1,\ldots,u_{d'})$ in $G$ of length $d'\leq d$, there exist indices 
+		\item $D$ is unambigious.
+		\item\label{c:short} For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length(u,v)$.
+		\item\label{c:center} For every path $(u_0,u_1,\ldots,u_{d'})$ in $G$ of length $d'\leq d$, there exist indices 
 		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=d',\]
 		for some $s,t\in \N$, such that 
 		\begin{itemize}
@@ -29,10 +32,10 @@ Recall that an \emph{oriented graph} is a loopless directed graph where for ever
 			\item for every $j\in [t]$, the edge $(u_{\beta_{j-1}},u_{\beta_j})$ is present in $D$ and $\length(u_{\beta_{j-1}},u_{\beta_j})\leq \beta_{j-1}-\beta_{j}$. 
 		\end{itemize}
 		The subgraph of $D$ consisting of the edges  $(u_{\alpha_{i-1}},u_{\alpha_i})$, for $i\in [s]$, and  $(u_{\beta_{j-1}},u_{\beta_j})$, for $j\in [t]$, will be called a \emph{shortcut} of $P$. 
-	\end{itemize}
+	\end{enumerate}
 \end{definition}
 
-Homomorphisms of decorated oriented graph are defined naturally, as for general relational structures.
+Homomorphisms of $(\Lambda,d)$-oriented graphs are defined naturally, as for general relational structures: for $\varphi$ to be a homomorphism we require that for every edge $(u,v)$ of the source graph, there is an edge $(\varphi(u),\varphi(v))$ of the target graph with exactly the same label and length.
 
 We now show that in any class $\Cc$ of bounded expansion, faithful augmentations on any fixed depth can be maintained in polylogarithmic amortized update time. The proof is a (careful) repetition of the arguments from \cite{DvorakT13}.
 
@@ -54,45 +57,74 @@ We now show that in any class $\Cc$ of bounded expansion, faithful augmentations
 The next lemma is the combinatorial core of our method for the implementation of the $\farVertexDS{\cdot}$ oracle. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
 
 \begin{lemma}
-	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function of the vertices of $G$, $u$ be a vertex of $G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
+	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function on the vertices of $G$, $u$ be a vertex of~$G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
 	\begin{itemize}
-		\item every element of $\Mm$ is a pair $(s, \rt{H}{x,y})$, where $s\in \{-1,+1\}$ and $\rt{H}{x,y}$ is a $(\Lambda,d)$-oriented graph with $\Oh_{\Cc,d,\Lambda}(1)$ vertices and two roots $x,y$; and
+		\item every element of $\Mm$ is a pair $(s, \rt{H}{x,y})$, where $s\in \{-1,+1\}$ and $\rt{H}{x,y}$ is a $(\Lambda,d)$-oriented graph with $\Oh_{\Lambda,d}(1)$ vertices and two roots $x,y$; and
 		\item we have
-		\[\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>d}} \wei(v) = \sum_{v\in V(G)} \wei(v) + \sum_{(s,\rt{H}{x,y})\in \Mm}\ \sum_{v\in V(G)} s\cdot \wei(v)\cdot |\Sub(\rt{H}{x,y},\rt{D}{u,v})|.\]
+		\[\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>d}} \wei(v) =\sum_{(s,\rt{H}{x,y})\in \Mm}\ s\cdot \sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|.\]
 	\end{itemize}
 \end{lemma}
 \begin{proof}
-	Let a \emph{pattern} be a pair of finite sequences $\sigma,\tau$, each with entries in $\Lambda\times [d]$, such that the total sum of the second coordinates of the entries of $\sigma$ and $\tau$ is at most $d$. Note that this in particular means that $|\sigma|+|\tau|\leq d$. Let $\Pi$ be the set of all possible patterns; note that $|\Pi|\leq \Oh_{\Lambda,d}(1)$.
+	Let a \emph{pattern} be a pair of finite sequences $\sigma,\tau$, each with entries in $\Lambda\times [d]$ such that the total sum of the second coordinates of the entries of $\sigma$ and $\tau$ is at most $d$. Note that this in particular means that $|\sigma|+|\tau|\leq d$. Let $\Pi$ be the set of all possible patterns; note that $|\Pi|\leq \Oh_{\Lambda,d}(1)$.
 	
-	Given a rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$ and a pattern $\pi=(\sigma,\tau)\in \Pi$, we say that $\pi$ is \emph{realized} in $\rt{D}{u,v}$ if in $H$ there exists oriented walks $P_\sigma=(a_0,a_1,\ldots,a_{|\sigma|})$ and $P_\tau=(b_0,b_1,\ldots,b_{|\tau|})$ such that
+	For a pattern $\pi=(\sigma,\tau)\in \Pi$ and a vertex $v$ of $G$, we say that $\pi$ is \emph{realized} in $\rt{D}{u,v}$ if in $D$ there exists oriented walks $P_\sigma=(a_0,a_1,\ldots,a_{|\sigma|})$ and $P_\tau=(b_0,b_1,\ldots,b_{|\tau|})$ such that
 	\begin{itemize}
 		\item for each $i\in [|\sigma|]$, the pair $(\lab_D((a_{i-1},a_i)),\length_D((a_{i-1},a_i)))$ is equal to the $i$th entry of $\sigma$;
 		\item for each $j\in [|\sigma|]$, the pair $(\lab_D((b_{j-1},b_j)),\length_D((b_{j-1},b_j)))$ is equal to the $j$th entry of $\tau$; and
-		\item $a_0=x$, $b_0=y$, and $a_{|\sigma|}=b_{|\tau|}$. %, and except for sharing $a_{|\sigma|}=b_{|\tau|}$ the paths $P_\sigma,P_\tau$ are vertex-disjoint.
+		\item $a_0=u$, $b_0=v$, and $a_{|\sigma|}=b_{|\tau|}$. %, and except for sharing $a_{|\sigma|}=b_{|\tau|}$ the paths $P_\sigma,P_\tau$ are vertex-disjoint.
 	\end{itemize}
-	The subgraph of $\rt{D}{u,v}$ consisting of the union of the walks $P_\sigma$ and $P_\tau$ will be called the \emph{realization} of $\pi$ in $\rt{D}{u,v}$; we consider it, again, to be rooted at $u$ and $v$. Note that since the edge outgoing from any vertex of $D$ have pairwise different labels, the realization of $\pi$ in $\rt{D}{u,v}$, if existent, is unique.
+	The subgraph of $\rt{D}{u,v}$ consisting of the union of the walks $P_\sigma$ and $P_\tau$ will be called the \emph{realization} of $\pi$ in $\rt{D}{u,v}$. Note that since $D$ is unambigious, the realization of $\pi$ in $\rt{D}{u,v}$, if existent, is unique.
+	
+	We note the following.
+	
+	\begin{claim}\label{cl:dist-pattern}
+		For every vertex $v$ of $G$, we have the following:
+		\[\dist_G(u,v)\leq d \qquad\textrm{if and only if}\qquad \textrm{there exists }\pi\in \Pi\textrm{ that is realized in }\rt{D}{u,v}.\]
+	\end{claim}
+	\begin{claimproof}
+		Suppose first that $\dist_G(u,v)\leq d$ and let $Q$ be a path of length at most $d$. Since $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, by \ref{c:center} there is a shortcut of $Q$, and this shortcut witnesses that some pattern $\pi\in \Pi$ is realized in $\rt{D}{u,v}$.
+		
+		Suppose next that some pattern $\pi\in \Pi$ is realized in $\rt{D}{u,v}$, hence it has some realization. Since the total sum of lengths of the edges in this realization is at most $d$, we can repeatedly use \ref{c:short} with triangle inequality to infer that $\dist_G(u,v)\leq d$.
+	\end{claimproof}
 	
 	Next,
-	call a rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$ \emph{unambigious} if every vertex of $H$ is reachable from $x$ or from $y$ in $H$. We note the following.
+	call a rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$ \emph{anchored} if every vertex of $H$ is reachable from $x$ or $y$ in $H$. Consider any vertex $v$ of $G$. We note the following.
 	
-	\begin{claim}
-		Suppose $\rt{H}{x,y}$ and $\rt{G}{u,v}$ are rooted $(\Lambda,d)$-oriented graphs such that $\rt{H}{x,y}$ is unambigious. Then $|\Hom(\rt{H}{x,y},\rt{G}{u,v})|\in \{0,1\}$.
+	\begin{claim}\label{cl:unambigious}
+		For any anchored $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$, we have \[|\Hom(\rt{H}{x,y},\rt{D}{u,v})|\in \{0,1\}.\]
 	\end{claim}
 	\begin{claimproof}
-		Consider any $\varphi\in \Sub(\rt{H}{x,y},\rt{G}{u,v})$. Observe that for any edge $(s,t)\in E(H)$, if $\varphi(s)=w$, then $\varphi(t)$ must be the unique out-neighbor of $s$ in $D$ such that the edge $(\varphi(s),\varphi(t))$ has label $\lab_H((s,t))$, if existent. Since we require that $\varphi(x)=u$ and $\varphi(y)=v$, the unambiguity of $\rt{H}{x,y}$ implies that all the images of all the vertices of $H$ under $\varphi$ are determined, or no such $\varphi$ exists.
+		Consider any $\varphi\in \Sub(\rt{H}{x,y},\rt{G}{u,v})$. Observe that for any edge $(s,t)\in E(H)$, if $\varphi(s)=w$, then $\varphi(t)$ must be an out-neighbor of $w$ in $D$ such that the edge $(w,\varphi(t))$ has label $\lab_H((s,t))$. By the unambiguity of $D$, such an outneighbor, if existent, is unique. Since we require that $\varphi(x)=u$ and $\varphi(y)=v$, the assumption that $\rt{H}{x,y}$ is anchored implies that all the images of all the vertices of $H$ under $\varphi$ are determined, or no such $\varphi$ exists.
 	\end{claimproof}
 	 
-	\begin{claim}
-		For every set of patterns $\Gamma\subseteq \Pi$, one of the following two conditions holds:
-		\begin{itemize}
-			\item There is no rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$ in which all the patterns of $\Gamma$ are realized.
-			\item There exists an unambigious rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$ on at most $2+(d-1)|\Gamma|$ vertices such that for any rooted $(\Lambda,d)$-oriented graph $\rt{D}{u,v}$, we have
-			\[\textrm{all the patterns of }\Gamma\textrm{ are realized in } \rt{D}{u,v}\qquad \textrm{if and only if}\qquad |\Hom(\rt{H}{x,y},\rt{D}{u,v})|=1.\]
-		\end{itemize}
+	\begin{claim}\label{cl:testing-subset}
+		For any set of patterns $\Gamma\subseteq \Pi$ there exists an anchored $(\Lambda,d)$-oriented graph $\rt{H_\Gamma}{x,y}$ on at most $2+(d-1)|\Gamma|$ vertices such that we have:
+			\[\textrm{all the patterns of }\Gamma\textrm{ are realized in } \rt{D}{u,v}\qquad \textrm{if and only if}\qquad \Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})\neq \emptyset.\]
 	\end{claim}
 	\begin{claimproof}
-		todo
+		For every pattern $\pi=(\sigma,\tau)\in \Gamma$, build a $(\Lambda,d)$-oriented graph $\rt{H_\pi}{x,y}$ as follows:
+		\begin{itemize} 
+			\item construct an oriented path $P_\sigma$ of length $|\sigma|$ that starts at $x$ and whose consecutive edges have lengths and labels equal to the consecutive terms of $\sigma$;
+			\item construct an oriented path $P_\tau$ analogously for $\tau$, where the start vertex of $P_\tau$ is $y$; and
+			\item identify the end vertex of $P_\sigma$ with the end vertex of $P_\tau$.
+		\end{itemize}
+		Note that $\rt{H_\pi}{x,y}$ is anchored and has at most $d-1$ vertices apart from $x$ and $y$. 
+		
+		Now, $\rt{H_\Gamma}{x,y}$ can be obtained by taking the disjoint union of graphs $\rt{H_\pi}{x,y}$ for all $\pi\in \Gamma$ and identifying all their vertices $x$ into a single vertex $x$, and similarly for $y$. It is straightforward to see that $\rt{H_\Gamma}{x,y}$ constructed in this way has the desired properties.
 	\end{claimproof}
 	
-	\mpinline{Todo}
+	For $\Gamma\subseteq \Pi$, let $V_\Gamma$ be the set of those vertices $v$ of $G$ for which every pattern of $\Gamma$ is realized in $\rt{D}{u,v}$. Also, let $V_\mathsf{far}$ be the set of vertices $v\in V(G)$ satisfying $\dist_G(u,v)>d$. By \cref{cl:dist-pattern}, $V_\mathsf{far}$ can be equivalently defined the set of those vertices $v$ for which none of the patterns of $\Pi$ is realized in $\rt{D}{u,v}$. Therefore, by the Inclusion--Exclusion Principle,
+	\begin{equation}\label{eq:bobr}
+		\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>d}} \wei(v)=\sum_{v\in V_\mathsf{far}} \wei(v) = \sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\sum_{v\in V_\Gamma} \wei(v).
+	\end{equation}
+	Next, by \cref{cl:unambigious} and \cref{cl:testing-subset}, for every $\Gamma\subseteq \Pi$ and $v\in V(G)$ we have
+	\begin{equation}\label{eq:wydra}
+		|\Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})|=\begin{cases}1 & \textrm{if }v\in V_\Gamma,\\ 0 & \textrm{otherwise.}\end{cases}
+	\end{equation}
+	By combining \eqref{eq:bobr} and \eqref{eq:wydra} we conclude that
+	\begin{equation*}
+		\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>d}} \wei(v)= \sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})|.
+	\end{equation*}	
+	Hence, we may take
+	\[\Mm\coloneqq \left\{\,((-1)^{|\Gamma|},\rt{H_\Gamma}{x,y})\colon \Gamma\subseteq \Pi\,\right\}.\qedhere\]
 \end{proof}
