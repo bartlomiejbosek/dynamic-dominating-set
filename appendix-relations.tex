@@ -9,7 +9,7 @@ Before proceeding, we need a definition of a \textit{Gaifman graph} of a relatio
 
 We are going to prove the following combined analog of \ref{lem:weighted-dvorak} and \ref{thm:dvorak-tuma-examples} to relational structures:
 
-\begin{theorem}
+\begin{theorem}\label{thm:homcounts-relational}
 	Let $H$ and $G$ be two relational structures with $U_H$ and $U_G$ as their universes equipped with relations $R_1, \ldots, R_r$, where the arity of $R_i$ is $c_i$. $H$ is a fixed relational structure, i.e. $R_i(H)$ stays fixed, while $G$ is a dynamic relational structure, i.e. it receives a series of additions and removals to any of $R_1(G), \ldots, R_r(G)$. Let $\F \in \{\Hom, \Sub, \ISub\}$. Let $\eps \in (0, 1)$ be a real number. Then, there exist deterministic data structure $\mathsf{WeightedMappings}_{\F, H}(G)$, which is able to determine $|\F(H, G)|$ after each update, and a randomized data structure $\mathsf{MappingExample}_{\F, H, \eps}(G)$, which is able to report any $\phi \in \F(H, G)$ if it is nonempty. Let $\G$ be a class of graphs such that $\mathsf{Gaif}(G) \in \G$ at any point in time.
 	
 	If $\G$ is of bounded expansion, then the data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G|)$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G|)$ space complexity, while $\mathsf{MappingExample}_{\F, H \eps}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ space complexity. 

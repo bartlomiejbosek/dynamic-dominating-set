@@ -39,13 +39,14 @@ Homomorphisms of $(\Lambda,d)$-oriented graphs are defined naturally, as for gen
 
 We now show that in any class $\Cc$ of bounded expansion, faithful augmentations on any fixed depth can be maintained in polylogarithmic amortized update time. The proof is a (careful) repetition of the arguments from \cite{DvorakT13}.
 
-\begin{lemma}
+\begin{lemma}\label{lem:dyn-augmentation}
 	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$. Then there exists a finite set of labels $\Lambda$ such that every graph $G\in \Cc$ has a faithful $(\Lambda,d)$-augmentation $D$. 
 	
 	Moreover, there is a dynamic data structure that for a fully dynamic $n$-vertex graph $G\in \Cc$, maintains its faithful $(\Lambda,d)$-orientation $D$ with amortized update time $\log^{\Oh_{\Cc,d}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n)$ and occupies $\Oh_{\Cc,d}(n)$ space at all times. 
 \end{lemma}
 \begin{proof}
 	\wninline{Todo}
+	\michalin{The statement should also export that every update to $G$ triggers an amortized polylog updates to $D$.}
 \end{proof}
 
 \michalin{The following definition should be moved to \cref{sec:dvorak}}
@@ -54,10 +55,21 @@ We now show that in any class $\Cc$ of bounded expansion, faithful augmentations
 	A \emph{rooted graph} is a graph $G$ together with a tuple $\tup u$ of vertices of $G$ (not necessarily distinct), called the \emph{roots}; we denote it by $\rt{G}{\tup u}$. Similarly, we may speak about rooted relational structures. The notions of homomorphisms, subgraphs, and induced subgraphs are naturally extended to rooted graphs or rooted induced subgraphs, by requiring that the source graph and the target graph have the same number of roots and that the $i$th root of the source graph is mapped to the $i$th root of the target graph, for every relevant $i$. In particular, if $\rt{H}{\tup x}$ and $\rt{G}{\tup u}$ are rooted graphs with $|\tup x|=|\tup u|$, then by $\Hom(\rt{H}{\tup x},\rt{G}{\tup u})$ we denote the set of all homomorphisms from $\rt{H}{\tup x}$ to $\rt{G}{\tup u}$; and similarly for subgraphs and induced subgraphs.
 \end{definition}
 
+The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
+
+\begin{lemma}\label{lem:dyn-rooted-homs}
+	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $d\in \N$, and a rooted $(\Lambda,d)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,d)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
+	\[\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|\]
+	with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,d}(1)} n$. The data structure can be initialized for an edgeless $D$ in time $\Oh_{\Cc,H,\Lambda,d}(n)$ and uses $\Oh_{\Cc,H,\Lambda,d}(n)$ space at all times.
+\end{lemma}
+\begin{proof}
+	\wninline{todo}
+\end{proof}
+
 The next lemma is the combinatorial core of our method for the implementation of the $\farVertexDS{\cdot}$ oracle. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
 
-\begin{lemma}
-	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function on the vertices of $G$, $u$ be a vertex of~$G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$ with the following properties:
+\begin{lemma}\label{lem:IE}
+	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function on the vertices of $G$, $u$ be a vertex of~$G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$, depending only on $\Lambda$ and $d$, with the following properties:
 	\begin{itemize}
 		\item every element of $\Mm$ is a pair $(s, \rt{H}{x,y})$, where $s\in \{-1,+1\}$ and $\rt{H}{x,y}$ is a $(\Lambda,d)$-oriented graph with $\Oh_{\Lambda,d}(1)$ vertices and two roots $x,y$; and
 		\item we have
@@ -127,4 +139,34 @@ The next lemma is the combinatorial core of our method for the implementation of
 	\end{equation*}	
 	Hence, we may take
 	\[\Mm\coloneqq \left\{\,((-1)^{|\Gamma|},\rt{H_\Gamma}{x,y})\colon \Gamma\subseteq \Pi\,\right\}.\qedhere\]
+\end{proof}
+
+By combining \cref{lem:dyn-augmentation,lem:dyn-rooted-homs,lem:IE}, we easily obtain the following.
+
+\begin{lemma}\label{lem:wei-sums-far}
+	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$, and let $u$ be a fixed vertex of $G$ (which does not change over time). Then there exists a data structure that maintains the value
+	\[\sum_{\substack{v\in V(G)\\ \dist_{G}(u,v)>d}} \wei(v)\]
+	with amortized update time $\log^{\Oh_{\Cc,d}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n)$ and uses $\Oh_{\Cc,d}(n)$ space at all times.
+\end{lemma}
+\begin{proof}
+	Let $\Lambda$ be the label set provided for $\Cc$ and $d$ by \cref{lem:dyn-augmentation}; note that $|\Lambda|\leq \Oh_{\Cc,d}(1)$. Further, let $\Mm$ be the set provided by \cref{lem:IE} for $\Lambda$ and $d$.
+	By \cref{lem:dyn-augmentation}, we may maintain a faithful $(\Lambda,d)$-augmentation $D$ of $G$ so that every update to $G$ triggers an amortized number of $\log^{\Oh_{\Cc,d}(1)} n$ updates to $D$. Therefore, by \cref{lem:dyn-rooted-homs}, for every $(s,\rt{H}{x,y})\in \Mm$ we may construct a data structure that maintains the value $\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|$ with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,d}(1)} n$ (per update in $D$). Since $|\Mm|\leq \Oh_{\Lambda,d}(1)\leq \Oh_{\Cc,d}(1)$ and each graph $\rt{H}{x,y}$ feature in $\Mm$ has $\Oh_{\Lambda,d}(1)\leq \Oh_{\Cc,d}(1)$ vertices, we conclude that updating all those data structures take amortized time $\log^{\Oh_{\Cc,d}(1)} n$ per update in $D$, so also amortized time $\log^{\Oh_{\Cc,d}(1)} n$ per update in $G$. Finally, the value $\sum_{\substack{v\in V(G)~\mid~ \dist_{G}(u,v)>d}} \wei(v)$ can be recomputed in time $\Oh_{\Cc,d}(1)$ upon every update using the formula provided by \cref{lem:IE}. The claimed bounds on the initialization time and the space usage follow directly from the bounds provided by \cref{lem:dyn-augmentation,lem:dyn-rooted-homs}.
+\end{proof}
+
+Now, the data structure $\farVertexDS{G,u}$ promised by \cref{thm:FarVertex} follows immediately by combining \cref{lem:wei-sums-far,lem:restore-by-sampling}.
+
+\begin{theorem}\label{thm:FarVertex-new}
+	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Let $u$ be a fixed vertex of $G$, which does not change over time. Then there exists a randomized data structure $\farVertexDS{G,u}$ that provides access to the following query in time~$\Oh(1)$:
+	\begin{itemize}
+		\item $\far{}$: return a vertex $v$ such that $\dist_G(u,v)>d$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
+	The amortized update time of the data structure is $\log^{\Oh_{\Cc,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n)$, and uses $\Oh_{\Cc,d}(n)$ space at all times.
+\end{theorem}
+\begin{proof}
+	For the purpose of applying \cref{lem:restore-by-sampling}, for a vertex $v$ of $G$ we define
+	\[f(G,v)\coloneqq \begin{cases} 1 &\textrm{if }\dist_G(u,v)>d,\\ 0 & \textrm{otherwise.}\end{cases}\]
+	The data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far}, while the data structure for $\mathsf{Verify}_f[G]$ is provided by TODO\michal{do this together with NearVertex}. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f}[G]$ provided by it meets all the requirements for $\farVertexDS{G,u}$.
 \end{proof}
