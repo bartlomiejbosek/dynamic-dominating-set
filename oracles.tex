@@ -9,7 +9,44 @@
 
 Here we implement the oracles for an arbitrary distance $d$ in classes of bounded expansion.
 
-\subsection{Faithful augmentations}
+\michalin{In the following I assume that we replaced all the $\tfrac{1}{\eps}$ terms in the probabilities with $\tfrac{1}{n}$.}
+
+\subsection{Detecting near vertices}
+
+We start with the implementation of the $\nearVertexDS{G,S}$ oracle, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
+
+\begin{theorem}\label{thm:NearVertex-new}
+	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Let $S$ be a fixed subset of vertices of $G$, which does not change over time. Then there exists a randomized data structure $\nearVertexDS{G,S}$ that provides access to the following query in time~$\Oh(1)$:
+	\begin{itemize}
+		\item $\near{}$: return a vertex $v$ such that $\dist_G(s,v)\leq d$ for every $s\in S$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
+	The amortized update time of the data structure is $\log^{\Oh_{\Cc,|S|,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,|S|,d}(n\log n)$, and uses $\Oh_{\Cc,|S|,d}(n\log n)$ space at all times.
+\end{theorem}
+\begin{proof}
+	Let $\tup s$ be a tuple enumerating all the vertices of $S$ in any fixed order. Consider a family of $\Xi$ of all the rooted graphs $\rt{H}{\tup s,x}$ that can be obtained as follows: 
+	\begin{itemize}
+		\item for every $s\in S$, attach to $s$ a path of some length between $0$ and $d$, and
+		\item fuse all the other endpoints of those paths into a single vertex; call it $x$.
+	\end{itemize}
+	Note that $|\Xi|=(d+1)^{|S|}\leq \Oh_{|S|,d}(1)$ and $|H|\leq 1+(d-1)|S|\leq \Oh_{|S|,d}(1)$ for all $\rt{H}{\tup s,x}\in \Xi$.
+	The following is clear.
+	
+	\begin{claim}\label{cl:distExample}
+		For any vertex $v$ of $G$, the following conditions are equivalent:
+		\begin{itemize}
+			\item $\dist_G(s,v)\leq d$ for all $s\in S$; and
+			\item there exists $\rt{H}{\tup s,x}\in \Xi$ such that $\Hom(\rt{H}{\tup s,x},\rt{G}{\tup s,v})\neq\emptyset$.
+		\end{itemize}
+	\end{claim}
+
+	Hence, for every rooted graph $\rt{H}{\tup s,x}\in \Xi$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup s}}(\rt{G}{\tup s})$; note that here, we remove $x$ from the roots. Upon query $\near{}$, we ask each of these data structures for an example homomorphism $\varphi_{\rt{H}{\tup s}}\in \Hom(\rt{H}{\tup s},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq d$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup s}}(x)$; so $v$ can be reported. And if no such homomorphism exists, for any $\rt{H}{\tup s,x}\in \Xi$, then by \cref{cl:distExample} we may safely conclude that there is no vertex $v\in V(G)$ with $\dist_G(s,v)\leq d$ for all $s\in S$.
+
+	Since $|\Xi|\leq \Oh_{|S|,d}(1)$ and $|H|\leq \Oh_{|S|,d}(1)$ for all $\rt{H}{\tup s,x}\in \Xi$, the promised bounds on the amortized update time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
+\end{proof}
+
+\subsection{Detecting far vertices}
 
 Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$.
 
@@ -163,10 +200,10 @@ Now, the data structure $\farVertexDS{G,u}$ promised by \cref{thm:FarVertex} fol
 		\item $\far{}$: return a vertex $v$ such that $\dist_G(u,v)>d$, or $\bot$ if no such vertex exists.
 	\end{itemize}
 	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
-	The amortized update time of the data structure is $\log^{\Oh_{\Cc,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n)$, and uses $\Oh_{\Cc,d}(n)$ space at all times.
+	The amortized update time of the data structure is $\log^{\Oh_{\Cc,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n\log n)$, and uses $\Oh_{\Cc,d}(n\log n)$ space at all times.
 \end{theorem}
 \begin{proof}
 	For the purpose of applying \cref{lem:restore-by-sampling}, for a vertex $v$ of $G$ we define
 	\[f(G,v)\coloneqq \begin{cases} 1 &\textrm{if }\dist_G(u,v)>d,\\ 0 & \textrm{otherwise.}\end{cases}\]
-	The data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far}, while the data structure for $\mathsf{Verify}_f[G]$ is provided by TODO\michal{do this together with NearVertex}. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f}[G]$ provided by it meets all the requirements for $\farVertexDS{G,u}$.
+	A suitable data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far}. The data structure for $\mathsf{Verify}_f[G]$ can be obtained by maintaining the data structures provided by TODO\michal{todo} for $\cal F=\Hom$ and $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,d$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f}[G]$ provided by it meets all the requirements for $\farVertexDS{G,u}$.
 \end{proof}
