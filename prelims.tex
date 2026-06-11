@@ -20,7 +20,11 @@ We use the standard notion of directed graphs, again disallowing loops and paral
 
 A directed graph is \textit{connected} if its underlying undirected graph is connected.
 
-A graph $G$ is \emph{$d$-degenerate} if every subgraph of $G$ contains a vertex of degree at most $d$. Note that if $G$ is $d$-degenerate, then it has an orientation with maximum outdegree at most $d$. Indeed, such an orientation can be obtained by iteratively removing from $G$ a vertex of the smallest degree (which is always at most~$d$) and orienting the edges incident to it away from it.
+A graph $G$ is \emph{$d$-degenerate} if every subgraph of $G$ contains a vertex of degree at most $d$. The \emph{degeneracy} of $G$ is the smallest $d$ for which $G$ is $d$-degenerate. Note that if $G$ is $d$-degenerate, then it has an orientation with maximum outdegree at most $d$. Indeed, such an orientation can be obtained by iteratively removing from $G$ a vertex of the smallest degree (which is always at most~$d$) and orienting the edges incident to it away from it.
+
+The \emph{arboricity} of a graph $G$ is the smallest $\alpha\in \N$ such that the edge of $G$ can be partitioned into $\alpha$ sets each of which forms a forest. It is well-known that if $d$ and $\alpha$ are the degeneracy and the arboricity of $G$, then we have
+\[\alpha\leq d\leq 2\alpha.\]
+In other words, degeneracy and arboricity of a graph are within a multiplicative factor of $2$, so they are essentially equivalent for our purposes. In this paper we choose to use degeneracy as a base parameter to state our results.
 
 %\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy. Będę też chciał mieć warunek, że zawsze inicjalizujemy pustym grafem, aby się nie bawić w czasy inicjalizacji w każdym statemencie}
 
@@ -101,11 +105,26 @@ Note that for $c=1$, these are just standard depth-$d$ models.
 
 For a class of graphs $\Cc$, by $\Minors^{c,d}(\Cc)$ we denote the class of all congestion-$c$ depth-$d$ minors of graphs from $\Cc$. We will use the following statement.
 
-\begin{theorem}[TODO]
+\begin{theorem}[TODO]\label{thm:cong-minors}
 	For every graph class $\Cc$ of bounded expansion and $c,d\in \N$, the class $\Minors^{c,d}(\Cc)$ also has bounded expansion.
 \end{theorem}
 
-\michalin{todo: fraternal augmentations lemma}
+We use \cref{thm:cong-minors} to argue a classic result from Sparsity about classic of bounded expansion admitting \emph{fraternal augmentations} of bounded maximum outdegree. Let $G$ be a graph and $\vec G$ be an orientation of $G$. The \emph{fraternal augmentation} of $\vec G$ is the undirected graph $G'$ obtained from $\vec G$ by
+\begin{itemize}
+	\item adding an undirected edge $uv$ for every pair of non-adjacent vertices $u,v$ such that there is a vertex $w$ with $(u,w),(v,w)\in E(\vec G)$; and
+	\item forgetting the orientation of all the edges of $\vec G$.
+\end{itemize}
+Note that thus, $G'$ is a supergraph of $G$, obtained by adding all the \emph{fraternal} edges $uv$ as above. The following lemma is the key observation about the behavior of fraternal augmentations on classes of bounded expansion.
+
+\begin{lemma}\label{lem:fraternal}
+	Let $\Cc$ be a graph class of bounded expansion and $d\in \N$. Define $\Fra(\Cc,d)$ to be the graph class constructed as follows: for every $G\in \Cc$ and orientation $\vec G$ of $G$ with maximum outdegree at most $d$, include in $\Fra(\Cc,d)$ the fraternal augmentation of $\vec G$. Then $\Fra(\Cc,d)$ also has bounded expansion.
+\end{lemma}
+\begin{proof}
+	We observe that if $G'$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
+	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(v,u)\in E(\vec G)\},\]
+	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
+\end{proof}
+
 
 %	 Let $G\in \Cc$ be such that $G'$ is obtained from $G$ by repeatedly adding pendants. 
 
@@ -125,9 +144,26 @@ For a class of graphs $\Cc$, by $\Minors^{c,d}(\Cc)$ we denote the class of all 
 
 \subsection{Computation}
 
-\paragraph*{Computation model.}
+\paragraph*{Computation model.} When working with a graph on $n$ vertices in the algorithmic context, we use the standard word RAM model with words of length $\Oh(\log n)$. In particular, space complexity of data structures is measured in the number of words occupied. We remark that all the numbers appearing in the computation, e.g. vertex weights or homomorphism counts, will be always bounded polynomially in $n$, and hence they fit within a constant number of words and arithmetic operations on them can be executed in constant time.
 
-\paragraph*{Dynamic graphs and data structures.}
+\paragraph*{Dynamic graphs and data structures.} Let us introduce some terminology to facilitate speaking about fully dynamic data structures for graphs that are updated over time.
+
+By a \emph{dynamic graph} we mean a graph $G$ whose vertex set stays fixed, but whose edge set is modified over time by updates of the following types:
+\begin{itemize}
+	\item \emph{insert} an edge $uv$, if not already present; and
+	\item \emph{remove} the edge $uv$, if present.
+\end{itemize}
+By a \emph{data structure} for a dynamic graph $G$ we mean a data structure that maintains $G$ and supports a superset of the following basic methods:
+\begin{itemize}
+	\item $\init{n}$: Initialize the data structure on an edgeless graph $G$ on $n$ vertices.
+	\item $\add{uv}$: Insert the edge $uv$.
+	\item $\remove{uv}$: Remove the edge $uv$.
+\end{itemize}
+These methods will be typically augmented by some further queries, specified in the description of every data structure. By the \emph{update time} of a data structure we mean the time complexity of methods $\add{uv}$ and $\remove{uv}$, and by the \emph{initialization time} we mean the time complexity of method $\init{n}$.
+
+In most of this work we will silently assume that every data structure for a dynamic graph $G$ maintains a dictionary of the edges of $G$, and hence we may efficiently (in logarithmic time) query whether two vertices of $G$ are adjacent, and get the corresponding edge. This is immaterial when the claimed complexity bounds are polylogarithmic with an unspecified degree of the polylogarithm. When we care about specific degrees of the polylogarithms, we explicitly describe the method of handling the edge set.
+
+Some of our data structures are randomized \emph{against an oblivious adversary}. By this we mean that the data structure is run on some stream of updates and queries and the answer to every query is correct with probability lower bounded by a specified value (typically, $1-\tfrac{1}{n}$). In particular, the stream is fixed upfront and the consecutive updates/queries \emph{cannot} be altered depending on the data structure's answers. We remark that while the answer to every query is correct with probability at least, say, $1-\tfrac{1}{n}$, the answers to the queries are \emph{not} independent random variables. In fact, in all the randomized data structures proposed in this work, the answers to the queries depend on some common random bits fixed upon the initialization of the data structure.
 
 
 \begin{theorem} \label{thm:maintaining-augmentation}
