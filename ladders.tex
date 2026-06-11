@@ -99,7 +99,7 @@ queries in a dynamically changing graph. For that, we introduce
 two dynamic data structures that are the building blocks for the above.
 
 \begin{definition}
-The $\nearVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
+The $\nearVertexDS{G}{k,d}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
 \begin{itemize}
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
  \item $\add{uv}$ - inserts an edge $uv$ to $G$
@@ -109,7 +109,7 @@ The $\nearVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowin
 \end{definition}
 
 \begin{definition}
-The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
+The $\farVertexDS{G}{k,d}$ data structure maintains a dynamic graph $G$ by allowing the following operations:
 \begin{itemize}
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
  \item $\add{uv}$ - inserts an edge $uv$ to $G$
@@ -121,21 +121,21 @@ The $\farVertexDS{r,n}$ data structure maintains a dynamic graph $G$ by allowing
 
 
 \begin{theorem}
-Using $\nearVertexDS{r,n}$ and $\farVertexDS{r,n}$ data
+Using $\nearVertexDS{G}{k,d}$ and $\farVertexDS{G}{k,d}$ data
 structures,
 one can implement Algorithm~\ref{alg:1} in time
 $\sli(B(\delta^k_r,G)) \cdot ( k^{\sli(B(\delta^k_r,G))+1}
 \mathsf{Q_{nv}} +
 2k \cdot \mathsf{U_{fv}} + \mathsf{Q_{fv}})$, where
 $\mathsf{Q_{nv}}$ is the query time
-of $\nearVertexDS{r,n}$ and $\mathsf{U_{fv}}$ and
+of $\nearVertexDS{G}{k,d}$ and $\mathsf{U_{fv}}$ and
 $\mathsf{Q_{fv}}$ is the update
 and the query time of
-$\farVertexDS{r,n}$ respectively.
+$\farVertexDS{G}{k,d}$ respectively.
 \end{theorem}
 \begin{proof}We show how to implement procedures $\candidate{W}$ and $\notDominated{S}$.
 \paragraph*{Candidate.}We set up and maintain a
-$\nearVertexDS{r,n}$ data structure on the
+$\nearVertexDS{G}{k,d}$ data structure on the
 input dynamic graph $G$. We implement query $\candidate{W}$
 as follows.
 We enumerate all
@@ -148,11 +148,11 @@ all vertices in $W_i$. If for some partition we can find near
 vertices for all $i \in [k]$, then the set
 $S=\{v_1,\ldots,v_k \}$ is a feasible candidate and we return
 it. Otherwise, we return $\bot$. Thus, the total
-number of queries issued to $\nearVertexDS{r,n}$ is
+number of queries issued to $\nearVertexDS{G}{k,d}$ is
 $k^{|W|+1}$.
 
 \paragraph*{Witness.} We set up and maintain a
-$\farVertexDS{r,n}$ data
+$\farVertexDS{G}{k,d}$ data
 structure on the input dynamic graph $G$ and some auxiliary
 vertex $q \notin V(G)$. Each time a query
 $\notDominated{S}$ is used by Algorithm~\ref{alg:1},
@@ -162,7 +162,7 @@ a valid witness that $S$ is not a feasible solution, or, in
 other words $\delta^k_r(S,v)$ does not hold.
 We return a vertex $v$ if it exists,
 or $\bot$ otherwise. This takes time proportional
-to a query operation on $\farVertexDS{r,n}$ data structure.
+to a query operation on $\farVertexDS{G}{k,d}$ data structure.
 
 \end{proof}
 
@@ -183,7 +183,7 @@ following data structures for degenerate graphs.
 \begin{theorem}\label{thm:distone-near}
 Assume $n\ge 2$ and $d\ge 1$.
 There exists
-$\nearVertexDS{1,n}$ data structure which
+$\nearVertexDS{G}{k,d}$ data structure which
 on a dynamic $d$-degenerate graph $G$ achieves the
 following running times:
 \begin{itemize}
@@ -197,7 +197,7 @@ The structure uses $\Oh(nd\cdot 2^{4d})$ words of space.
 
 \begin{theorem}\label{thm:distone-far}
 Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
-There exists a randomized data structure $\farVertexDS{1,n}$ that,
+There exists a randomized data structure $\farVertexDS{G}{k,d}$ that,
 against an oblivious adversary, maintains a dynamic $d$-degenerate
 graph $G$ achieving the following running times:
 \begin{itemize}
@@ -235,7 +235,7 @@ TODO: details.
 \azinline{i need section 5 to write the conclusions}
 
 \begin{theorem}\label{thm:NearVertex}
-There is a $\nearVertexDS{r,n}$ data structure that maintains a dynamic graph $G$ of bounded
+There is a $\nearVertexDS{G}{k,d}$ data structure that maintains a dynamic graph $G$ of bounded
 expansion, providing the following operations:
 \begin{itemize}
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices
@@ -247,7 +247,7 @@ expansion, providing the following operations:
 \begin{proof}Postponed to Section 5. \end{proof}
 
 \begin{theorem}\label{thm:FarVertex}
-There is a $\farVertexDS{r,n}$ data structure that maintains a dynamic graph $G$ of bounded
+There is a $\farVertexDS{G}{k,d}$ data structure that maintains a dynamic graph $G$ of bounded
 expansion, providing the following operations:
 \begin{itemize}
  \item $\init{G}$ - initializes with a graph $G$ on $n$ vertices

@@ -1,46 +1,134 @@
 \section{Preliminaries}\label{sec:prelims}
 
+We write $\N$ for the set of nonnegative integers.
 For a positive integer $k$, we denote $[k]\coloneqq \{1,\ldots,k\}$.
-We follow the convention that if $\tup x$ is a tuple of objects, then for $i\in [k]$ we denote the $i$th element of $\tup x$ by $x_i$.
+We follow the convention that if $\tup x$ is a tuple of objects, then the $i$th element of $\tup x$ is denoted by $x_i$.
 
-For a graph $G$, we introduce a notation that $|G| = |V(G)|$ and $||G|| = |E(G)|$. 
+\subsection{Graphs}
 
-We sometimes consider graphs with colored edges. In this case, $G$ is also equipped with a function $\mathrm{col} : V(G) \to C$, where $C$ is a set of admissible colors.
+\paragraph{Basics.} We use standard graph terminology and notation. All graphs considered in this paper are finite, undirected, and simple (without loops or parallel edges), unless explicitly stated.
 
-A directed graph is called \textit{connected} if and only if its underlying undirected graph is connected.
+For a graph $G$, by $V(G)$ and $E(G)$ we denote the vertex set and the edge set of $G$, respectively. We also write $|G| \coloneqq |V(G)|$ and $\|G\| \coloneqq |E(G)|$. For vertices $u,v$ of $G$, by $\dist_G(u,v)$ we denote the distance between $u$ and $v$, defined as the smallest possible length of a path in $G$ with endpoints $u$ and $v$. This notation is extended to subsets naturally, e.g. $\dist_G(v,S)=\min_{s\in S}\dist_G(v,s)$. The \emph{closed neighborhood} of a vertex $u$ in $G$ is the set $N_G[u]$ that consists of $u$ and all the neighbors of $u$. By $\avgdeg(G)$ we denote the average degree in $G$; note that it is equal to $\frac{2\|G\|}{|G|}$.
 
-\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy. Będę też chciał mieć warunek, że zawsze inicjalizujemy pustym grafem, aby się nie bawić w czasy inicjalizacji w każdym statemencie}
+A \emph{rooted graph} is a graph $G$ together with a tuple $\tup u$ of vertices of $G$ (not necessarily distinct), called the \emph{roots}. We denote it by $\rt{G}{\tup u}$. 
 
-\wninline{Definicja bnd expansion i nowhere-dense też się przyda. Chciałbym aby statementy o nowhere-dense używały $\delta$, a nie $\eps$, aby $\eps$ zostawić na prawdopodobieństwo błędu w randomizacji}
+%Similarly, we may speak about rooted relational structures. The notions of homomorphisms, subgraphs, and induced subgraphs are naturally extended to rooted graphs or rooted induced subgraphs, by requiring that the source graph and the target graph have the same number of roots and that the $i$th root of the source graph is mapped to the $i$th root of the target graph, for every relevant $i$. In particular, if $\rt{H}{\tup x}$ and $\rt{G}{\tup u}$ are rooted graphs with $|\tup x|=|\tup u|$, then by $\Hom(\rt{H}{\tup x},\rt{G}{\tup u})$ we denote the set of all homomorphisms from $\rt{H}{\tup x}$ to $\rt{G}{\tup u}$; and similarly for subgraphs and induced subgraphs.
+
+%We sometimes consider graphs with colored edges. In this case, $G$ is also equipped with a function $\mathrm{col} : V(G) \to C$, where $C$ is a set of admissible colors.\michal{Move to the place where we use it.}
+
+We use the standard notion of directed graphs, again disallowing loops and parallel edges (edges with same head and tail). An \emph{oriented graph} is a directed graph $D$ where any pair of vertices can be the endpoints of at most one edge; that is, for distinct vertices $u,v$ we disallow that the edges $(u,v)$ and $(v,u)$ are simultaneously present. For an undirected graph $G$, an \emph{orientation} of $G$ is an oriented graph obtained from $G$ by choosing an orientation of every edge of $G$.
+
+A directed graph is \textit{connected} if its underlying undirected graph is connected.
+
+A graph $G$ is \emph{$d$-degenerate} if every subgraph of $G$ contains a vertex of degree at most $d$. Note that if $G$ is $d$-degenerate, then it has an orientation with maximum outdegree at most $d$. Indeed, such an orientation can be obtained by iteratively removing from $G$ a vertex of the smallest degree (which is always at most~$d$) and orienting the edges incident to it away from it.
+
+%\wninline{Będę chciał mieć definicję co znaczy ``data structure $S(G)$ for a dynamic graph $G$'', aby nie pisać tego 20 razy. Będę też chciał mieć warunek, że zawsze inicjalizujemy pustym grafem, aby się nie bawić w czasy inicjalizacji w każdym statemencie}
+
+%\wninline{Definicja bnd expansion i nowhere-dense też się przyda. Chciałbym aby statementy o nowhere-dense używały $\delta$, a nie $\eps$, aby $\eps$ zostawić na prawdopodobieństwo błędu w randomizacji}
+
+%\begin{definition}
+%	Let $G$ be a graph and $v \in V(G), v' \not\in V(G)$. The operation of \textit{adding a pendant} $vv'$ produces a graph $G'$ such that $V(G') = V(G) \cup \{v'\}$ and $E(G') = E(G) \cup \{vv'\}$.
+%\end{definition}
+
+
+\paragraph*{Mappings between graphs.} For graphs $H,G$, a \emph{homomorphism} from $H$ to $G$ is a mapping $\varphi\colon V(H)\to V(G)$ such that for every pair of distinct vertices $u,v\in V(H)$, if $uv$ is an edge in $H$ then $\varphi(u)\varphi(v)$ is an edge in $G$. A \emph{subgraph isomorphism} is a homomorphism that is injective (i.e. $\varphi(u)\neq \varphi(v)$ for all distinct $u,v\in V(H)$), and an \emph{induced subgraph isomorphism} is a subgraph isomorphism where the implication stated above is in fact an equivalence: $uv$ is an edge in $H$ if and only if $\varphi(u)\varphi(v)$ is an edge in $G$. By $\Hom(H,G)$, $\Sub(H,G)$, and $\ISub(H,G)$ we denote the sets of all homomorphisms, subgraph isomorphisms, and induced subgraph isomorphisms from $H$ to $G$, respectively.
+
+The definitions of homomorphisms and (induced) subgraphs isomorphisms can be naturally extended to rooted graphs, by requiring that the source graph $\rt{H}{\tup u}$ and the target graph $\rt{G}{\tup v}$ have the same number of roots ($|\tup u|=|\tup v|$) and that the $i$th root of the source graph is mapped to the $i$th root of the target graph ($\varphi(u_i)=v_i$, for all $i\in [|\tup u|]$). In particular, if $\rt{H}{\tup u}$ and $\rt{G}{\tup v}$ are rooted graphs with $|\tup u|=|\tup v|$, then by $\Hom(\rt{H}{\tup u},\rt{G}{\tup v})$ we denote the set of all homomorphisms from $\rt{H}{\tup u}$ to $\rt{G}{\tup v}$; and similarly for (induced) subgraph isomorphisms.
+
+
+%\begin{definition}
+%	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
+%\end{definition}
+
+%For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\Hom$, $\Sub$ and $\ISub$, i.e. $\Hom(H, G)$, $\Sub(H, G)$ and $\ISub(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms from $H$ to $G$, respectively.
+
+\paragraph*{Relational structures.} We use the standard notion of relational structures considered in finite model theory. A \emph{signature} is a finite set $\Sigma$ of relation names, with each relation name $R\in \Sigma$ having a prescribed \emph{arity} $\ar(R)\in \N$. A \emph{$\Sigma$-structure} $\Af$ consists of a finite universe $U=U(\Af)$ and, for every relation name $R\in \Sigma$, its \emph{interpretation} $R^\Af\subseteq U^{\ar(R)}$. 
+
+Here are some examples of modelling (variations of) graphs as relational structures, which will be used in this paper.
+\begin{itemize}
+	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set, and $\Sigma$ consists of a single binary (arity-$2$) relation that is always irreflexive and symmetric. To model directed graphs, we drop the symmetricity requirement.
+	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graphs by having $|C|$ binary relations in the signature, where each relation selects edges of a different color. We may similarly define and model $C$-colored directed graphs.
+\end{itemize}
+
+Homomorphisms of relational structures are defined naturally: For two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well. 
+
+Similarly to graphs, we may consider \emph{rooted relational structures} by equipping a structure $\Af$ with a tuple $\tup u$ of roots, which are (not necessarily distinct) elements of the universe; we denote it by $\rt{\Af}{\tup u}$. Homomorphisms and (induced) substructure isomorphisms can be again extended to rooted structures in the expected way. Thus we may speak about homomorphisms of colored directed graphs etc.
+
+\paragraph*{Sparsity.} For $r\in \N$, we say that a \emph{depth-$r$ model} of a graph $H$ in a graph $G$ is a mapping $\eta$ from the vertices of $H$ to subsets of the vertices of $G$ satisfying the following two conditions:
+\begin{itemize}
+	\item The sets $\{\eta(u)\colon V(H)\}$ are pairwise disjoint and each of them induces a connected subgraph of $G$ of radius at most $r$.
+	\item Whenever $uv$ is an edge in $H$, in $G$ there is an edge with one endpoint in $\eta(u)$ and the other in $\eta(v)$.
+\end{itemize}
+The sets $\{\eta(u)\colon u\in V(H)\}$ are called \emph{branch sets} of the model. We say that $G$ contains $H$ as a \emph{depth-$r$ minor} if $G$ contains a depth-$r$ model of $H$.
+
+For a graph $G$ we define
+\[\nabla_r(G)\coloneqq \max\{\,\avgdeg(H)~\colon~H\textrm{ is a depth-}r\textrm{ minor of }G\,\}.\]
+For a graph class $\Cc$, we define
+\[\nabla_r(\Cc)\coloneqq \sup_{G\in \Cc} \nabla_r(G).\]
+Note that $\nabla_r(\Cc)$ may be equal to $+\infty$; this happens if graphs $G\in \Cc$ attain arbitrarily large values of $\nabla_r(G)$. This finite/infinite distinction underlies the central definition considered in this work.
 
 \begin{definition}
-	Let $G$ be a graph and $v \in V(G), v' \not\in V(G)$. The operation of \textit{adding a pendant} $vv'$ produces a graph $G'$ such that $V(G') = V(G) \cup \{v'\}$ and $E(G') = E(G) \cup \{vv'\}$.
+	A class of graphs $\Cc$ has \emph{bounded expansion} if $\nabla_r(\Cc)$ is finite for every $r\in \N$. 
 \end{definition}
 
-\begin{observation} \label{obs:pendants-bnd-exp}
-	Let $\G$ be a class of graphs with bounded expansion and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also of bounded expansion.
-\end{observation}
+Unpacking the definitions, this means that there exists a function $f\colon \N\to \N$ such that for every $G\in \Cc$ and a depth-$r$ minor $H$ of $G$, we have $\avgdeg(H)\leq f(r)$. Note that depth-$0$ minors are just subgraphs, hence every graph $G$ belonging to a class of bounded expansion $\Cc$ is $\nabla_0(\Cc)$-degenerate; this is a constant depending only on $\Cc$.
 
-\wninline{Poniższe jest trywialne, ale dla porządku udowodniłem}
-\begin{proof}
-	Let $f_{\G} : \N \to \R$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has $\frac{||H||}{|H|} > f_{\G}(r)$. Let $H'$ be an $r$-shallow minor of some $G' \in \G'$. We have that $H'$ can be obtained from some $r$-shallow minor $H$ of some $G \in \G'$ by repeatedly adding pendants. As adding a pendant increases the number of vertices and edges by one, there exists $c \in \N$ such that $||H'|| - ||H|| = c = |H'| - |H|$, so $\frac{||H'||}{|H'|} = \frac{||H|| + c}{|H| + c} \le \max(1, \frac{||H||}{|H|}) \le \max(1, f_{\G}(r))$, hence we can set $f_{\G'}(r) \coloneqq \max(1, f_{\G}(r))$ as a function bounding densities of $r$-shallow minors of $\G'$, proving that $\G'$ is of bounded expansion.
-\end{proof}
-
-\begin{observation} \label{obs:pendants-nowhere-dense}
-	Let $\G$ be a nowhere-dense class of graphs and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also nowhere-dense.
-\end{observation}
-
-\begin{proof}
-	Let $f_{\G} : \N \to \N$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has a clique bigger than $f_{\G}(r)$.
+In our proofs, we will use stability of the notion of bounded expansion under two basic operations. The first is adding pendants.
+For a graph $G$ and a vertex $v$ of $G$, the operation of \emph{adding a pendant} to $v$ produces a new graph $G'$ obtained from $G$ by adding a fresh vertex $v'$ and an edge $vv'$.
 	
-	Similarly as in \cref{obs:pendants-bnd-exp}, every $r$-shallow minor of graphs from $\G'$ can be obtained by repeatedly adding pendants to some $r$-shallow minor of a graph from $\G$. As no pendant can be a part of a clique with more than two vertices, we have that we can set $f_{\G'}(r) \coloneqq \max(2, f_{\G}(r))$ as a function bounding sizes of cliques in $r$-shallow minors of $\G'$, proving that $\G'$ is also nowhere-dense.
+\begin{lemma} \label{obs:pendants-bnd-exp}
+	Let $\Cc$ be a class of graphs of bounded expansion and let $\Cc$ be the class of all the graphs that can be obtained from a graph from $\Cc$ by repeatedly adding pendants (an arbitrary number times). Then $\Cc'$ is also of bounded expansion.
+\end{lemma}
+\begin{proof}
+	Fix $r\in \N$.
+	We prove that if $G'$ is obtained from $G$ by adding a pendant $v'$ to $v\in V(G)$, then
+	\begin{equation}\label{eq:zubr}
+		\nabla_r(G')\leq \max\left(1,\nabla_r(G)\right).
+	\end{equation}
+	By applying \eqref{eq:zubr} repeatedly to every graph in $G'\in \Cc'$, we conclude that
+	\[\nabla_r(\Cc')\leq \max\left(1,\nabla_r(\Cc)\right),\]
+	so $\Cc$ having bounded expansion implies that $\Cc'$ has bounded expansion as well.
+	
+	Towards \eqref{eq:zubr}, let $H'$ be a depth-$r$ minor of some $G'$, and let $\eta'$ be the witnessing model. We consider two cases. First, if $\eta'$ contains no branch set equal to $\{v'\}$, then it is easy to see that $\eta$ obtained by removing $v'$ from the branch set it is contained in (if any) is a depth-$r$ model of $H'$ in $G$. Hence $\avgdeg(H')\leq \nabla_r(\Cc)$. Second, if there exists $x\in V(H')$ such that $\eta'(x)=\{v'\}$, then $x$ must have degree at most $1$ in $H'$ and $\eta$ obtained from $\eta'$ by removing the branch set $\{v'\}$ is a depth-$r$ model of $H\coloneqq H'-x$ in $G$. It is easy to see that adding a pendant to a graph does not increase its average degree unless it stays below $1$, hence $\avgdeg(H')\leq \max(1,\avgdeg(H))\leq \max(1,\nabla_r(\Cc))$. This proves \eqref{eq:zubr} 
 \end{proof}
 
-\begin{definition}
-	We say that $\F$ is a \textit{type of mappings} if it is a function such that for undirected graphs $H, G$ with colored edges $\F(H, G)$ returns a subset of all mappings from $V(H)$ to $V(G)$.
-\end{definition}
+The next operation is taking congested shallow minors. For $c,d\in \N$, a \emph{congestion-$c$ depth-$d$ model} $\eta$ of a graph $H$ in a graph $G$ is defined similarly to a (standard) depth-$d$ model, except for the following amendments:
+\begin{itemize}
+	\item In the first condition, we allow the branch sets $\{\eta(u)\colon u\in V(H)\}$ to intersect, but every vertex $v$ of $G$ may belong to at most $c$ of them.
+	\item In the second condition, we demand that whenever $uv$ is an edge of $H$, the branch sets $\eta(u)$ and $\eta(v)$ intersect or there is an edge connecting them in $G$.
+\end{itemize}
+Note that for $c=1$, these are just standard depth-$d$ models. 
 
-For example, homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are all types of mappings. We shall denote them by $\Hom$, $\Sub$ and $\ISub$, i.e. $\Hom(H, G)$, $\Sub(H, G)$ and $\ISub(H, G)$ will denote the set of all homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms from $H$ to $G$, respectively.
+For a class of graphs $\Cc$, by $\Minors^{c,d}(\Cc)$ we denote the class of all congestion-$c$ depth-$d$ minors of graphs from $\Cc$. We will use the following statement.
+
+\begin{theorem}[TODO]
+	For every graph class $\Cc$ of bounded expansion and $c,d\in \N$, the class $\Minors^{c,d}(\Cc)$ also has bounded expansion.
+\end{theorem}
+
+\michalin{todo: fraternal augmentations lemma}
+
+%	 Let $G\in \Cc$ be such that $G'$ is obtained from $G$ by repeatedly adding pendants. 
+
+%Let $H'$ be an $r$-shallow minor of some $G' \in \G'$. We have that $H'$ can be obtained from some $r$-shallow minor $H$ of some $G \in \G'$ by repeatedly adding pendants. As adding a pendant increases the number of vertices and edges by one, there exists $c \in \N$ such that $||H'|| - ||H|| = c = |H'| - |H|$, so $\frac{||H'||}{|H'|} = \frac{||H|| + c}{|H| + c} \le \max(1, \frac{||H||}{|H|}) \le \max(1, f_{\G}(r))$, hence we can set $f_{\G'}(r) \coloneqq \max(1, f_{\G}(r))$ as a function bounding densities of $r$-shallow minors of $\G'$, proving that $\G'$ is of bounded expansion.
+
+
+%\begin{observation} \label{obs:pendants-nowhere-dense}
+%	Let $\G$ be a nowhere-dense class of graphs and let $\G'$ be a class of graphs that can be obtained from $\G$ by adding pendants arbitrarily many times. Then $\G'$ is also nowhere-dense.
+%\end{observation}
+
+%\begin{proof}
+%	Let $f_{\G} : \N \to \N$ be a function such that no $r$-shallow minor $H$ of any $G \in \G$ has a clique bigger than $f_{\G}(r)$.
+	
+%	Similarly as in \cref{obs:pendants-bnd-exp}, every $r$-shallow minor of graphs from $\G'$ can be obtained by repeatedly adding pendants to some $r$-shallow minor of a graph from $\G$. As no pendant can be a part of a clique with more than two vertices, we have that we can set $f_{\G'}(r) \coloneqq \max(2, f_{\G}(r))$ as a function bounding sizes of cliques in $r$-shallow minors of $\G'$, proving that $\G'$ is also nowhere-dense.
+%\end{proof}
+
+
+\subsection{Computation}
+
+\paragraph*{Computation model.}
+
+\paragraph*{Dynamic graphs and data structures.}
+
 
 \begin{theorem} \label{thm:maintaining-augmentation}
 	Placeholder na stwierdzenie, że da się dynamicznie utrzymywać augmentacje. Zapewne chcemy zacytować Theorem 4 z \cite{DvorakTumaArxiv}.

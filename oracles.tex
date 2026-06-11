@@ -13,42 +13,59 @@ Here we implement the oracles for an arbitrary distance $d$ in classes of bounde
 
 \subsection{Detecting near vertices}
 
-We start with the implementation of the $\nearVertexDS{G,S}$ oracle, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
+We start with the implementation of the $\nearVertexDS{G}{k,d}$ oracle, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
 
 \begin{theorem}\label{thm:NearVertex-new}
-	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$.
-	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Let $S$ be a fixed subset of vertices of $G$, which does not change over time. Then there exists a randomized data structure $\nearVertexDS{G,S}$ that provides access to the following query in time~$\Oh(1)$:
+	Fix a graph class $\Cc$ of bounded expansion and $k,d\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Then there exists a randomized data structure $\nearVertexDS{G}{k,d}$ that provides access to the following query in time~$\Oh_{\Cc,k,d}(1)$:
 	\begin{itemize}
-		\item $\near{}$: return a vertex $v$ such that $\dist_G(s,v)\leq d$ for every $s\in S$, or $\bot$ if no such vertex exists.
+		\item $\near{S}$: For a given set of vertices $S\subseteq V(G)$ with $|S|\leq k$, return a vertex $v$ such that $\dist_G(s,v)\leq d$ for every $s\in S$, or $\bot$ if no such vertex exists.
 	\end{itemize}
 	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
-	The amortized update time of the data structure is $\log^{\Oh_{\Cc,|S|,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,|S|,d}(n\log n)$, and uses $\Oh_{\Cc,|S|,d}(n\log n)$ space at all times.
+	The amortized update time of the data structure is $\log^{\Oh_{\Cc,k,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,k,d}(n\log n)$, and uses $\Oh_{\Cc,k,d}(n\log n)$ space at all times.
 \end{theorem}
 \begin{proof}
-	Let $\tup s$ be a tuple enumerating all the vertices of $S$ in any fixed order. Consider a family of $\Xi$ of all the rooted graphs $\rt{H}{\tup s,x}$ that can be obtained as follows: 
+	Let $\tup z$ be a tuple consisting of $k$ distinct vertices. 
+	Consider a family of $\Xi$ of all the rooted graphs $\rt{H}{\tup z,y}$ that can be obtained as follows: 
 	\begin{itemize}
-		\item for every $s\in S$, attach to $s$ a path of some length between $0$ and $d$, and
-		\item fuse all the other endpoints of those paths into a single vertex; call it $x$.
+		\item for every $i\in [k]$, attach to $z_i$ a path of some length between $0$ and $d$, and
+		\item fuse all the other endpoints of those paths into a single vertex and call it $y$.
 	\end{itemize}
-	Note that $|\Xi|=(d+1)^{|S|}\leq \Oh_{|S|,d}(1)$ and $|H|\leq 1+(d-1)|S|\leq \Oh_{|S|,d}(1)$ for all $\rt{H}{\tup s,x}\in \Xi$.
+	Note that $|\Xi|=(d+1)^{k}\leq \Oh_{k,d}(1)$ and $|H|\leq 1+(d-1)k\leq \Oh_{k,d}(1)$ for all $\rt{H}{\tup z,y}\in \Xi$.
 	The following is clear.
 	
 	\begin{claim}\label{cl:distExample}
+		Let $S$ be a set of at most $k$ vertices of $G$ and let $\tup s$ be any tuple of length $k$ that contains every vertex of $S$.
 		For any vertex $v$ of $G$, the following conditions are equivalent:
 		\begin{itemize}
 			\item $\dist_G(s,v)\leq d$ for all $s\in S$; and
-			\item there exists $\rt{H}{\tup s,x}\in \Xi$ such that $\Hom(\rt{H}{\tup s,x},\rt{G}{\tup s,v})\neq\emptyset$.
+			\item there exists $\rt{H}{\tup z,y}\in \Xi$ such that $\Hom(\rt{H}{\tup z,y},\rt{G}{\tup s,v})\neq\emptyset$.
 		\end{itemize}
 	\end{claim}
 
-	Hence, for every rooted graph $\rt{H}{\tup s,x}\in \Xi$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup s}}(\rt{G}{\tup s})$; note that here, we remove $x$ from the roots. Upon query $\near{}$, we ask each of these data structures for an example homomorphism $\varphi_{\rt{H}{\tup s}}\in \Hom(\rt{H}{\tup s},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq d$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup s}}(x)$; so $v$ can be reported. And if no such homomorphism exists, for any $\rt{H}{\tup s,x}\in \Xi$, then by \cref{cl:distExample} we may safely conclude that there is no vertex $v\in V(G)$ with $\dist_G(s,v)\leq d$ for all $s\in S$.
+	Hence, for every rooted graph $\rt{H}{\tup z,y}\in \Xi$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z}}(G)$; note that here, we remove $y$ from the roots. Upon query $\near{S}$, we let $\tup s$ be any tuple of length $k$ containing every vertex of $S$, and we ask each of these data structures for an example homomorphism $\varphi_{\rt{H}{\tup z,y}}\in \Hom(\rt{H}{\tup z},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq d$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup z,y}}(y)$; so $v$ can be reported. And if no such homomorphism exists, for every $\rt{H}{\tup z,y}\in \Xi$, then by \cref{cl:distExample} we may safely conclude that there is no vertex $v\in V(G)$ such that $\dist_G(s,v)\leq d$ for all $s\in S$.
 
-	Since $|\Xi|\leq \Oh_{|S|,d}(1)$ and $|H|\leq \Oh_{|S|,d}(1)$ for all $\rt{H}{\tup s,x}\in \Xi$, the promised bounds on the amortized update time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
+	Since $|\Xi|\leq \Oh_{k,d}(1)$ and $|H|\leq \Oh_{k,d}(1)$ for all $\rt{H}{\tup z,y}\in \Xi$, the promised bounds on the amortized update time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
 \end{proof}
 
 \subsection{Detecting far vertices}
 
-Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$.
+We now move on to the implementation of the $\farVertexDS{G}{k,d}$ data structure. Our implementation is encapsulated in the following statement.
+
+\begin{theorem}\label{thm:FarVertex-new}
+	Fix a graph class $\Cc$ of bounded expansion and $k,d\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Then there exists a randomized data structure $\farVertexDS{G}{k,d}$ that provides access to the following query:
+	\begin{itemize}
+		\item $\far{S}$: For a given set of vertices $S\subseteq V(G)$ with $|S|\leq k$, return a vertex $v$ such that $\dist_G(u,S)>d$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
+	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,k,d}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,k,d}(n\log n)$, and it uses $\Oh_{\Cc,k,d}(n\log n)$ space at all times.
+\end{theorem}
+
+We will now gradually build tools towards the proof of \cref{thm:FarVertex-new}. The approach will be based on maintaining an iterated augmentation of $G$, which will be still sparse thanks to TODO. The edges of this augmentation will be decorated by some information memorized during the augmentation process. Formally, we will adhere to the following definition.
+
+
+%Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$.
 
 \begin{definition}
 	Let $\Lambda$ be a finite set of labels and $d\in \N$.
@@ -86,12 +103,6 @@ We now show that in any class $\Cc$ of bounded expansion, faithful augmentations
 	\michalin{The statement should also export that every update to $G$ triggers an amortized polylog updates to $D$.}
 \end{proof}
 
-\michalin{The following definition should be moved to \cref{sec:dvorak}}
-
-\begin{definition}
-	A \emph{rooted graph} is a graph $G$ together with a tuple $\tup u$ of vertices of $G$ (not necessarily distinct), called the \emph{roots}; we denote it by $\rt{G}{\tup u}$. Similarly, we may speak about rooted relational structures. The notions of homomorphisms, subgraphs, and induced subgraphs are naturally extended to rooted graphs or rooted induced subgraphs, by requiring that the source graph and the target graph have the same number of roots and that the $i$th root of the source graph is mapped to the $i$th root of the target graph, for every relevant $i$. In particular, if $\rt{H}{\tup x}$ and $\rt{G}{\tup u}$ are rooted graphs with $|\tup x|=|\tup u|$, then by $\Hom(\rt{H}{\tup x},\rt{G}{\tup u})$ we denote the set of all homomorphisms from $\rt{H}{\tup x}$ to $\rt{G}{\tup u}$; and similarly for subgraphs and induced subgraphs.
-\end{definition}
-
 The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
 
 \begin{lemma}\label{lem:dyn-rooted-homs}
@@ -103,7 +114,7 @@ The following statement follows from \cref{thm:homcounts-relational}.\michal{Mak
 	\wninline{todo}
 \end{proof}
 
-The next lemma is the combinatorial core of our method for the implementation of the $\farVertexDS{\cdot}$ oracle. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
+The next lemma is the combinatorial core of our approach. We show that a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ can be expressed, using the Inclusion--Exclusion Principle.
 
 \begin{lemma}\label{lem:IE}
 	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function on the vertices of $G$, $u$ be a vertex of~$G$, and $d\in \N$. Suppose $D$ is a faithful $(\Lambda,d)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$, depending only on $\Lambda$ and $d$, with the following properties:
@@ -191,19 +202,13 @@ By combining \cref{lem:dyn-augmentation,lem:dyn-rooted-homs,lem:IE}, we easily o
 	By \cref{lem:dyn-augmentation}, we may maintain a faithful $(\Lambda,d)$-augmentation $D$ of $G$ so that every update to $G$ triggers an amortized number of $\log^{\Oh_{\Cc,d}(1)} n$ updates to $D$. Therefore, by \cref{lem:dyn-rooted-homs}, for every $(s,\rt{H}{x,y})\in \Mm$ we may construct a data structure that maintains the value $\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|$ with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,d}(1)} n$ (per update in $D$). Since $|\Mm|\leq \Oh_{\Lambda,d}(1)\leq \Oh_{\Cc,d}(1)$ and each graph $\rt{H}{x,y}$ feature in $\Mm$ has $\Oh_{\Lambda,d}(1)\leq \Oh_{\Cc,d}(1)$ vertices, we conclude that updating all those data structures take amortized time $\log^{\Oh_{\Cc,d}(1)} n$ per update in $D$, so also amortized time $\log^{\Oh_{\Cc,d}(1)} n$ per update in $G$. Finally, the value $\sum_{\substack{v\in V(G)~\mid~ \dist_{G}(u,v)>d}} \wei(v)$ can be recomputed in time $\Oh_{\Cc,d}(1)$ upon every update using the formula provided by \cref{lem:IE}. The claimed bounds on the initialization time and the space usage follow directly from the bounds provided by \cref{lem:dyn-augmentation,lem:dyn-rooted-homs}.
 \end{proof}
 
-Now, the data structure $\farVertexDS{G,u}$ promised by \cref{thm:FarVertex} follows immediately by combining \cref{lem:wei-sums-far,lem:restore-by-sampling}.
+With all the tools prepared, we may prove \cref{thm:FarVertex-new} and thereby provide a suitable data structure $\farVertexDS{G}{k,d}$ by combining \cref{lem:wei-sums-far,lem:restore-by-sampling}.
 
-\begin{theorem}\label{thm:FarVertex-new}
-	Fix a graph class $\Cc$ of bounded expansion and $d\in \N$.
-	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Let $u$ be a fixed vertex of $G$, which does not change over time. Then there exists a randomized data structure $\farVertexDS{G,u}$ that provides access to the following query in time~$\Oh(1)$:
-	\begin{itemize}
-		\item $\far{}$: return a vertex $v$ such that $\dist_G(u,v)>d$, or $\bot$ if no such vertex exists.
-	\end{itemize}
-	Every answer to the query is correct with probability at least $1-\tfrac{1}{n}$ against an oblivious adversary.
-	The amortized update time of the data structure is $\log^{\Oh_{\Cc,d}(1)} n$, it can be initialized for an edgeless $G$ in time $\Oh_{\Cc,d}(n\log n)$, and uses $\Oh_{\Cc,d}(n\log n)$ space at all times.
-\end{theorem}
-\begin{proof}
+\begin{proof}[Proof of \cref{thm:FarVertex-new}]
+	We first argue that without loss of generality we may assume that in every query $\near{S}$, we have $S=\{u\}$ for a fixed vertex $u$ that does not change over time. We do it as follows. Instead of maintaining the original dynamic graph $G$, we maintain the dynamic graph $G'$ obtained from $G$ by adding a fresh vertex $u$ that remains isolated. Upon query $\far{S}$ in $G$, we temporarily add edges $us$ for all $s\in S$, and ask query $\far{\{u\}}$ in $G'$ for the distance parameter $d+1$ instead of $d$; it is clear that these two queries are equivalent in terms of correct answers. Having obtained the answer to the query in $G'$, we may remove the temporary edges, thus making $u$ again isolated. Note that we have $G'\in \Cc'$ where $\Cc'$ is the class of all graphs in which one vertex can be removed to obtain a graph from $\Cc$; this class also has bounded expansion, since we have $\nabla_r(\Cc')\leq \nabla_r(\Cc)+1$ for all $r\in \N$. So the result for $\Cc'$ and $d+1$ with the assumption that $S=\{u\}$ in all the queries implies the result for $\Cc$ and $d$.
+	
+	We proceed under the assumption that in query asks about $S=\{u\}$, for a fixed vertex $u$.
 	For the purpose of applying \cref{lem:restore-by-sampling}, for a vertex $v$ of $G$ we define
 	\[f(G,v)\coloneqq \begin{cases} 1 &\textrm{if }\dist_G(u,v)>d,\\ 0 & \textrm{otherwise.}\end{cases}\]
-	A suitable data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far}. The data structure for $\mathsf{Verify}_f[G]$ can be obtained by maintaining the data structures provided by TODO\michal{todo} for $\cal F=\Hom$ and $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,d$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f}[G]$ provided by it meets all the requirements for $\farVertexDS{G,u}$.
+	A suitable data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far}. The data structure for $\mathsf{Verify}_f[G]$ can be obtained by maintaining the data structures TODO\michal{todo} for $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,d$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f}[G]$ provided by it meets all the requirements for $\farVertexDS{G}{k,d}$.
 \end{proof}
