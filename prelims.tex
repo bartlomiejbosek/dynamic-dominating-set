@@ -109,10 +109,10 @@ For a class of graphs $\Cc$, by $\Minors^{c,d}(\Cc)$ we denote the class of all 
 	For every graph class $\Cc$ of bounded expansion and $c,d\in \N$, the class $\Minors^{c,d}(\Cc)$ also has bounded expansion.
 \end{theorem}
 
-We use \cref{thm:cong-minors} to argue a classic result from Sparsity about classic of bounded expansion admitting \emph{fraternal augmentations} of bounded maximum outdegree. Let $G$ be a graph and $\vec G$ be an orientation of $G$. The \emph{fraternal augmentation} of $\vec G$ is the undirected graph $G'$ obtained from $\vec G$ by
+We use \cref{thm:cong-minors} to argue a classic result from Sparsity about classic of bounded expansion admitting \emph{fraternal augmentations} of bounded maximum outdegree. Let $G$ be a graph and $\vec G$ be an orientation of $G$. The \emph{fraternal augmentation} of $\vec G$ is the undirected graph $G'$ obtained from $\vec G$ as follows:
 \begin{itemize}
-	\item adding an undirected edge $uv$ for every pair of non-adjacent vertices $u,v$ such that there is a vertex $w$ with $(u,w),(v,w)\in E(\vec G)$; and
-	\item forgetting the orientation of all the edges of $\vec G$.
+	\item for every pair of edges $(u,w),(v,w)\in E(\vec G)$ with a common tail $w$, add an undirected edge $uv$; and
+	\item forget the orientation of all the edges of $\vec G$.
 \end{itemize}
 Note that thus, $G'$ is a supergraph of $G$, obtained by adding all the \emph{fraternal} edges $uv$ as above. The following lemma is the key observation about the behavior of fraternal augmentations on classes of bounded expansion.
 

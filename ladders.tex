@@ -1,88 +1,166 @@
-\section{Semi-ladder algorithms for domination and independence}\label{sec:ladders}
+\section{Progressive exploration}\label{sec:ladders}
 
-Here we recall \cite{FabianskiPST19}, where the authors propose efficient parameterized
-algorithms for a variety of problems, including \drds{r} and \dris{r}.
-The engine of these algorithms are the two procedures listed below.
-
+In this section we recall the framework of \emph{progressive exploration}, proposed by Fabia\'nski et al.~\cite{FabianskiPST19}, for  designing parameterized algorithms for \drds{r} and \dris{r}, among other problems of similar kind. Our main focus here is to explain that the progressive exploration algorithms for \drds{r} and \dris{r} can be executed using a bounded number of calls to the following two basic oracles, each working on a graph $G$ and stipulated by a distance parameter $r\in \N$:
 \begin{itemize}
-\item $\notDominated{S}$ -
-returns a vertex that is not $r$-dominated by $S$ if such vertex exists, otherwise $\bot$
-\item $\candidate{W}$ - returns a set of $k$ vertices which $r$-dominates $W$
-if such set exists, otherwise $\bot$
+	\item $\far{S,r}$: Given a set $S$, return a vertex $v$ of $G$ such that $\dist_G(v,S)>r$; or $\bot$ if no such vertex exists.
+	\item $\near{S,r}$: Given a set $S$, return a vertex $v$ of $G$ such that $\dist_G(v,s)\leq r$ for all $s\in S$; or $\bot$ if no such vertex exists.
 \end{itemize}
+This will allow us to concentrate in subsequent sections on implementing those oracles efficiently in the setting of dynamic data structures.
 
-The algorithm to compute $r$-domination set of size $k$ is then implemented using these procedures
-and the technique called by the authors \emph{progressive exploration}.
-The progressive exploration technique constructs a sequence of candidate solutions. For each
-candidate solution that it constructs, it then tries to invalidate it by finding a witness vertex
-that is not dominated by it. Then the next candidate solution is constructed to dominate both the
-current witness and previously explored witnesses. This process is shown in
-Algorithm~\ref{alg:1}.
+\subsection{Domination}
+For \drds{r}, Fabia\'nski et al. proposed a \emph{semi-ladder algorithm} that proceeds as follows (see \cref{alg:1} for a pseudo-code). The algorithm is employed on a graph $G$ and searches for a distance-$r$ dominating set of size $k$, for given parameters $k,r\in \N$. It assumes access to the following two oracles, which will eventually be implemented using the more basic oracles $\far{S,r}$ and $\near{S,r}$:
+\begin{itemize}
+	\item $\notDominated{D}$:
+	Given a set $D$ of $k$ vertices, return a vertex $v$ that is not distance-$r$ dominated by~$D$, that is, such that $\dist_G(v,D)>r$. In case no such vertex $v$ exists, return $\bot$.
+	\item $\candidate{W}$: Given a vertex subset $W$, return a set $D$ of $k$ vertices that distance-$r$ dominates~$W$, that is, $\dist_G(w,D)\leq r$ for all $w\in W$. In case no such set $D$ exists, return $\bot$.
+\end{itemize}
+The algorithm iteratively constructs two sequences:
+\begin{itemize}
+	\item a sequence of \emph{candidates} $D_1,D_2,\ldots$, each being a set of at most $k$ vertices; and 
+	\item a sequence of \emph{witnesses} $w_1,w_2,\ldots$, each being a single vertex of $G$.
+\end{itemize}
+After the $(i-1)$st iteration, candidates $D_1,\ldots,D_{i-1}$ and witnesses $w_1,\ldots,w_{i-1}$ are already constructed. Then the $i$th iteration proceeds as follows:
+\begin{itemize}
+	\item First, we call $\candidate{W}$ where $W$ comprises of all the  witnesses gathered so far, that is, $W\coloneqq \{w_1,\ldots,w_{i-1}\}$. This either yields the next candidate $D_i$ that at least distance-$r$ dominates $W$, or a conclusion that no such $D_i$ exists. In the latter case, we may conclude that $G$ has no distance-$r$ dominating set of size at most $k$.
+	\item Second, we call $\notDominated{D_i}$ to verify whether $D_i$ already distance-$r$ dominates the whole graph. If so, then we have found a solution, and otherwise the call provides the next witness $w_i$, with which we may proceed to the next round of the iteration.  
+\end{itemize}
+It is clear that when this algorithm returns an answer, then this answer is always correct. The main insight of Fabia\'nski et al. is that since every candidate $D_i$ distance-$r$ dominates all the witnesses $w_1,\ldots,w_{i-1}$ but not the witness $w_i$, the constructed candidates and witnesses form a pattern called a \emph{semi-ladder}. As such semi-ladders cannot be too long in classes of bounded expansion, this provides a bound on the number of iterations that the algorithm executes before breaking the loop and reporting an outcome.
 
-\begin{algorithm}\label{alg:1}
-    \SetKwInOut{Input}{Input}
-    \SetKwInOut{Output}{Output}
 
-    \underline{function DomSet} $(G,r,k)$\;
-    \Input{A graph $G$}
-    \Output{$r$-dominating set of size $k$}
-    $S :=$ a subset of $V$ of size $k$ \;
-    $w :=  \notDominated{S} $\;
-    $W := \{ w \}$\;
-    \While{$w \neq \bot$}
-      {
-        $S:= \candidate{W}$\;
-        \If{$S = \bot$}
-        {
-           return $\bot$ \;
-        }
-        $w := \notDominated{S}$ \;
-        $W := W \cup \{ w \}$ \;
-      }
-    return $S$ \;
-    \caption{An algorithm computing an $r$-dominating set of size $k$ in a graph $G$}
+\begin{algorithm}
+	\SetKwInOut{Input}{Input}
+	\SetKwInOut{Output}{Output}
+	
+	\nonl
+	\underline{method DomSet} $(G,r,k)$\\
+	\Input{A graph $G$ and parameters $r,k\in \N$}
+	\Output{A distance-$r$ dominating set of size $k$, or $\bot$ if no such set exists.}
+	\medskip
+	$W \coloneqq \emptyset$\;
+	\Repeat
+	{
+		$D\coloneqq \candidate{W}$\;
+		\If{$S = \bot$}
+		{
+			\KwRet{$\bot$} \;
+		}
+		$w \coloneqq \notDominated{D}$ \;
+		\If{$w = \bot$}
+		{
+			\KwRet{$S$} \;
+		}
+		$W \coloneqq W \cup \{ w \}$ \;
+	}
+	\caption{Semi-ladder algorithm for distance-$r$ dominating set of size $k$ in a graph $G$}\label{alg:1}
 \end{algorithm}
 
-To obtain a bound on the running time of this simple algorithm the
-authors introduce a number of tools from logic and combinatorial graph theory.
-In particular, they define a bipartite graph induced by what they call
-a distance formula. This fomula is a logical sentence stating
-some specific property of a graph $G$ that is an input instance to the
-$r$-dominating set problrem.
-For the $r$-dominating set problem, the
-distance formula is
-$\delta^k_r(\overline{x},y)=\bigvee_{i=1}^k \delta_r(x_i,y)$,
-stating that there is some $x_i$ in a touple
-$\overline{x}=(x_1,\ldots,x_k)$ such that the distance from $x_i$ to $y$
-is at most $r$. This is a First Order Logic formula, whose length
-depends linearly on two parameters: $k$-the size of $\overline{x}$ and
-$r$ - the distance. The bipartite graph $B(\delta^k_r,G)$ induced
-by formula
-$\delta^k_r$ on a graph $G$ is then defined as follows. The left side
-$L$ consists of all tuples $(v_1,\ldots,v_k) \subseteq V^k$ of
-vertices of $G$. The left side $L$ represents
-the universum of all candidate solutions for the $r$-dominating
-set that we seek. The right side $R$ consists of
-all vertices $v \in V(G)$. The right side is viewed as a set of
-witnesses. There is an edge between a candidate
-$(v_1,\ldots,v_k) \in L$ and a witness $v \in R$ if and only if
-$\delta^k_r((v_1,\ldots,v_k),v)$ holds, i.e., $v$ is at
-distance $r$ from some vertex in $(v_1,\ldots,v_k)$. Clearly,
-a feasible solution is a neighbour in $B(\delta^k_r,G)$ to all
-vertices $v \in R$. Unfortunately we cannot afford to construct
-the entire graph $B(\delta^k_r,G)$.
-Algorithm~\ref{alg:1} searches $B(\delta^k_r,G)$ by successively
-exploring new candidates and witnesses, one candidate and one
-witness in each round of the while loop.
-It is easy to observe (see~\cite{FabianskiPST19}), that the
-candidates and witnesses explored by the algorithm induce a
-semi-ladder in $B(\delta^k_r,G)$. Thus, the authors define the
-semi-ladder index $\sli(B)$ of a bipartite graph $B$ as the size of the
-largest induced semi-ladder contained in $B$. Thus, the number of
-rounds executed by Algorithm~\ref{alg:1} is bounded by
-$\sli(B(\delta^k_r,G))$. This in turn, as we shall see later,
-is nicely bounded from above
-for some specific graph classes, in particular bounded expansion graphs.
+To be more precise, a \emph{distance-$r$ semi-ladder} of order $\ell$ in a graph $G$ is a pair of sequences of vertices $a_1,\ldots,a_\ell$ and $b_1,\ldots,b_\ell$ such that
+\begin{itemize}
+	\item $\dist_G(a_i,b_i)>r$ for each $i\in [\ell]$; and
+	\item $\dist_G(a_i,b_j)\leq r$ for all $1\leq j<i\leq \ell$.
+\end{itemize}
+The \emph{distance-$r$ semi-ladder index} of a graph $G$, denoted $\sli_r(G)$, is the largest order of a distance-$r$ semi-ladder that can be found in $G$. For a graph class $\Cc$, we define its distance-$r$ semi-ladder index as $\sli_r(\Cc)\coloneqq \sup_{G\in \Cc} \sli_r(G)$. Note that this value may be infinite if graphs from $\Cc$ contain distance-$r$ semi-ladders of arbitrarily large order. But as proved by Fabia\'nski et al., this does not happen in bounded expansion~classes.
+
+\begin{theorem}[{\cite[Lemma~29]{FabianskiPST19}}]\label{thm:sli-be}
+	For every class $\Cc$ of bounded expansion and $r\in \N$, $\sli_r(\Cc)$ is finite.
+\end{theorem}
+
+We remark that \cref{thm:sli-be} holds even in a larger generality when $\Cc$ is nowhere dense, but we will not use this here. We also note that for $r=1$, excluding a biclique suffices to bound the semi-ladder index.
+
+\begin{theorem}[{\cite[Lemma~33]{FabianskiPST19}}]\label{thm:sli-biclique}
+	For every graph $G$ that does not contain the biclique $K_{t,t}$ as a subgraph, for some $t\in \N$, we have $\sli_1(G)<3t$.
+\end{theorem}
+
+The following statement summarizes how a bound on the semi-ladder index influences the number of iterations executed by the semi-ladder algorithm.
+
+\begin{theorem}[consequence of {\cite[Lemma~5 and Lemma~24]{FabianskiPST19}}]\label{thm:termination}
+	Let $\Cc$ be a graph class and $r\in \N$ be such that $\sli_r(\Cc)$ is finite. Then the semi-ladder algorithm (\cref{alg:1}) run on any graph from $\Cc$ terminates after executing less than $k^{\sli_r(\Cc)}$ iterations.
+\end{theorem}
+
+Note here that if the algorithm performs at most $\ell\coloneqq k^{\sli_r(\Cc)}$ iterations in total, then all the calls to the $\candidate{W}$ oracle are applied only to sets $W$ of size at most $\ell$.
+
+Our goal now is to reduce implementation of the $\notDominated{D}$ and $\candidate{W}$ oracles to the more basic oracles $\far{S,r}$ and $\near{S,r}$. For $\notDominated{D}$ this is trivial: queries $\notDominated{D}$ and $\far{D,r}$ are just equivalent. For $\candidate{W}$, this is a bit more complex.
+
+\begin{lemma}\label{lem:candidate-to-near}
+	Let $G$ be a graph, $W$ be a subset of vertices of $G$, and $k,r\in \N$ be parameters. Then the query $\candidate{W}$ can be answered in time $\Oh(k^{|W|+1})$ by performing at most $k^{|W|+1}$ queries of the form $\near{S,r}$, where $S$ is a subset of $W$.
+\end{lemma}
+\begin{proof}
+	We enumerate all
+	the partitions of $W$ into at most $k$ subsets; there are at most $k^{|W|}$ such partitions. For every partition $\cal P$ and every part $S\in \cal P$, we issue the query $\near{S,r}$ to verify whether there exists a vertex $v_S$ such that $\dist_G(v_S,s)\leq r$ for all $s\in S$. If for some partition $\cal P$ we can find such a vertex $v_S$ for every part $S\in \cal P$, then the set $D\coloneqq \{v_S\colon S\in \cal P\}$ is a valid answer to the query $\candidate{W,r}$. And if this check fails for every considered partition $\cal P$, then there is no set $D$ of size at most $k$ that distance-$r$ dominates $W$ and we can safely return $\bot$.
+	Thus, the total
+	number of queries $\near{S,r}$ issued is bounded by
+	$k^{|W|+1}$.
+\end{proof}
+
+We conclude this section by a statement summarizing the discussion and implying the following: designing an efficient data structure for the $\near{S}$ and $\far{S}$ queries suffices to implement the semi-ladder algorithm in the dynamic setting, thereby providing a dynamic data structure for the \drds{r} problem.
+
+\begin{lemma}
+	Let $\Cc$ be a class of graphs, $k,r\in \N$ be such that $\sli_r(\Cc)$ is finite, and $\ell\coloneqq k^{\sli_r(\Cc)}$. Let $G$ be a dynamic graph that belongs to $\Cc$ at all times. Suppose that there are data structures $\nearVertexDS{G}{r,\ell}$, supporting queries $\near{S,r}$ in $G$ with $|S|\leq \ell$, and $\farVertexDS{G}{r,k}$, supporting queries $\far{S,r}$ in $G$ with $|S|\leq k$, so that $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ have amortized update/query time $T$, initialization time $I$, and space complexity $M$. Then there is a data structure $\dominatingSetDS{G}{r,k}$ for $G$ that supports the~query
+	\begin{itemize}
+		\item $\ds{}$: Return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize}
+	The amortized update time of $\dominatingSetDS{G}{r,k}$ is $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T$, the query time is $\Oh(k)$, the initialization time is $\Oh(I)$, and the space complexity is $\Oh(M)$.
+	
+	Moreover, the data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ may be randomized with error probability at most $1-\eps$, for any fixed parameter $\eps>0$ and against an oblivious adversary, with amortized update/query time, initialization time, and space complexity becoming $T\cdot \tfrac{1}{\eps}$, $I\cdot \log \tfrac{1}{\eps}$, and $M\cdot \log \tfrac{1}{\eps}$, respectively. In this case,  $\dominatingSetDS{G}{r,k}$ is also randomized with error probability at most $\eps$ against an oblivious adversary. The amortized update time becomes $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T\cdot \tfrac{1}{\eps}$, the initialization time becomes $k^{\Oh(\sli_r(\Cc))}\cdot I\cdot \log \tfrac{1}{\eps}$, and the space complexity becomes  $k^{\Oh(\sli_r(\Cc))}\cdot M\cdot \log \tfrac{1}{\eps}$.
+\end{lemma}
+\begin{proof}
+	The data structure $\dominatingSetDS{G}{r,k}$ simply maintains the assumed data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$. Upon every update to $G$, we relay the update to $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ and we run the semi-ladder algorithm on $G$ to find a distance-$r$ dominating set of size at most $k$ (or detect a lack thereof). By \cref{thm:termination}, this algorithm can be implemented using at most $k^{\sli_r(\Cc)}$ queries $\notDominated{D}$ oracle with $|D|\leq k$ and $k^{\sli_r(\Cc)}$ queries $\candidate{W}$ with $|W|\leq \ell$. Every query $\notDominated{D}$ can be answered by a single call to the query $\far{D,r}$ offered by $\farVertexDS{G}{r,k}$. By \cref{lem:candidate-to-near}, every query $\candidate{W}$ can be answered by performing $k^{|W|+1}\leq 2^{k^{\Oh(\sli_r(\Cc))}}$ calls to queries of the form $\near{S,r}$ with $S\subseteq W$, offered by $\nearVertexDS{G}{r,\ell}$. Once a distance-$d$ dominating set of size $k$ (or lack thereof) is computed, it can be provided in time $\Oh(k)$ upon any $\ds{}$ update.
+	The claimed bounds on the amortized update time of $\dominatingSetDS{G}{r,k}$ follow immediately from the assumed guarantees about $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$; and similarly for the initialization time and the space complexity.
+	
+	In case $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ are randomized, $\dominatingSetDS{G}{r,k}$ maintains their instances with a rescaled error parameter $\eps'\coloneqq \tfrac{\eps}{q}$, where
+	\[q\coloneqq k^{\sli_r(\Cc)}+k^{k^{\sli_r(\Cc)}}\leq 2^{k^{\Oh(\sli_r(\Cc))}}\]
+	is an upper bound on the total number of queries to $\nearVertexDS{G}{r,\ell}$ or $\farVertexDS{G}{r,k}$ that may occur in a single run of the semi-ladder algorithm. Therefore, by the union bound, we conclude that with probability at least $1-\eps$ none of these queries returns an incorrect answer and the semi-ladder algorithm runs correctly. It is straightforward to verify that rescaling the error probability in $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ influences the complexity guarantees for $\dominatingSetDS{G}{r,k}$ as claimed.
+\end{proof}
+
+%The algorithm to compute $r$-domination set of size $k$ is then implemented using these procedures
+%and the technique called by the authors \emph{progressive exploration}.
+%The progressive exploration technique constructs a sequence of candidate solutions. For each
+%candidate solution that it constructs, it then tries to invalidate it by finding a witness vertex
+%that is not dominated by it. Then the next candidate solution is constructed to dominate both the
+%current witness and previously explored witnesses. This process is shown in
+%Algorithm~\ref{alg:1}.
+
+
+%To obtain a bound on the running time of this simple algorithm the
+%authors introduce a number of tools from logic and combinatorial graph theory.
+%In particular, they define a bipartite graph induced by what they call
+%a distance formula. This fomula is a logical sentence stating
+%some specific property of a graph $G$ that is an input instance to the
+%$r$-dominating set problrem.
+%For the $r$-dominating set problem, the
+%distance formula is
+%$\delta^k_r(\overline{x},y)=\bigvee_{i=1}^k \delta_r(x_i,y)$,
+%stating that there is some $x_i$ in a touple
+%$\overline{x}=(x_1,\ldots,x_k)$ such that the distance from $x_i$ to $y$
+%is at most $r$. This is a First Order Logic formula, whose length
+%depends linearly on two parameters: $k$-the size of $\overline{x}$ and
+%$r$ - the distance. The bipartite graph $B(\delta^k_r,G)$ induced
+%by formula
+%$\delta^k_r$ on a graph $G$ is then defined as follows. The left side
+%$L$ consists of all tuples $(v_1,\ldots,v_k) \subseteq V^k$ of
+%vertices of $G$. The left side $L$ represents
+%the universum of all candidate solutions for the $r$-dominating
+%set that we seek. The right side $R$ consists of
+%all vertices $v \in V(G)$. The right side is viewed as a set of
+%witnesses. There is an edge between a candidate
+%$(v_1,\ldots,v_k) \in L$ and a witness $v \in R$ if and only if
+%$\delta^k_r((v_1,\ldots,v_k),v)$ holds, i.e., $v$ is at
+%distance $r$ from some vertex in $(v_1,\ldots,v_k)$. Clearly,
+%a feasible solution is a neighbour in $B(\delta^k_r,G)$ to all
+%vertices $v \in R$. Unfortunately we cannot afford to construct
+%the entire graph $B(\delta^k_r,G)$.
+%Algorithm~\ref{alg:1} searches $B(\delta^k_r,G)$ by successively
+%exploring new candidates and witnesses, one candidate and one
+%witness in each round of the while loop.
+%It is easy to observe (see~\cite{FabianskiPST19}), that the
+%candidates and witnesses explored by the algorithm induce a
+%semi-ladder in $B(\delta^k_r,G)$. Thus, the authors define the
+%semi-ladder index $\sli(B)$ of a bipartite graph $B$ as the size of the
+%largest induced semi-ladder contained in $B$. Thus, the number of
+%rounds executed by Algorithm~\ref{alg:1} is bounded by
+%$\sli(B(\delta^k_r,G))$. This in turn, as we shall see later,
+%is nicely bounded from above
+%for some specific graph classes, in particular bounded expansion graphs.
 
 %By Theorem 11 and Corollary 10 in \cite{FabianskiPST19}, we get that on nowhere dense graphs
 %the progressive exploration algorithm (Algorithm~\ref{alg:1})
@@ -90,6 +168,42 @@ for some specific graph classes, in particular bounded expansion graphs.
 %of a semi-ladder in a bipartite graph induced by a distance formula
 %(see \cite{FabianskiPST19} for the details).
 
+\subsection{Independence}
+
+\michalin{Work in progress}
+
+
+\begin{algorithm}
+	\SetKwInOut{Input}{Input}
+	\SetKwInOut{Output}{Output}
+	
+	\nonl
+	\underline{method IndSet} $(G,r,k,p)$\\
+	\Input{A graph $G$ and parameters $r,k,p\in \N$}
+	\Output{A distance-$r$ independent set of size $k$, or $\bot$ if no such set exists.}
+	\medskip
+	${\cal L}\coloneqq \emptyset$\;
+	$W \coloneqq \emptyset$\;
+	\Repeat
+	{
+		$I\coloneqq \candidateInd{W}$\;
+		\If{$I = \bot$}
+		{
+			\KwRet{$\bot$} \;
+		}
+		${\cal L}\coloneqq {\cal L}\cup \{I\}$ \;
+		$P \coloneqq \witnessInd{\cal L,p}$ \;
+		\If{$P = \bot$}
+		{
+			\KwRet{$I$} \;
+		}
+		$W \coloneqq W \cup P$ \;
+	}
+	\caption{Ladder algorithm for distance-$r$ independent set of size $k$ in a graph $G$}\label{alg:2}
+\end{algorithm}
+
+
+\subsection{Old text}
 In this work, we use the above framework to implement efficient
 dynamic algorithms for the $r$-dominating set problem.
 We explore the fact that we have the bound on the number of rounds
@@ -220,7 +334,7 @@ obtain the following result.
 
 \begin{corollary}
 Let $\mathcal{C}$ be a bounded expansion class of graphs.
-There exists a fully dynamic $\dominatingSetDS{n}$ data structure,
+There exists a fully dynamic $\dominatingSetDS{G}{r,k}$ data structure,
 that maintains a graph $G \in \mathcal{C}$ by supporting the following
 operations:
 \begin{itemize}
