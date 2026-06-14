@@ -203,7 +203,7 @@ The ladder algorithm will be parameterized by one more parameter $p\in \N$, whic
 		{
 			\KwRet{``There is no distance-$r$ independent set of size $k$''} \;
 		}
-		${\cal L}\coloneqq {\cal L}\cup \{I\}$ \;
+		${\cal L}\coloneqq {\cal L}\cup \{\tup a\}$ \;
 		$P \coloneqq \witnessInd{\cal L,p}$ \;
 		\If{$P = \bot$}
 		{
@@ -260,7 +260,7 @@ In the following, for a function $\rho\colon S\to \N$ we denote $\max \rho\colon
 	
 	Observe that for a $p$-tuple $\tup b$ of vertices, the $p$-tuple of profiles $(\mathsf{prof}[b_i]\colon i\in [p])$ determines whether $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for each of the tuples in $\cal L$. Therefore, there is a set $\cal J\subseteq (\cal Q)^p$ of $p$-tuples of profiles such that $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for every tuple in $\cal L$ if and only if $(\mathsf{prof}[b_i]\colon i\in [p])\in \cal J$.
 	
-	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_p)\in \cal J$ and each $i\in [p]$, we call query the $\near{S,\pi_i}$ to find, if existent, any vertex $b_i$ whose profile $\mathsf{prof}[b_i]$ is coordinate-wise not larger than $\pi_i$. If for any $\tup \pi\in \cal J$ we manage to find all such vertices $b_j$, then $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for all the tuples in $\cal L$; so $\{b_1,\ldots,b_p\}$ can be reported. And if this check failed for every $\tup \pi\in \cal J$, then we may safely conclude that there is no distance-$r$ dependence witness for all the tuples in $\cal L$ of size at most $p$. 
+	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_p)\in \cal J$ and each $i\in [p]$, we let $L'\coloneqq \{s\in L~\mid~\pi_i(s)\textrm{ is finite}\}$ and call the query $\near{L',\pi_i|_{L'}}$ to find, if existent, any vertex $b_i$ whose profile $\mathsf{prof}[b_i]$ is coordinate-wise not larger than $\pi_i$. If for any $\tup \pi\in \cal J$ we manage to find all such vertices $b_j$, then $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for all the tuples in $\cal L$; so $\{b_1,\ldots,b_p\}$ can be reported. And if this check failed for every $\tup \pi\in \cal J$, then we may safely conclude that there is no distance-$r$ dependence witness for all the tuples in $\cal L$ of size at most $p$. 
 \end{proof}
 
 \subsection{Old text}
