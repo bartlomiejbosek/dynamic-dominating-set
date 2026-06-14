@@ -234,8 +234,8 @@ We now show how to implement the $\witnessInd{\cal L,r,p}$ and $\candidateInd{W,
 \end{itemize}
 In the following, for a function $\rho\colon S\to \N$ we denote $\max \rho\coloneqq \max_{s\in S} \rho(s)$. The reader should think that in the queries above we always have $\max \rho \leq r+1$ for the distance parameter $r$ (of the \textsc{Indepdent Set} problem) we are working with. But the generalization allows us to assign a different relevant distance $\rho(s)\leq r+1$ to every vertex $s$ of $S$.
 
-\begin{lemma}	
-	Let $G$ be a graph, $W$ be a subset of vertices of $G$, and $k,r\in \N$ be parameters. Then the query $\candidate{W,r,k}$ can be answered in time $\Oh((r+2)^{k|W|})$ by performing at most $(r+2)^{k|W|}$ queries of the form $\far{S,\rho}$, where $S$ is a subset of $W$ and $\max \rho\leq r$.
+\begin{lemma}\label{lem:candidateInd-far}
+	Let $G$ be a graph, $W$ be a subset of vertices of $G$, and $k,r\in \N$ be parameters. Then the query $\candidateInd{W,r,k}$ can be answered in time $(r+2)^{\Oh(k|W|)}$ by performing at most $(r+2)^{k|W|}$ queries of the form $\far{S,\rho}$, where $S$ is a subset of $W$ and $\max \rho\leq r$.
 \end{lemma}
 \begin{proof}
 	For a vertex $u$ of $G$, let the \emph{profile} of $u$ be the function $\mathsf{prof}[u]\colon W\to \{0,1,\ldots,r,r+1\}$ defined as follows: for every $s\in S$,
@@ -245,10 +245,23 @@ In the following, for a function $\rho\colon S\to \N$ we denote $\max \rho\colon
 	
 	Observe that for a $k$-tuple $\tup a$ of vertices, the $k$-tuple of profiles $(\mathsf{prof}[a_i]\colon i\in [k])$ determines whether $W$ is a distance-$r$ dependence witness for $\tup a$. Therefore, there is a set $\cal I\subseteq (\cal P)^k$ of $k$-tuples of profiles such that $W$ is a distance-$r$ dependence witness for $\tup a$ if and only if $(\mathsf{prof}[a_i]\colon i\in [k])\in \cal I$.
 	
-	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_k)\in \cal I$ and each $i\in [k]$, we call query the $\far{S,\pi_i}$ to find, if existent, any vertex $a_i$ whose profile $\mathsf{prof}[a_i]$ is coordinate-wise not smaller than $\pi_i$. If for any $\tup \pi\in \cal I$ we manage to find all such vertices $\tup a_i$, then we have found a tuple $\tup a=(a_1,\ldots,a_k)$ for which $W$ is not a distance-$r$ dependence witness; so $\tup a$ can be reported. And if this check failed for every $\tup \pi\in \cal I$, then we may safely conclude that $W$ is a distance-$r$ dependence witness for every $k$-tuple of vertices of $G$.
+	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_k)\in \cal I$ and each $i\in [k]$, we call query the $\far{S,\pi_i}$ to find, if existent, any vertex $a_i$ whose profile $\mathsf{prof}[a_i]$ is coordinate-wise not smaller than $\pi_i$. If for any $\tup \pi\in \cal I$ we manage to find all such vertices $a_i$, then we have found a tuple $\tup a=(a_1,\ldots,a_k)$ for which $W$ is not a distance-$r$ dependence witness; so $\tup a$ can be reported. And if this check failed for every $\tup \pi\in \cal I$, then we may safely conclude that $W$ is a distance-$r$ dependence witness for every $k$-tuple of vertices of $G$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:witnessInd-near}
+	Let $G$ be a graph, $p,k,r\in \N$, and $\cal L$ be a set of $k$-tuples of vertices of $G$. Then the query $\witnessInd{W,r,p}$ can be answered in time $(r+2)^{\Oh(pk|\cal L|)}$ by performing at most $(r+2)^{pk|\cal L|}$ queries of the form $\near{S,\rho}$, where $|S|\leq pk|\cal L|$ and $\max \rho\leq r$.
+\end{lemma}
+\begin{proof}
+	Let $L$ be the set of all the vertices featured in the tuples of $\cal L$. Note that $|L|\leq k|\cal L|$. We will use a slightly different notion of a profile than in \cref{lem:candidateInd-far}: for a vertex $u$ of $G$, its \emph{profile} is the function $\mathsf{prof}[u]\colon L\to \{0,1,\ldots,r,+\infty\}$ defined as follows: for $s\in L$,
+	\[\mathsf{prof}[u](s)\coloneqq \begin{cases} \dist_G(u,s) &\textrm{if }\dist_G(u,s)\leq r,\\
+		+\infty &\textrm{otherwise.}\end{cases}\]
+	Let $\cal Q\coloneqq \{0,1,\ldots,r,+\infty\}^L$ be the set of all possible profiles. Note that $|\cal Q|=(r+2)^{|L|}\leq (r+2)^{k|\cal L|}$. 
+	
+	Observe that for a $p$-tuple $\tup b$ of vertices, the $p$-tuple of profiles $(\mathsf{prof}[b_i]\colon i\in [p])$ determines whether $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for each of the tuples in $\cal L$. Therefore, there is a set $\cal J\subseteq (\cal Q)^p$ of $p$-tuples of profiles such that $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for every tuple in $\cal L$ if and only if $(\mathsf{prof}[b_i]\colon i\in [p])\in \cal J$.
+	
+	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_p)\in \cal J$ and each $i\in [p]$, we call query the $\near{S,\pi_i}$ to find, if existent, any vertex $b_i$ whose profile $\mathsf{prof}[b_i]$ is coordinate-wise not larger than $\pi_i$. If for any $\tup \pi\in \cal J$ we manage to find all such vertices $b_j$, then $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for all the tuples in $\cal L$; so $\{b_1,\ldots,b_p\}$ can be reported. And if this check failed for every $\tup \pi\in \cal J$, then we may safely conclude that there is no distance-$r$ dependence witness for all the tuples in $\cal L$ of size at most $p$. 
+\end{proof}
 
 \subsection{Old text}
 In this work, we use the above framework to implement efficient
