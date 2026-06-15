@@ -1,7 +1,7 @@
 \section{Preliminaries}\label{sec:prelims}
 
 We write $\N$ for the set of nonnegative integers.
-For a positive integer $k$, we denote $[k]\coloneqq \{1,\ldots,k\}$.
+For a positive integer $k$, we denote $[k]\coloneqq \{1,\ldots,k\}$ and $[0,k]\coloneqq \{0,1,\ldots,k\}$.
 We follow the convention that if $\tup x$ is a tuple of objects, then the $i$th element of $\tup x$ is denoted by $x_i$.
 
 \subsection{Graphs}
@@ -159,7 +159,7 @@ By a \emph{data structure} for a dynamic graph $G$ we mean a data structure that
 	\item $\add{uv}$: Insert the edge $uv$.
 	\item $\remove{uv}$: Remove the edge $uv$.
 \end{itemize}
-These methods will be typically augmented by some further queries, specified in the description of every data structure. By the \emph{update time} of a data structure we mean the time complexity of methods $\add{uv}$ and $\remove{uv}$, and by the \emph{initialization time} we mean the time complexity of method $\init{n}$.
+These methods will be typically augmented by some further queries, specified in the description of every data structure. By the \emph{update time} of a data structure we mean the time complexity of methods $\add{uv}$ and $\remove{uv}$, and by the \emph{initialization time} we mean the time complexity of method $\init{n}$. While for simplicity we assume that the initialization works for an edgeless graph, note that one can initialize any graph by first initializing an edgeless graph and then adding the edges one by one.
 
 In most of this work we will silently assume that every data structure for a dynamic graph $G$ maintains a dictionary of the edges of $G$, and hence we may efficiently (in logarithmic time) query whether two vertices of $G$ are adjacent, and get the corresponding edge. This is immaterial when the claimed complexity bounds are polylogarithmic with an unspecified degree of the polylogarithm. When we care about specific degrees of the polylogarithms, we explicitly describe the method of handling the edge set.
 

@@ -1,5 +1,24 @@
 \section{Introduction}\label{sec:intro}
 
+\begin{restatable}{theorem}{mainDomBE}\label{thm:main-domset-be}
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to the guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\ds{}$: Return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize}
+	Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of an update or query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{restatable}
+
+
+\begin{restatable}{theorem}{mainIndBE}\label{thm:main-indset-be}
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to the guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\is{}$: Decide whether in $G$ there exists a distance-$r$ independent set of size $k$. 
+	\end{itemize}
+	Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of an update or query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{restatable}
+
 \wninline{Wojtek}
 \azinline{Ania}
 \bbinline{Bartek}

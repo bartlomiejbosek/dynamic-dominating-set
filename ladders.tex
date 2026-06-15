@@ -94,14 +94,14 @@ Our goal now is to reduce implementation of the $\notDominated{D,r}$ and $\candi
 
 We conclude this section by a statement summarizing the discussion and implying the following: designing an efficient data structure for the $\near{S}$ and $\far{S}$ queries suffices to implement the semi-ladder algorithm in the dynamic setting, thereby providing a dynamic data structure for the \drds{r} problem.
 
-\begin{lemma}
+\begin{lemma}\label{lem:summary-dom}
 	Let $\Cc$ be a class of graphs, $k,r\in \N$ be such that $\sli_r(\Cc)$ is finite, and $\ell\coloneqq k^{\sli_r(\Cc)}$. Let $G$ be a dynamic graph that belongs to $\Cc$ at all times. Suppose that there are data structures $\nearVertexDS{G}{r,\ell}$, supporting queries $\near{S,r}$ in $G$ with $|S|\leq \ell$, and $\farVertexDS{G}{r,k}$, supporting queries $\far{S,r}$ in $G$ with $|S|\leq k$, so that $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ have amortized update/query time $T$, initialization time $I$, and space complexity $M$. Then there is a data structure $\dominatingSetDS{G}{r,k}$ for $G$ that supports the~query
 	\begin{itemize}
 		\item $\ds{}$: Return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
 	\end{itemize}
 	The amortized update time of $\dominatingSetDS{G}{r,k}$ is $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T$, the query time is $\Oh(k)$, the initialization time is $\Oh(I)$, and the space complexity is $\Oh(M)$.
 	
-	Moreover, the data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ may be randomized with error probability at most $1-\eps$, for any fixed parameter $\eps>0$ and against an oblivious adversary, with amortized update/query time, initialization time, and space complexity becoming $T\cdot \tfrac{1}{\eps}$, $I\cdot \log \tfrac{1}{\eps}$, and $M\cdot \log \tfrac{1}{\eps}$, respectively. In this case,  $\dominatingSetDS{G}{r,k}$ is also randomized with error probability at most $\eps$ against an oblivious adversary. The amortized update time becomes $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T\cdot \tfrac{1}{\eps}$, the initialization time becomes $k^{\Oh(\sli_r(\Cc))}\cdot I\cdot \log \tfrac{1}{\eps}$, and the space complexity becomes  $k^{\Oh(\sli_r(\Cc))}\cdot M\cdot \log \tfrac{1}{\eps}$.
+	Moreover, the data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ may be randomized with error probability at most $1-\eps$, for any fixed parameter $\eps>0$ and against an oblivious adversary, with amortized update/query time, initialization time, and space complexity becoming $T\cdot \log \tfrac{1}{\eps}$, $I\cdot \log \tfrac{1}{\eps}$, and $M\cdot \log \tfrac{1}{\eps}$, respectively. In this case,  $\dominatingSetDS{G}{r,k}$ is also randomized with error probability at most $\eps$ against an oblivious adversary. The amortized update time becomes $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T\cdot \log \tfrac{1}{\eps}$, the initialization time becomes $k^{\Oh(\sli_r(\Cc))}\cdot I\cdot \log \tfrac{1}{\eps}$, and the space complexity becomes  $k^{\Oh(\sli_r(\Cc))}\cdot M\cdot \log \tfrac{1}{\eps}$.
 \end{lemma}
 \begin{proof}
 	The data structure $\dominatingSetDS{G}{r,k}$ simply maintains the assumed data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$. Upon every update to $G$, we relay the update to $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ and we run the semi-ladder algorithm on $G$ to find a distance-$r$ dominating set of size at most $k$ (or detect a lack thereof). By \cref{thm:termination}, this algorithm can be implemented using at most $k^{\sli_r(\Cc)}$ queries $\notDominated{D,r}$ oracle with $|D|\leq k$ and $k^{\sli_r(\Cc)}$ queries $\candidate{W,r,k}$ with $|W|\leq \ell$. Every query $\notDominated{D,r}$ can be answered by a single call to the query $\far{D,r}$ offered by $\farVertexDS{G}{r,k}$. By \cref{lem:candidate-to-near}, every query $\candidate{W,r,k}$ can be answered by performing $k^{|W|+1}\leq 2^{k^{\Oh(\sli_r(\Cc))}}$ calls to queries of the form $\near{S,r}$ with $S\subseteq W$, offered by $\nearVertexDS{G}{r,\ell}$. Once a distance-$d$ dominating set of size $k$ (or lack thereof) is computed, it can be provided in time $\Oh(k)$ upon any $\ds{}$ update.
@@ -221,11 +221,11 @@ The ladder algorithm for parameters $r,k,p$ proceeds iteratively in rounds as fo
 \end{itemize}
 Note that the correctness of the algorithm is not obvious: Once the algorithm reports in the second point above that there exists a distance-$r$ independent set of size $k$, then a priori there is no reason to assume that this is correct, and in particular the algorithm only provides this conclusion without providing any actual independent set. However, Fabia\'nski et al.~\cite{FabianskiPST19} proved that in classes of bounded expansion, the algorithm always finishes within a bounded number of rounds and provides a correct answer.
 
-\begin{theorem}[consequence of {\cite[Theorems~5, Theorem~12, and Corollary~16]{FabianskiPST19}}]
+\begin{theorem}[consequence of {\cite[Theorems~5, Theorem~12, and Corollary~16]{FabianskiPST19}}]\label{thm:ladder-bound}
 	Let $\Cc$ be a graph class of bounded expansion and $r,k\in \N$. Then, there exists constants $p,\ell\in \Oh_{\Cc,r,k}(1)$ such that the ladder algorithm (\cref{alg:2}) run on any graph $G\in \Cc$ for parameters $r,k,p$, terminates within at most $\ell$ rounds and always outputs the correct answer. 
 \end{theorem}
 
-Note that thus, within a single run of the ladder algorithm as above, every $\witnessInd{\cal L,r,p}$ query involves a family $\cal L$ consisting of at most $\ell$ candidates, each of size $k$, and every $\candidateInd{W,r,k}$ query involves a vertex set $W$ with $|W|\leq p\ell$.
+Note that thus, within a single run of the ladder algorithm as above, every $\witnessInd{\cal L,r,p}$ query involves a family $\cal L$ consisting of at most $\ell$ candidates, each of size $k$, and every $\candidateInd{W,r,k}$ query involves a vertex set $W$ with $|W|\leq p\ell$. We remark that similarly to \cref{thm:termination}, \cref{thm:ladder-bound} also holds in the larger generality where $\Cc$ is only assumed to be nowhere dense.
 
 We now show how to implement the $\witnessInd{\cal L,r,p}$ and $\candidateInd{W,r,k}$ assuming access to the following generalizations of $\far{S,r}$ and $\near{S,r}$ queries:
 \begin{itemize}
@@ -238,19 +238,19 @@ In the following, for a function $\rho\colon S\to \N$ we denote $\max \rho\colon
 	Let $G$ be a graph, $W$ be a subset of vertices of $G$, and $k,r\in \N$ be parameters. Then the query $\candidateInd{W,r,k}$ can be answered in time $(r+2)^{\Oh(k|W|)}$ by performing at most $(r+2)^{k|W|}$ queries of the form $\far{S,\rho}$, where $S$ is a subset of $W$ and $\max \rho\leq r$.
 \end{lemma}
 \begin{proof}
-	For a vertex $u$ of $G$, let the \emph{profile} of $u$ be the function $\mathsf{prof}[u]\colon W\to \{0,1,\ldots,r,r+1\}$ defined as follows: for every $s\in S$,
+	For a vertex $u$ of $G$, let the \emph{profile} of $u$ be the function $\mathsf{prof}[u]\colon W\to \{0,1,\ldots,r,r+1\}$ defined as follows: for every $s\in W$,
 	\[\mathsf{prof}[u](s)\coloneqq \begin{cases} \dist_G(u,s) &\textrm{if }\dist_G(u,s)\leq r,\\
 		r+1 &\textrm{otherwise.}\end{cases}\]
 	Let $\cal P\coloneqq \{0,1,\ldots,r,r+1\}^W$ be the set of all possible profiles. Note that $|\cal P|=(r+2)^{|W|}$. 
 	
-	Observe that for a $k$-tuple $\tup a$ of vertices, the $k$-tuple of profiles $(\mathsf{prof}[a_i]\colon i\in [k])$ determines whether $W$ is a distance-$r$ dependence witness for $\tup a$. Therefore, there is a set $\cal I\subseteq (\cal P)^k$ of $k$-tuples of profiles such that $W$ is a distance-$r$ dependence witness for $\tup a$ if and only if $(\mathsf{prof}[a_i]\colon i\in [k])\in \cal I$.
+	Observe that for a $k$-tuple $\tup a$ of vertices, the $k$-tuple of profiles $(\mathsf{prof}[a_i]\colon i\in [k])$ determines whether $W$ is a distance-$r$ dependence witness for $\tup a$. Therefore, there is a set $\cal I\subseteq (\cal P)^k$ of $k$-tuples of profiles such that $W$ is a distance-$r$ dependence witness for $\tup a$ if and only if $(\mathsf{prof}[a_i]\colon i\in [k])\in \cal I$. Note that $\cal I$ can be computed in time $(r+2)^{\Oh(k|W|)}$ by investigating every profile of $\cal P$ and deciding in time $(k|W|)^{\Oh(1)}$ whether it should be included in $\cal I$.
 	
-	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_k)\in \cal I$ and each $i\in [k]$, we call query the $\far{S,\pi_i}$ to find, if existent, any vertex $a_i$ whose profile $\mathsf{prof}[a_i]$ is coordinate-wise not smaller than $\pi_i$. If for any $\tup \pi\in \cal I$ we manage to find all such vertices $a_i$, then we have found a tuple $\tup a=(a_1,\ldots,a_k)$ for which $W$ is not a distance-$r$ dependence witness; so $\tup a$ can be reported. And if this check failed for every $\tup \pi\in \cal I$, then we may safely conclude that $W$ is a distance-$r$ dependence witness for every $k$-tuple of vertices of $G$.
+	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_k)\in \cal I$ and each $i\in [k]$, we call query $\far{S,\pi_i}$ to find, if existent, any vertex $a_i$ whose profile $\mathsf{prof}[a_i]$ is coordinate-wise not smaller than $\pi_i$. If for any $\tup \pi\in \cal I$ we manage to find all such vertices $a_i$, then we have found a tuple $\tup a=(a_1,\ldots,a_k)$ for which $W$ is not a distance-$r$ dependence witness; so $\tup a$ can be reported. And if this check fails for every $\tup \pi\in \cal I$, then we may safely conclude that $W$ is a distance-$r$ dependence witness for every $k$-tuple of vertices of $G$.
 \end{proof}
 
 
 \begin{lemma}\label{lem:witnessInd-near}
-	Let $G$ be a graph, $p,k,r\in \N$, and $\cal L$ be a set of $k$-tuples of vertices of $G$. Then the query $\witnessInd{W,r,p}$ can be answered in time $(r+2)^{\Oh(pk|\cal L|)}$ by performing at most $(r+2)^{pk|\cal L|}$ queries of the form $\near{S,\rho}$, where $|S|\leq pk|\cal L|$ and $\max \rho\leq r$.
+	Let $G$ be a graph, $p,k,r\in \N$, and $\cal L$ be a set of $k$-tuples of vertices of $G$. Then the query $\witnessInd{W,r,p}$ can be answered in time $(r+2)^{\Oh(pk|\cal L|)}$ by performing at most $(r+2)^{pk|\cal L|}$ queries of the form $\near{S,\rho}$, where $|S|\leq k|\cal L|$ and $\max \rho\leq r$.
 \end{lemma}
 \begin{proof}
 	Let $L$ be the set of all the vertices featured in the tuples of $\cal L$. Note that $|L|\leq k|\cal L|$. We will use a slightly different notion of a profile than in \cref{lem:candidateInd-far}: for a vertex $u$ of $G$, its \emph{profile} is the function $\mathsf{prof}[u]\colon L\to \{0,1,\ldots,r,+\infty\}$ defined as follows: for $s\in L$,
@@ -258,11 +258,28 @@ In the following, for a function $\rho\colon S\to \N$ we denote $\max \rho\colon
 		+\infty &\textrm{otherwise.}\end{cases}\]
 	Let $\cal Q\coloneqq \{0,1,\ldots,r,+\infty\}^L$ be the set of all possible profiles. Note that $|\cal Q|=(r+2)^{|L|}\leq (r+2)^{k|\cal L|}$. 
 	
-	Observe that for a $p$-tuple $\tup b$ of vertices, the $p$-tuple of profiles $(\mathsf{prof}[b_i]\colon i\in [p])$ determines whether $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for each of the tuples in $\cal L$. Therefore, there is a set $\cal J\subseteq (\cal Q)^p$ of $p$-tuples of profiles such that $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for every tuple in $\cal L$ if and only if $(\mathsf{prof}[b_i]\colon i\in [p])\in \cal J$.
+	Observe that for a $p$-tuple $\tup b=(b_1,\ldots,b_p)$ of vertices, the $p$-tuple of profiles $(\mathsf{prof}[b_i]\colon i\in [p])$ determines whether $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for each of the $k$-tuples in $\cal L$. Therefore, there is a set $\cal J\subseteq (\cal Q)^p$ of $p$-tuples of profiles such that $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for every $k$-tuple in $\cal L$ if and only if $(\mathsf{prof}[b_i]\colon i\in [p])\in \cal J$. Note that $\cal J$ can be computed in time $(r+2)^{\Oh(pk|\cal L|)}$ by investigating every profile of $\cal Q$ and deciding in time $(pk|\cal L|)^{\Oh(1)}$ whether it should be included in $\cal J$.
 	
-	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_p)\in \cal J$ and each $i\in [p]$, we let $L'\coloneqq \{s\in L~\mid~\pi_i(s)\textrm{ is finite}\}$ and call the query $\near{L',\pi_i|_{L'}}$ to find, if existent, any vertex $b_i$ whose profile $\mathsf{prof}[b_i]$ is coordinate-wise not larger than $\pi_i$. If for any $\tup \pi\in \cal J$ we manage to find all such vertices $b_j$, then $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for all the tuples in $\cal L$; so $\{b_1,\ldots,b_p\}$ can be reported. And if this check failed for every $\tup \pi\in \cal J$, then we may safely conclude that there is no distance-$r$ dependence witness for all the tuples in $\cal L$ of size at most $p$. 
+	Now, for each $\tup \pi=(\pi_1,\ldots,\pi_p)\in \cal J$ and each $i\in [p]$, we let $L'\coloneqq \{s\in L~\mid~\pi_i(s)\textrm{ is finite}\}$ and call the query $\near{L',\pi_i|_{L'}}$ to find, if existent, any vertex $b_i$ whose profile $\mathsf{prof}[b_i]$ is coordinate-wise not larger than $\pi_i$. If for any $\tup \pi\in \cal J$ we manage to find all such vertices $b_j$, then $\{b_1,\ldots,b_p\}$ is a distance-$r$ dependence witness for all the tuples in $\cal L$; so $\{b_1,\ldots,b_p\}$ can be reported. And if this check fails for every $\tup \pi\in \cal J$, then we may safely conclude that there is no distance-$r$ dependence witness for all the tuples in $\cal L$ of size at most $p$. 
 \end{proof}
 
+We conclude this section with a statement analogous to \cref{lem:summary-dom} that summarizes the ingredients needed to design a data structure for the \dris{r} problem.
+
+
+\begin{lemma}\label{lem:summary-ind}
+	Let $k,r\in \N$, $\Cc$ be a graph class of bounded expansion, and $p,\ell\in \N$ be the constants provided by \cref{thm:ladder-bound} for $\Cc,k,r$. Let $G$ be a dynamic graph that belongs to $\Cc$ at all times. Suppose that there are data structures $\nearVertexDS{G}{r,k\ell}$, supporting queries $\near{S,\rho}$ in $G$ with $|S|\leq k\ell$ and $\max \rho\leq r$, and $\farVertexDS{G}{r+1,p\ell}$, supporting queries $\far{S,\rho}$ in $G$ with $|S|\leq p\ell$ and $\max \rho\leq r+1$, so that $\nearVertexDS{G}{r,k\ell}$ and $\farVertexDS{G}{r+1,p\ell}$ have amortized update/query time $T$, initialization time $I$, and space complexity $M$. Then there is a data structure $\independentSetDS{G}{r,k}$ for $G$ that supports the~query
+	\begin{itemize}
+		\item $\is{}$: Decide whether in $G$ there exists a distance-$r$ independent set of size $k$. 
+	\end{itemize}
+	The amortized update time of $\independentSetDS{G}{r,k}$ is $(r+2)^{\Oh(pk\ell)}\cdot T$, the query time is $\Oh(1)$, the initialization time is $\Oh(I)$, and the space complexity is $\Oh(M)$.
+	
+	Moreover, the data structures $\nearVertexDS{G}{r,k\ell}$ and $\farVertexDS{G}{r+1,p\ell}$ may be randomized with error probability at most $1-\eps$, for any fixed parameter $\eps>0$ and against an oblivious adversary, with amortized update/query time, initialization time, and space complexity becoming $T\cdot \log \tfrac{1}{\eps}$, $I\cdot \log \tfrac{1}{\eps}$, and $M\cdot \log \tfrac{1}{\eps}$, respectively. In this case,  $\independentSetDS{G}{r,k}$ is also randomized with error probability at most $\eps$ against an oblivious adversary. The amortized update time becomes $(r+2)^{\Oh(pk\ell)}\cdot T\cdot \log\tfrac{1}{\eps}$, the initialization time becomes $(r+2)^{\Oh(pk\ell)}\cdot I\cdot \log \tfrac{1}{\eps}$, and the space complexity becomes  $(r+2)^{\Oh(pk\ell)}\cdot M\cdot \log \tfrac{1}{\eps}$.
+\end{lemma}
+\begin{proof}
+	The proof is completely analogous to that of \cref{lem:summary-dom}, with \cref{thm:ladder-bound} used to argue the correctness and bound the number of iterations by $\ell$, and \cref{lem:candidateInd-far,lem:witnessInd-near} used to reduce the at most $2\ell$ queries of the form $\witnessInd{\cal L,r,p}$ and $\candidateInd{W,r,k}$ to $(r+2)^{\Oh(pk\ell)}$ queries of the form $\near{S,\rho}$ and $\far{S,\rho}$ that are relayed to the data structures $\nearVertexDS{G}{r,k\ell}$ and $\farVertexDS{G}{r+1,p\ell}$. We leave the details to the reader.
+\end{proof}
+
+\begin{comment}
 \subsection{Old text}
 In this work, we use the above framework to implement efficient
 dynamic algorithms for the $r$-dominating set problem.
@@ -434,3 +451,4 @@ expansion, providing the following operations:
 \begin{proof}Postponed to Section 5. \end{proof}
 
 
+\end{comment}
