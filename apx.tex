@@ -117,6 +117,7 @@ Using again that $|S(v)|\le \Delta+1$ for every $v\in V(G)$, we obtain \[|D| = \
 
 We now propose a dynamic data structure that maintains an approximation domination number of a graph of bounded degeneracy based on the approximation method yielded by \cref{lem:apx-static}. We will exploit the following two results.
 
+\wninline{Zdeduplikowac Brodala}
 \begin{theorem}[Brodal--Fagerberg orientation data structure,~\cite{BrodalF99}]\label{thm:BF}
 	For every $d\in \N$, there is a deterministic dynamic data structure that for a fully dynamic $n$-vertex graph $G$ whose degeneracy is always bounded by $d$, maintains an orientation $\vec{G}$ with maximum out-degree bounded by $4d$, using $\Oh(n+m)$ words of memory, where $m$ is the current edge count of $G$. It can be initialized on the edgeless $n$-vertex graph in time $\Oh(n)$. It supports edge insertions in amortized time $\Oh(1)$ and edge deletions in amortized time $\Oh(d+\log n)$. Moreover, after each update it can report all edges whose orientation changed during this update, and the amortized number of such edges is $\Oh(d+\log n)$.
 \end{theorem}
