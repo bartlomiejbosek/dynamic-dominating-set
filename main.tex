@@ -34,7 +34,7 @@
 \usepackage{nicefrac}
 \usepackage{wasysym}
 \usepackage{comment}
-\usepackage{bbold}
+%\usepackage{bbold}
 \linenumbers
 \usepackage[linesnumbered,ruled]{algorithm2e}
 \usepackage{textpos}
@@ -128,6 +128,7 @@
 \newcommand{\tup}[1]{{\bar{#1}}}
 
 \newcommand{\Prob}{\mathbb{P}}
+\renewcommand{\Pr}{\Prob}
 \newcommand{\Exp}{\mathbb{E}}
 
 
@@ -164,7 +165,7 @@
 \newcommand{\Ss}{\mathcal{S}}
 
 \newcommand{\F}{\mathcal{F}}
-\newcommand{\G}{\mathcal{G}}
+\newcommand{\G}{\Cc}
 \newcommand{\val}{\mathrm{val}}
 \newcommand{\col}{\mathrm{col}}
 
@@ -258,6 +259,6 @@
 \appendix
 \input{appendix-weighted}
 \input{appendix-relations}
-\input{appendix-restore-by-sampling-hash}
+%\input{appendix-restore-by-sampling-hash}
 
 \end{document}

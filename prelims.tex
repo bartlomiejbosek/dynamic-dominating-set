@@ -2,7 +2,7 @@
 
 We write $\N$ for the set of nonnegative integers.
 For a positive integer $k$, we denote $[k]\coloneqq \{1,\ldots,k\}$ and $[0,k]\coloneqq \{0,1,\ldots,k\}$.
-We follow the convention that if $\tup x$ is a tuple of objects, then the $i$th element of $\tup x$ is denoted by $x_i$.
+We follow the convention that if $\tup x$ is a tuple of objects, then the $i$th element of $\tup x$ is denoted by $x_i$. For a tuple of parameters $\tup p$, the $\Oh_{\tup p}(\cdot)$ notation hides multiplicative factors that may depend on $\tup p$.
 
 \subsection{Graphs}
 
@@ -51,7 +51,9 @@ The definitions of homomorphisms and (induced) subgraphs isomorphisms can be nat
 Here are some examples of modelling (variations of) graphs as relational structures, which will be used in this paper.
 \begin{itemize}
 	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set, and $\Sigma$ consists of a single binary (arity-$2$) relation that is always irreflexive and symmetric. To model directed graphs, we drop the symmetricity requirement.
-	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graphs by having $|C|$ binary relations in the signature, where each relation selects edges of a different color. We may similarly define and model $C$-colored directed graphs.
+	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graphs by having $|C|$ binary relations in the signature, where each relation selects edges of a different color. 
+	 We may similarly define and model $C$-colored directed graphs.
+	 For $k\in \N$, we use a shorthand: a \emph{$k$-colored graph} is a $[k]$-colored graph, that is, a graph whose edges are colored with colors $\{1,\ldots,k\}$.
 \end{itemize}
 
 Homomorphisms of relational structures are defined naturally: For two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well. 

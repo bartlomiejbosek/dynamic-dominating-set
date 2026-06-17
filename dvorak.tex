@@ -1,110 +1,148 @@
 \section{Counting and finding small patterns in sparse graphs}\label{sec:dvorak}
 
+\newcommand{\UnMaps}{\mathsf{UnweightedMappings}}
+\newcommand{\WeiMaps}{\mathsf{WeightedMappings}}
+\newcommand{\MapEx}{\mathsf{MappingExample}}
+\newcommand{\RetVer}{\mathsf{RetrieveVertex}}
+\newcommand{\WeiSum}{\mathsf{WeightedSum}}
+\newcommand{\Ver}{\mathsf{Verify}}
+\newcommand{\MapVer}{\mathsf{MapVertex}}
+
 %Here we recall and extend relevant stuff from Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}.
 
-\wninline{Zdaje się, że zapomniałem pospecyfikować w paru miejscach, że złożoności czasowe są amortyzowane}
+%\wninline{Zdaje się, że zapomniałem pospecyfikować w paru miejscach, że złożoności czasowe są amortyzowane}
 
-The main result of the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} can be expressed as following:
+In this section we first recall the main results of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} about dynamic data structures for counting homomorphisms and (induced) subgraphs in classes of bounded expansion, and then we generalize them in various ways for the sake of using them in the next section.
+The main result Dvo\v{r}\'ak and T\r{u}ma can be expressed as follows.%\michal{Do Dvorak and Tuma have colors? It would be good to cite a specific theorem.} Here, by a \emph{$k$-colored graph} we mean a graph whose edges are colored with the set of colors $[k]$.
 
-\begin{theorem} \cite{DvorakT13} \label{thm:dvorak-tuma}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let $\F$ be either $\mathrm{Hom}$, $\mathrm{Sub}$, or $\mathrm{ISub}$. Then, there exists a~data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$, which is able to determine $|\F(H, G)|$ after each update. If $\G$ is a~class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh(|G|^{1 + \delta})$.
+\begin{theorem}[\cite{DvorakT13}] \label{thm:dvorak-tuma}
+	Let $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Suppose $G$ is a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times. Then, there is a~data structure $\UnMaps_{\F, H}[G]$ that is able to determine the quantity $|\F(H, G)|$ after every update. The amortized update time is $\Oh_{\G, H, k}(\log^h n)$, where $h = {|H| \choose 2} - 1$, the initialization time is $\Oh_{\G,H,k}(n)$, and the space complexity is $\Oh_{\G, H, k}(n)$. %If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh(|G|^{1 + \delta})$.
 \end{theorem}
 
-However, they concluded that even though they are able to count appearances of $H$ in $G$ as an induced subgraph (that is, determine $|\ISub(H, G)|$), it is not easy to restore any example of such mapping from their data structure as it involves inclusion-exclusion principle. Despite not written explicitly, it can be expected that the authors would have similar troubles restoring examples of subgraph isomorphisms (as the reduction from counting subgraph isomorphisms to counting homomorphisms requires subtractions as well), though they had likely known how to restore examples of homomorphisms, as that part of the algorithm does not require any subtractions and the restoration of an example can be done through tracing transitions with nonzero contributions in the designed dynamic programming. 
+\subsection{Finding examples of mappings}
 
-In this work, we are going to resolve these open questions and prove the following:
+While the data structure of \cref{thm:dvorak-tuma} is able to \emph{count} the appearances of $H$ in $G$ as an induced subgraph (that is, determine $|\ISub(H, G)|$), it is not easy to restore any example of such a mapping from the data structure, because the counting is performed using the Inclusion--Exclusion Principle. In fact, Dvo\v{r}\'ak and T\r{u}ma explicitly ask the question whether examples of induced subgraph isomorphisms can be also reported efficiently~\cite[Section~5]{DvorakT13}. While the same issue also appears when counting subgraphs, restoring examples of homomorphisms can be done by carefully tracing transitions with nonzero contributions in the designed dynamic programming, as this part of the argumentation in \cite{DvorakT13} does not involve subtractions or counting using the Inclusion-Exclusion Principle.
 
-\wninline{Chyba dobrze by było dodać $\eps$ do parametrów struktury danych, i.e. $\mathsf{MappingExample}_{\F, H, k, \eps}$}
+
+%However, they concluded that even though they are able to count appearances of $H$ in $G$ as an induced subgraph (that is, determine $|\ISub(H, G)|$), it is not easy to restore any example of such mapping from their data structure as it involves inclusion-exclusion principle. Despite not written explicitly, it can be expected that the authors would have similar troubles restoring examples of subgraph isomorphisms (as the reduction from counting subgraph isomorphisms to counting homomorphisms requires subtractions as well), though they had likely known how to restore examples of homomorphisms, as that part of the algorithm does not require any subtractions and the restoration of an example can be done through tracing transitions with nonzero contributions in the designed dynamic programming. 
+
+In this section, we resolve all these open questions and prove that example mappings can be efficiently reported both for homomorphisms and for (induced) subgraphs, at the cost of making the data structure randomized.
+Formally, we prove the following variation of \cref{thm:dvorak-tuma}.
+
+%\wninline{Chyba dobrze by było dodać $\eps$ do parametrów struktury danych, i.e. $\MapEx_{\F, H, k, \eps}$}
 \begin{theorem} \label{thm:dvorak-tuma-examples}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Let $\eps \in (0, 1)$ be a real number. Then, there exists a randomized data structure $\mathsf{MappingExample}_{\F, H, k}(G)$, which after each update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)$. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^{g(|H|)} |G| \log{\frac{1}{\eps}})$ and its space complexity is $\Oh_{\G, H, k}(|G| \log |G| \log {\frac{1}{\eps}})$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta \log{\frac{1}{\eps}})$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta} \log{\frac{1}{\eps}})$. The data structure never provide false positives, but may fail to provide $\phi$ with probability at most $\eps$.
+	Let $\eps>0$, $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. 
+	Let $G$ be a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times.
+	Then, there is a randomized data structure $\MapEx_{\F, H, k,\eps}[G]$ which after every update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)$. The amortized update time is $\Oh_{\G, H, k}(\log^{\Oh_H(1)} n \log{\frac{1}{\eps}})$, the initialization time is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$, and the space complexity is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$.  The data structure never provides false positives, but may fail to provide an example mapping $\phi$ with probability at most $\eps$, against an oblivious adversary.
 \end{theorem}
 
-For the algorithms in the following sections we will only need the case $\F = \Hom$, which was the only case that was easy to handle for \cite{DvorakT13} (despite not being stated and proven), but the toolbox that we need to introduce for our main result is of great help in resolving the harder cases of $\F = \Sub$ and $\F = \ISub$ that can be viewed as interesting results of independent interest.
+%If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta \log{\frac{1}{\eps}})$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta} \log{\frac{1}{\eps}})$.
+
+For the algorithms in the following sections we will only need the case $\F = \Hom$, which is the only case that is easy to handle for the argumentation provided in the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} (despite not being stated and proven explicitly there). However, the toolbox that we need to introduce for resolving the harder cases of $\F = \Sub$ and $\F = \ISub$ will turn out to be useful later on; and besides, these cases can be also viewed as results of independent interest. In particular, even though the case $\F=\Hom$ does not actually require randomization, in the proofs of \cref{thm:main-domset-be,thm:main-indset-be} we will reuse some randomized parts of the toolbox, and the resulting data structures are randomized.
 
 %\wninline{@Bartek, napiszesz dowód tego lematu? De facto już to zrobiłeś w dom-one i trzeba by go tylko przystosować do języka tutaj. No i przypadek 2 wymaga jeszcze triku z dzieleniem ważonych przez nieważone aby odzyskać indeks}
-\wninline{TODO: Zastanowić się na ile potrzebujemy tak skomplikowanego dowodu}
+%\wninline{TODO: Zastanowić się na ile potrzebujemy tak skomplikowanego dowodu}
 
-The following lemma, which draws an inspiration from \cite{Majewski24} and \cite{Nadara22}, is a handy tool that helps in restorations of examples while given only counting functions.
+Let us first introduce a handy definition. A \emph{vertex function} is a function $f$ that takes a graph $G$ and its vertex $v$ and returns a nonnegative integer $f(G,v)$. If we always have $f(G,v)\in \{0,1\}$, we call the vertex function $f$ \emph{binary}. 
+
+The following lemma, which draws inspiration from the works of Majewski, Pilipczuk, and Zych-Pawlewicz~\cite{Majewski24} and of Nadara, Pilipczuk, and Smulewicz~\cite{Nadara22}, is our main tool for recovering examples while given access only to counting.
 \begin{lemma} \label{lem:restore-by-sampling}
-	Let $f$ be a function that takes two arguments --- a graph $G$ and its vertex $v$, such that $f(G, v) \ge 0$ for all valid pairs of arguments.
-	
-	Suppose that for any fixed weighting function $w : V(G) \to \Z$, there exists a data structure $\mathsf{WeightedSum}_{f, w}(G)$ that for a dynamic graph $G$ can be initialized and then answer queries by reporting $\sum_{v \in V(G)} f(G, v)w(v)$ after updates to $G$.
-	
-	Also, suppose that either:
-	\begin{enumerate}
-		\item \label{it:binary-f} $f(G, v) \in \{0, 1\}$ for all valid arguments, or
-		\item \label{it:general-f} there exists a data structure $\mathsf{Verify}_{f}(G)$ that for a dynamic graph $G$ can be initialized and then, for a given vertex $v$, answer queries by checking if $f(G, v)>0$.
+	Let $f$ be a vertex function and let $G$ be a dynamic graph on $n$ vertices.
+	Suppose that for any fixed weight function $\wei \colon V(G) \to \Z$, there is a data structure $\WeiSum_{f, \wei}[G]$ that reports the quantity $\sum_{v \in V(G)} f(G, v)\cdot \wei(v)$ after every update to $G$.
+	Also, suppose that
+	\begin{enumerate}[label={(\arabic*)}]
+		\item \label{it:binary-f} $f$ is binary, or
+		\item \label{it:general-f} there is a data structure $\Ver_{f}[G]$ that supports the following queries: for a given vertex $v$, decide whether $f(G, v)>0$.
 	\end{enumerate}
-	Then, there exists a randomized data structure $\mathsf{RetrieveVertex}_{f}(G)$ with no false positives that can be initialized and then answer queries by reporting any $v$ such that $f(G, v) > 0$, or that no such vertex exists. If the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\mathsf{WeightedSum}_{f, w}(G)$ are $\Oh(I_R)$, $\Oh(T_R)$, $\Oh(Q_R)$ and $\Oh(S_R)$, respectively, and in the case \cref{it:general-f} the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\mathsf{Verify}_f(G)$ are $\Oh(I_V)$, $\Oh(T_V)$, $\Oh(Q_V)$ and $\Oh(S_V)$, respectively, then the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\mathsf{RetrieveVertex}_f(G)$ are $\Oh((I_R+I_V+|G|) \cdot \log |G| \cdot \log \frac{1}{\eps})$, $\Oh((T_R+T_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$, $\Oh((Q_R+Q_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V+|G|) \cdot \log |G| \cdot \log \frac{1}{\eps})$, respectively, where $\eps$ is the probability of a false negative and where we assume that $I_V = T_V = Q_V = S_V = 0$ in the case \cref{it:binary-f}, where $\mathsf{Verify}$ is not required.
+	Assume further that for the data structure $\WeiSum_{f, \wei}[G]$ and, in case \ref{it:general-f}, also for $\Ver_f[G]$, we have the following complexity guarantees: amortized update and query time at most $T$, initialization time at most~$I$, and space complexity at most $M$.
+
+	Then, for every~$\eps>0$ there exists a randomized data structure $\RetVer_{f,\eps}[G]$ that support the following query: return any $v$ such that $f(G, v) > 0$, or $\bot$ if no such vertex exists. The amortized update and query time is $\Oh(T\log n\log \tfrac{1}{\eps})$, the initialization time is $\Oh((I+n)\log n\log \tfrac{1}{\eps})$, and the space complexity is $\Oh((M+n)\log n\log \tfrac{1}{\eps})$. The data structure never provides false positive, but may fail to provide an example vertex $v$ with probability at most $\eps$, against an oblivious adversary.
 \end{lemma}	
+	
+	
+	
+	%If the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\WeiSum_{f, w}(G)$ are $\Oh(I_R)$, $\Oh(T_R)$, $\Oh(Q_R)$ and $\Oh(S_R)$, respectively, and in the case \cref{it:general-f} the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\Ver_f(G)$ are $\Oh(I_V)$, $\Oh(T_V)$, $\Oh(Q_V)$ and $\Oh(S_V)$, respectively, then the initialization time, amortized time complexity per a single update, amortized query time, and space complexity of $\RetVer_f(G)$ are $\Oh((I_R+I_V+|G|) \cdot \log |G| \cdot \log \frac{1}{\eps})$, $\Oh((T_R+T_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$, $\Oh((Q_R+Q_V) \cdot \log |G| \cdot \log \frac{1}{\eps})$ and $\Oh((S_R+S_V+|G|) \cdot \log |G| \cdot \log \frac{1}{\eps})$, respectively, where $\eps$ is the probability of a false negative and where we assume that $I_V = T_V = Q_V = S_V = 0$ in the case \cref{it:binary-f}, where $\Ver$ is not required.
 
 \input{lemma-restore-by-sampling-explicite.tex}
 
-Before proceeding we are going to define a useful property of mappings that is shared by homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms.
+\bigskip
+
+Before proceeding, let us note a useful property of mappings that is shared by homomorphisms, subgraph isomorphisms, and induced subgraph isomorphisms, which essentially says that roots can be gadgeted using edges of unique colors. In the following, by a \emph{type of mappings} we mean a family of functions whose domain is the vertex set of one graph $H$ and the co-domain is the vertex set of another graph $G$.
+
 \begin{definition}
-	Let $\F$ be a type of mappings and let $\F(H, G, v, u)$ for $v \in V(H)$ and $u \in V(G)$ be the restriction of $F(H, G)$ to the mappings $\phi$ such that $\phi(v)=u$.
-	We say that $\F$ is \textit{reasonable} if and only if it satisfies the following property: Let $H$ and $G$ be undirected graphs with colored edges. Let $v \in V(H), u \in V(G)$, $H'$ be a graph $H$ with added pendants $vv', vv''$ and $G'$ be a graph $G$ with added pendants $uu', uu''$, where $\col(vv') = \col(uu')$, $\col(vv'') = \col(uu'')$ and $\col(vv'), \col(vv'') \not\in \col(E(H)) \cup \col(E(G))$. Then, $\F(H', G') = \F(H', G', v, u) = \F(H', G', v', u') = F(H', G', v'', u'')$ and there is a natural bijection between $\F(H', G')$ and $\F(H, G, v, u)$ given by restricting any $\phi' \in F(H', G')$ to  $V(H)$. 
+	We say that a type of mappings $\F$ is \textit{root-gadgetable} if it satisfies the following property: Let $\rt{H}{x}$ and $\rt{G}{u}$ be $k$-colored graphs, for some $k\in \N$, each equipped with one root. Let $H'$ be the graph $H$ modified by adding pendants $x'$ and $x''$ adjacent to $x$, and  $G'$ be the graph $G$ modified by adding pendants $u', u''$ adjacent to $u$, so that edges $xx'$ and $uu'$ have color $k+1$ and edges $xx''$ and $uu''$ have color $k+2$. Then
+	\[\F(H',G') = \F(\rt{H'}{x},\rt{G}{u}) = \F(\rt{H'}{x'},\rt{G}{u'})=\F(\rt{H'}{x''},\rt{G}{u''}),\]
+	and there is a natural bijection between $\F(H', G')$ and $\F(\rt{H}{x},\rt{G}{u})$ given by restricting any $\phi \in \F(H', G')$ to  $V(H)$. 
 \end{definition}
 
-\begin{claim}
-	Homomorphisms, subgraph isomorphisms and induced subgraph isomorphisms are reasonable types of mappings.
-\end{claim}
-\begin{proof}
-	Let $\F \in \{\Hom, \Sub, \ISub\}$. Let $\phi \in \F(H', G')$. All three of these types are homomorphisms, so we have that $\phi$ is a homomorphism from $H$ to $G$. As $v$ and $u$ are the only vertices adjacent to edges of colors $\col(vv')$ and $\col(vv'')$ in $H'$ and $G'$, respectively, we must have that either $\phi(v)=u$, and consequently $\phi(v') = u'$ and $\phi(v'') = u''$. Hence $\F(H', G') = \F(H', G', v, u) = \F(H', G', v', u') = \F(H', G', v'', u'') = $. One can then readily verify that restricting any member of $\F(H', G')$ to $V(H)$ defines a bijection between $\F(H', G')$ and $\F(H, G, v, u)$ for any $\F$ from $\{\Hom, \Sub, \ISub\}$.
-\end{proof}
-
-The proof of \cref{thm:dvorak-tuma-examples} will consist of two steps. First, we are going to design a data structure $\mathsf{MapVertex}$ that will identify a possible image of a single vertex of $H$. Then, we are going to use it to identify images of all vertices of $H$ one by one.
-
-Let us focus on designing $\mathsf{MapVertex}$ first. The idea behind designing it is to apply \cref{lem:restore-by-sampling} for a function $f$, where $f(G, u)$ denotes the number of mappings from $\F$ that map $v$ to $u$. However, using that tool requires introducing weighting functions.
-
-First, let us introduce a weighted value of a mapping:
-
-\begin{definition} \label{def:mapping-value}
-	Let $H$ and $G$ be graphs and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Let $\phi : V(H) \to V(G)$ be a mapping. Then, by the \textit{value of} $\phi$, denoted as $\val_w(\phi)$, we denote the following value $\val_w(\phi) = \prod_{v \in V(H)} f(v, \phi(v))$. Consequently, for a type of mappings $\F$, we are going to define $\val_w(\F(H, G))$ as $\sum_{\phi \in \F(H, G)} \val_w(\phi)$.
-\end{definition}
-
-With that definition, we shall introduce a weighted version of \cref{thm:dvorak-tuma} that will help us in applying \cref{lem:restore-by-sampling}. 
-
-\begin{theorem} \label{lem:weighted-dvorak}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Let $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Then, there exists a data structure $\mathsf{WeightedMappings}_{\F, H, w}(G)$, which is able to determine $\val_w(\F(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
-\end{theorem}
-
-On a high level, \cref{thm:dvorak-tuma} is proven in a way that counting induced subgraph isomorphisms is reduced to counting subgraph isomorphisms, which is reduced to counting homomorphisms, which is reduced to counting homomorphisms in a special case, where both $H$ and $G$ are additionally directed, but $H$ is a so called \textit{elder graph}. The last case is solved through a dynamic programming routine. As can be expected, incorporating weights into a dynamic programming routine can be easily done and having that, weighted versions are consequently easily pulled back to homomorphisms, subgraph isomorphisms and induced subgraph isomorphism in that order. We defer more detailed proof of \cref{lem:weighted-dvorak} to \cref{sec:app-weighted-dvorak}.
-
-With \cref{lem:weighted-dvorak}, we are now able to design the promised $\mathsf{MapVertex}$ data structure:
-
-\begin{lemma} \label{lem:map-vertex}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs, $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$, $\eps \in (0, 1)$ be a real number, let $v \in V(H)$ and let $\F \in \{\Hom, \Sub, \ISub\}$. Then, there exists a randomized data structure $\mathsf{MapVertex}_{\F, H, v, k}$ that is able to either provide a vertex $u \in V(G)$ such that there exists $\phi$ such that $\phi(v)=u$ and $\phi \in \F(H, G)$, or state that such $\phi$ does not exist. If $\G$ has bounded expansion, then the amortized time complexity of handling an update to $G$ is $\Oh_{\G, H, k}(\log^{g(|H|)}|G| \log \frac{1}{\eps})$ for some function $g$ and its space complexity is $\Oh_{\G, H, k}(|G| \log |G| \log \frac{1}{\eps})$, whereas if $\G$ is nowhere-dense, then the amortized time complexity of an update to $G$ is $\Oh_{\G, H, k}(|G|^{\delta} \log \frac{1}{\eps})$ and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta} \log \frac{1}{\eps})$. $\mathsf{MapVertex}_{\F, H, v, k}$ never provides false positives, but may provide a false negative with probability at most $\eps$.
+\begin{lemma}\label{lem:root-gadget}
+	Homomorphisms, subgraph isomorphisms, and induced subgraph isomorphisms are root-gadgetable types of mappings.
 \end{lemma}
 \begin{proof}
-	This proof will be an application of \cref{lem:restore-by-sampling}. In order to apply it, we are going to provide required data structures $\mathsf{WeightedSum}_{f, w}(G)$ and $\mathsf{Verify}_f(G)$ such that the resulting $\mathsf{RetrieveVertex}_f(G)$ will exactly be our desired $\mathsf{MapVertex}_{\F, H, v, k}(G)$.
+	Let $\F \in \{\Hom, \Sub, \ISub\}$. Let $\phi \in \F(H', G')$. As (induced) subgraph isomorphisms are also homomorphisms, we have that $\phi$ is a homomorphism from $H$ to $G$. As $x$ and $u$ are the only vertices simultaneously incident to edges of colors $k+1$ and $k+2$ in $H'$ and $G'$, respectively, we must have that $\phi(x)=u$, and consequently also $\phi(x') = u'$ and $\phi(x'') = u''$. It follows that $\F(H',G') = \F(\rt{H'}{x},\rt{G}{u}) = \F(\rt{H'}{x'},\rt{G}{u'})=\F(\rt{H'}{x''},\rt{G}{u''})$. One can then readily verify that restricting any member of $\F(H', G')$ to $V(H)$ defines a bijection between $\F(H', G')$ and $\F(\rt{H}{x}, \rt{G}{u})$, for any $\F$ from $\{\Hom, \Sub, \ISub\}$.
+\end{proof}
+
+We now proceed to the proof of \cref{thm:dvorak-tuma-examples}, which will consist of two steps. First, we are going to design a data structure $\MapVer$ that can identify a possible image of a single vertex of $H$. Then, we are going to use it repeatedly to identify images of all the vertices of $H$ one by one.
+
+Let us focus on designing $\MapVer$ first. The idea  is to apply \cref{lem:restore-by-sampling} for a vertex function $f$ defined as follows: $f(G, u)$ is the number of mappings from $\F$ that map $v$ to $u$. However, in order to follow this path we have to enrich \cref{thm:dvorak-tuma} with a capability of counting \emph{weighted} mappings. The following definition will be useful.
+
+\begin{definition} \label{def:mapping-value}
+	Let $H$ and $G$ be graphs and $\wei\colon V(H)\times V(G)$ be a weight function defined on pairs of vertices: one from $H$ and one from $G$. Let $\phi \colon V(H) \to V(G)$ be a mapping. We define the \textit{value} of $\phi$ (with respect to $\wei$) as follows: \[\val_\wei(\phi) = \prod_{v \in V(H)} \wei(v, \phi(v)).\] Consequently, for a type of mappings $\F$, we define $\val_\wei(\F(H, G))$ as $\sum_{\phi \in \F(H, G)} \val_\wei(\phi)$. These definitions are extended to mappings between rooted graphs in the expected way.
+\end{definition}
+
+With this definition, we state a weighted version of \cref{thm:dvorak-tuma} that will help us in applying \cref{lem:restore-by-sampling}. 
+
+\begin{theorem} \label{lem:weighted-dvorak}
+	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w \colon V(H) \times V(G) \to \Z$. Let $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Then, there exists a data structure $\WeiMaps_{\F, H, w}(G)$, which is able to determine $\val_w(\F(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
+\end{theorem}
+
+\cref{lem:weighted-dvorak} can be proved by a rather straightforward modification of the proof of \cref{thm:dvorak-tuma} due to Dvo\v{r}\'ak and T\r{u}ma.
+On a high level, \cref{thm:dvorak-tuma} is proven by means of consecutive reductions:
+\begin{itemize}
+	\item counting induced subgraph isomorphisms is reduced to counting subgraph isomorphisms;
+	\item counting subgraph isomorphisms is reduced to counting homomorphisms; and
+	\item counting homomorphisms is reduced to counting homomorphisms in a special case, where both $H$ and $G$ are additionally directed, but $H$ is a so-called \textit{elder graph}.
+\end{itemize}
+The first two reductions use the Inclusion--Exclusion Principle, the third reduction directly expresses general homomorphism counts as sums over homomorphism counts from elder graphs, while homomorphism counts from elder graphs are maintained by maintaining suitable dynamic programming tables.
+As can be expected, it is a routine task to incorporate weighted counting into all these steps, in particular into the dynamic programming. For the sake of completeness, in \cref{sec:app-weighted-dvorak} we provide a detailed exposition of the modifications that need to be applied to the proof of \cref{thm:dvorak-tuma} in order to derive  \cref{lem:weighted-dvorak}.
+
+With \cref{lem:weighted-dvorak} in hand, we are now able to design the promised $\MapVer$ data structure:
+
+\begin{lemma} \label{lem:map-vertex}
+	Let $\eps>0$, $\rt{H}{x}$ be a fixed graph with one root $x$, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. 
+	Let $G$ be a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times.
+	Then, there is a randomized data structure $\MapVer_{\F, \rt{H}{x}, k,\eps}[G]$ which after every update is able to report that $\F(H,G)=\emptyset$, or provide a vertex $u$ of $G$ such that $\F(\rt{H}{x},\rt{G}{u})$ is non-empty. The amortized update time is $\Oh_{\G, \rt{H}{x}, k}(\log^{\Oh_{\rt{H}{x}}(1)} n \log{\frac{1}{\eps}})$, the initialization time is $\Oh_{\G, \rt{H}{x}, k}(n \log n \log {\tfrac{1}{\eps}})$, and the space complexity is $\Oh_{\G, \rt{H}{x}, k}(n \log n \log {\tfrac{1}{\eps}})$. The data structure never provides false positives, but may fail to provide an example vertex $u$ with probability at most $\eps$, against an oblivious adversary.
+\end{lemma}
+\begin{proof}
+	Working towards an application of \cref{lem:restore-by-sampling}, we are going to construct the required data structures $\WeiSum_{f, \wei}[G]$ and $\Ver_f[G]$ such that the resulting data structure $\RetVer_{f,\eps}[G]$ fits the requirements for $\MapVer_{\F, \rt{H}{x}, k,\eps}[G]$.
 		
-	Let $f(G, u)$ be a function that returns the number of $\phi$ such that $\phi(v) = u$ and $\phi \in \F(H, G)$ (we clearly have that $f(G, u) \ge 0$) and let $w$ be some fixed weighting function $w : V(G) \to \Z$. Let us define $w' : V(H) \times V(G) \to \Z$ in the following way:
-	
+	Let $f$ be a vertex function defined as follows: for a graph $G$ and a vertex $u$ of $G$, 
+	\[f(G,u)\coloneqq |\F(\rt{H}{x},\rt{G}{u})|.\] 
+	Consider any weight function $\wei\colon V(G)\to \Z$ and define a weight function $\wei' \colon V(H) \times V(G) \to \Z$ in the following way: for $(y,v)\in V(H)\times V(G)$,
 	\[
-	w'(x, y) =
+	\wei'(y,v) =
 	\begin{cases}
-		w(y) & \text{if } x = v, \\
-		1  & \text{otherwise}
+		\wei(v) & \text{if } y = x, \\
+		1  & \text{otherwise.}
 	\end{cases}
 	\]
+	Note that for $\wei'$ defined in this way, we have  \[\val_{\wei'}(\F(H, G)) =\sum_{\phi\in \F(H,G)} \wei(\phi(x)) = \sum_{u\in V(G)} |\F(\rt{H}{x},\rt{G}{u})|\cdot \wei(u)= \sum_{u \in V(G)} f(G, u)\cdot \wei(u).\]
+	Hence, we can set $\WeiSum_{f, \wei}[G] \coloneqq \WeiMaps_{\F, H, \wei'}[G]$, provided by \cref{lem:weighted-dvorak}.
 	
-	For $w'$ defined in such a way, it is easy to see that $\val_{w'}(\F(H, G)) = \sum_{u \in V(G)} f(G, u) w(u)$.
-	Hence, we can set $\mathsf{WeightedSum}_{f, w}(G) \coloneqq \mathsf{WeightedMappings}_{\F, H, w'}(G)$.
+	As for designing $\Ver_f[G]$, let us first construct $H'$ from $H$ by adding two pendants $x',x''$ connected to $x$ by edges $xx'$ and $xx''$ of colors $k+1$ and $k+2$, respectively. Further, for any $u \in V(G)$, let $G_u$ be obtained from $G$ by adding two pendants $u',u''$ connected to $u$ by edges $uu'$ and $uu''$ of colors $k+1$ and $k+2$, respectively. As $\F$ is a root-gadgetable type of mappings by \cref{lem:root-gadget}, we have that $|\F(\rt{H}{x}, \rt{G}{u})|=|\F(H',G_u)|$. Hence, deciding whether $f(G, u)>0$ is equivalent to deciding whether $|\F(H', G_u)| > 0$. Consequently, the data structure $\Ver_f[G]$ can be implemented in the following way. Let us initialize $\UnMaps_{\F, H'}$ on the vertex set $V(G) \cup \{p_1, p_2\}$, where $p_1$ and $p_2$ are fresh vertices that will normally stay isolated. All updates to $G$ are relayed to that data structure. Whenever a query about a vertex $u$ is issued to $\Ver_f(G)$, we temporarily add the edges $up_1$ and $up_2$ with colors $k+1$ and $k+2$ to $\UnMaps_{\F, H'}$ in order to transform $G$ to $G_u$ and answer that $f(G, u)>0$ if and only if $|\F(H', G_u)| > 0$. After answering the query, the edges $up_1$ and $up_2$ are removed, thus making $p_1$ and $p_2$ isolated again.
 	
-	As for designing $\mathsf{Verify}_f(G)$, let us first define $H'$, which is obtained by adding to $H$ two pendants $vv'$ and $vv''$ with colors $k+1$ and $k+2$ and for $u \in V(G)$ let us define $G_u$ by adding to $G$ two pendants $uu'$ and $uu''$ with colors $k+1$ and $k+2$ as well. As $\F$ is a reasonable type of mappings, we have that $\F(H', G_u) = \F(H, G, v, u)$. Hence, checking if $f(G, u)>0$ is equivalent to checking if $|\F(H', G_u)| > 0$. Consequently, $\mathsf{Verify}_f(G)$ can be implemented in the following way. Let us initialize $\mathsf{UnweightedMappings}_{\F, H'}$ on a set of vertices of size $V(G) \cup \{p_1, p_2\}$. All updates to $G$ are relayed to that structure. Whenever a query about a vertex $u$ comes to $\mathsf{Verify}_f(G)$, it adds edges $up_1$ and $up_2$ with colors $k+1$ and $k+2$ to $\mathsf{UnweightedMappings}_{\F, H'}(G)$ in order to transform $G$ to $G_u$ and answers that $f(G, u)>0$ if and only if $|\F(H', G_u)| > 0$. After answering the query, the edges $up_1$ and $up_2$ are removed.
+	If $\G'$ is the class of all the graphs obtainable by repeatedly adding pendants to a graph from $\G$, then $G_u \in \G'$ and $\G'$ has bounded expansion by \cref{obs:pendants-bnd-exp}. Hence, the amortized time complexity of both handling an update to $G$ or answering a single query by $\Ver_f[G]$ is $\Oh_{\G', H', k+2}(\log^{\Oh_{H'}(1)} |G'|) = \Oh_{\G, \rt{H}{x}, k}(\log^{\Oh_{\rt{H}{x}}(1)} n)$. Similarly, the space complexity and the initialization time is $\Oh_{\G, H, k}(n)$. 
+	%Whereas, if $\G$ is nowhere-dense, then the time complexities of handling an update to $G$ or answering a single query are $\Oh_{\G, H, k}(|G|^\delta)$, while its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 	
-	If $\G'$ is the class of graphs obtained by adding pendants to $\G$, then $G_u \in \G'$. If $\G$ has bounded expansion, then the time complexities of both handling an update to $G$ or answering a single query by $\mathsf{Verify}_f(G)$ are $\Oh_{\G', H', k+2}(\log^{g(|H'|)} |G'|) = \Oh_{\G, H, k}(\log^{g'(|H|)} |G|)$, while its space complexity is $\Oh_{\G, H, k}(|G|)$. Whereas, if $\G$ is nowhere-dense, then the time complexities of handling an update to $G$ or answering a single query are $\Oh_{\G, H, k}(|G|^\delta)$, while its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
-	
-	Applying \cref{lem:restore-by-sampling} with the provided functions $f, w$ and supplied data structures $\mathsf{WeightedSum}_{f, w}(G)$ and $\mathsf{Verify}_f(G)$ results in obtaining $\mathsf{RetrieveVertex}_f(G)$ that serves as $\mathsf{MapVertex}_{\F, H, v, k}(G)$ with the desired properties.
-	
+	We may now
+	apply \cref{lem:restore-by-sampling} by supplying it with functions $f, \wei$, data structures $\WeiSum_{f, \wei}[G]$ and $\Ver_f[G]$, and the error parameter $\eps$. This yields the data structure $\RetVer_{f,\eps}[G]$ that may serve as $\MapVer_{\F, \rt{H}{x}, k,\eps}[G]$ with the desired properties.
 \end{proof}
 
 %\wninline{Napisały mi się lematy w takiej kolejności w jakiej mi się napisały, ale myślę, że może lepiej jednak je pozamieniać kolejnością, aby nie mieć przydługiego założenia o istnieniu MapVertex z abstrakcyjną złożonością i dopiero potem dowodzić jego istnienia, tylko jednak najpierw udowodnić jego istnienie, a potem już operować na konkretach?}
-\wninline{Zdecydowałem się dodać po dwa pendanty, a nie po jednym, aby nie było problemów z izolowanymi wierzchołkami}
+%\wninline{Zdecydowałem się dodać po dwa pendanty, a nie po jednym, aby nie było problemów z izolowanymi wierzchołkami}
 %\begin{lemma} \label{lem:vertices-to-mappings}
 %% Then, the data structure is able to either provide a vertex $u \in V(G)$ such that there exists $\phi$ such that $\phi(v)=u$ and $\phi \in \F(H, G)$, or state that such $\phi$ does not exist. Any update to $G$ is handled in amortized $\Oh_{\G, H, k}(\log^{g(|H|, k)}(|G|))$ time complexity (for some monotonic function $g$) and the queries never provide false positives, but may provide false negatives with probability at most $\eps$.
-%Let $H$ be a fixed graph, $\G$ be a class of graphs, $G \in \G$ be a dynamic graph and let $\F \in \{\Hom, \Sub, \ISub\}$. Then, there exists a data structure $\mathsf{MappingExample}_{\F, H, k}(G)$ that provides $\phi$ such that $\phi \in \F(H, G)$, or state that it does not exist. Any update to $G$ is handled in amortized $\Oh_{\G, H, k}(\log^{g(|H|)}(|G|))$ time complexity for some function $g'$. The queries never provide false negatives, but may provide false negatives with probability at most $|H| \eps$.
+%Let $H$ be a fixed graph, $\G$ be a class of graphs, $G \in \G$ be a dynamic graph and let $\F \in \{\Hom, \Sub, \ISub\}$. Then, there exists a data structure $\MapEx_{\F, H, k}(G)$ that provides $\phi$ such that $\phi \in \F(H, G)$, or state that it does not exist. Any update to $G$ is handled in amortized $\Oh_{\G, H, k}(\log^{g(|H|)}(|G|))$ time complexity for some function $g'$. The queries never provide false negatives, but may provide false negatives with probability at most $|H| \eps$.
 %	
 %\end{lemma}
 
@@ -113,12 +151,12 @@ We are now ready to conclude the proof of the \cref{thm:dvorak-tuma-examples}.
 \begin{proof} [Proof of \cref{thm:dvorak-tuma-examples}]
 	Let $V(H) = \{v_1, \ldots, v_{|H|}\}$. Let us create a sequence of graphs $H_0, \ldots, H_{|H|}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding $v_ip_{2i-1}$ and $v_ip_{2i}$ pendants colored with the colors $k+2i-1$ and $k+2i$, respectively. 
 	
-	Let $\mathsf{MapVertex}_i \coloneqq \mathsf{MapVertex}_{\F, H_i, v_{i+1}, k + 2i}$ for $i=0, \ldots, |H|-1$. Any update to $G$ is passed to all of $\mathsf{MapVertex}_0, \ldots, \mathsf{MapVertex}_{|H|-1}$. The data structure $\mathsf{MapVertex}_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
-	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding $u_iq_{2i-1}$ and $u_iq_{2i}$ pendants colored with the colors $k+2i-1$ and $k+2i$, respectively (for that reason $\mathsf{MapVertex}_i$ should be initialized on $|G|+2i$ vertices rather than on $|G|$). Let us turn $\mathsf{MapVertex}_i(G)$ into $\mathsf{MapVertex}_i(G_i)$ by adding the corresponding $2i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \cref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
+	Let $\MapVer_i \coloneqq \MapVer_{\F, H_i, v_{i+1}, k + 2i}$ for $i=0, \ldots, |H|-1$. Any update to $G$ is passed to all of $\MapVer_0, \ldots, \MapVer_{|H|-1}$. The data structure $\MapVer_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
+	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding $u_iq_{2i-1}$ and $u_iq_{2i}$ pendants colored with the colors $k+2i-1$ and $k+2i$, respectively (for that reason $\MapVer_i$ should be initialized on $|G|+2i$ vertices rather than on $|G|$). Let us turn $\MapVer_i(G)$ into $\MapVer_i(G_i)$ by adding the corresponding $2i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \cref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
 	
-	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi \in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $\mathsf{MapVertex}_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, |H|-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
+	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi \in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $\MapVer_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, |H|-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
 	
-	Note that we can set $g'(|H|, k) = g(3|H|, k+2|H|)$ and $|G_i| \le |G| + 2|H| = \Oh_{H}(|G|)$. As we make $|H|$ queries to all $\mathsf{MapVertex}_i$ structures in total, the total probability of not succeeding at some step is at most $|H|\eps$.
+	Note that we can set $g'(|H|, k) = g(3|H|, k+2|H|)$ and $|G_i| \le |G| + 2|H| = \Oh_{H}(|G|)$. As we make $|H|$ queries to all $\MapVer_i$ structures in total, the total probability of not succeeding at some step is at most $|H|\eps$.
 	
 \end{proof}
 
