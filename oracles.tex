@@ -176,7 +176,7 @@ Another tool that we will require will be \emph{fraternal augmentations}, introd
 	\wninline{Todo}
 \end{proof}
 
-The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
+We will also use the following statement about maintaining weighted homomorphism counts.
 
 \begin{lemma}\label{lem:dyn-rooted-homs}
 	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $r\in \N$, and a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,r)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
@@ -184,7 +184,8 @@ The following statement follows from \cref{thm:homcounts-relational}.\michal{Mak
 	with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,r}(1)} n$. The data structure can be initialized for an edgeless $D$ in time $\Oh_{\Cc,H,\Lambda,r}(n)$ and uses $\Oh_{\Cc,H,\Lambda,r}(n)$ space at all times.
 \end{lemma}
 \begin{proof}
-	\wninline{todo}
+	Follows immediately from \cref{thm:homcounts-relational} applied to the rooted $(\Lambda,r)$-oriented graph $\rt{H}{x}$ (understood as a relational structure in the obvious way) and the weight function $\wei'\colon V(H)\times V(D)$ defined as follows: for $(z,v)\in V(H)\times V(D)$,
+	\[\wei'(z,v)\coloneqq \begin{cases}\wei(v) &\textrm{if }z=x,\\ 1 & \textrm{otherwise.}\end{cases}\qedhere\]
 \end{proof}
 
 The next lemma is the combinatorial core of our approach. We show that using the Inclusion--Exclusion Principle, we may express a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ as a linear combination of weighted sums over vertices that are \emph{close}.
@@ -283,7 +284,7 @@ With all the tools prepared, we may prove \cref{thm:FarVertex-new} and thereby p
 	We proceed under the assumption that every query asks about $S=\{u\}$ and $\rho=(u\mapsto r+1)$, for a fixed vertex $u$.
 	For the purpose of applying \cref{lem:restore-by-sampling}, for a vertex $v$ of $G$ we define
 	\[f(G,v)\coloneqq \begin{cases} 1 &\textrm{if }\dist_G(u,v)>r+1,\\ 0 & \textrm{otherwise.}\end{cases}\]
-	A suitable data structure $\mathsf{WeightedSum}_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far} (applied with parameter $r+1$ instead of $r$). The data structure for $\mathsf{Verify}_f[G]$ can be obtained by maintaining the data structures TODO\michal{todo} for $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,r+1$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f,\eps}[G]$ provided by it meets all the requirements for $\farVertexDS{G}{r,k,\eps}$.
+	A suitable data structure $\WeiSum_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far} (applied with parameter $r+1$ instead of $r$). The data structure for $\Ver_f[G]$ can be obtained by maintaining the data structures $\WeiMaps_{\Hom,\rt{H}{x,y},1}[G]$ provided by \cref{thm:homcounts-relational} for $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,r+1$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f,\eps}[G]$ provided by it meets all the requirements for $\farVertexDS{G}{r,k,\eps}$.
 \end{proof}
 
 \subsection{Dynamic domination and independence in classes of bounded expansion}

@@ -56,6 +56,8 @@ Here are some examples of modelling (variations of) graphs as relational structu
 	 For $k\in \N$, we use a shorthand: a \emph{$k$-colored graph} is a $[k]$-colored graph, that is, a graph whose edges are colored with colors $\{1,\ldots,k\}$.
 \end{itemize}
 
+The \emph{Gaifman graph} of a $\Sigma$-structure $\Af$ is the graph on vertex set $U(\Af)$ where two distinct elements $u,v\in U(\Af)$ are adjacent if and only if they appear together in some tuple of some relation $R^\Af$, $R\in \Sigma$.
+
 Homomorphisms of relational structures are defined naturally: For two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well. 
 
 Similarly to graphs, we may consider \emph{rooted relational structures} by equipping a structure $\Af$ with a tuple $\tup u$ of roots, which are (not necessarily distinct) elements of the universe; we denote it by $\rt{\Af}{\tup u}$. Homomorphisms and (induced) substructure isomorphisms can be again extended to rooted structures in the expected way. Thus, we may speak about homomorphisms of colored directed graphs etc.

@@ -95,7 +95,7 @@ Let us focus on designing $\MapVer$ first. The idea  is to apply \cref{lem:resto
 With this definition, we state a weighted version of \cref{thm:dvorak-tuma} that will help us in applying \cref{lem:restore-by-sampling}. 
 
 \begin{theorem} \label{lem:weighted-dvorak}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w \colon V(H) \times V(G) \to \Z$. Let $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Then, there exists a data structure $\WeiMaps_{\F, H, w}(G)$, which is able to determine $\val_w(\F(H, G))$ after each update. If $\G$ is a class of bounded expansion, then the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$. If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
+	Let $k\in \N$, $H$ be a fixed $k$-colored graph, $\G$ be a graph class of bounded expansion, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Let $G$ be a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times, and let $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then there is a data structure $\WeiMaps_{\F, H, \wei}[G]$ that is able to determine $\val_\wei(\F(H, G))$ after each update. The amortized update time is $\Oh_{\G, H, k}(\log^h n)$, where $h = {|H| \choose 2} - 1$, while the initialization time and the space complexity is~$\Oh_{\G, H, k}(n)$. %If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{theorem}
 
 \cref{lem:weighted-dvorak} can be proved by a rather straightforward modification of the proof of \cref{thm:dvorak-tuma} due to Dvo\v{r}\'ak and T\r{u}ma.
@@ -151,24 +151,111 @@ With \cref{lem:weighted-dvorak} in hand, we are now able to design the promised 
 We are now ready to conclude the proof of the \cref{thm:dvorak-tuma-examples}.
 
 \begin{proof} [Proof of \cref{thm:dvorak-tuma-examples}]
-	Let $V(H) = \{v_1, \ldots, v_{|H|}\}$. Let us create a sequence of graphs $H_0, \ldots, H_{|H|}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding $v_ip_{2i-1}$ and $v_ip_{2i}$ pendants colored with the colors $k+2i-1$ and $k+2i$, respectively. 
+	Let $V(H) = \{v_1, \ldots, v_{|H|}\}$. Let us create a sequence of graphs $H_0, \ldots, H_{|H|}$, where $H=H_0$ and $H_{i}$ is created from $H_{i-1}$ by adding pendants $p_{2i-1}$ and $p_{2i}$, connected to $v_i$ by edges of colors $k+2i-1$ and $k+2i$, respectively. Let also $\eps'\coloneqq \tfrac{\eps}{|H|}$. Let also $\G'$ be the class of graphs obtainable from graphs from $\G$ by repeatedly adding pendants. By \cref{obs:pendants-bnd-exp}, $\G'$ has bounded expansion.
 	
-	Let $\MapVer_i \coloneqq \MapVer_{\F, H_i, v_{i+1}, k + 2i}$ for $i=0, \ldots, |H|-1$. Any update to $G$ is passed to all of $\MapVer_0, \ldots, \MapVer_{|H|-1}$. The data structure $\MapVer_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
-	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding $u_iq_{2i-1}$ and $u_iq_{2i}$ pendants colored with the colors $k+2i-1$ and $k+2i$, respectively (for that reason $\MapVer_i$ should be initialized on $|G|+2i$ vertices rather than on $|G|$). Let us turn $\MapVer_i(G)$ into $\MapVer_i(G_i)$ by adding the corresponding $2i$ pendants. Let $\G'$ be the class of graphs obtained from $\G$ by adding arbitrarily many pendants. Based on \cref{obs:pendants-bnd-exp} we have that $\G'$ is of bounded expansion and $G_i \in \G'$.
+	We maintain data structures $\MapVer_i \coloneqq \MapVer_{\F, \rt{H_i}{v_{i+1}}, k + 2i,\eps'}$ for $i=0, \ldots, |H|-1$, provided by \cref{lem:map-vertex} for the class $\G'$. Each data structure $\MapVer_i$ is initialized on $n+2i$ vertices: the $n$ vertices of $G$ and $2i$ additional vertices that will normally stay isolated. Any update to $G$ is passed to all of the data structures $\MapVer_0, \ldots, \MapVer_{|H|-1}$, so that each data structure $\MapVer_i$ maintains a graph consisting of $G$ plus $2i$ isolated vertices. 
 	
-	By the assumption that $\F$ is reasonable and by induction on $i$, it is clear that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi \in \F(H, G)$ such that $\phi(v_i)=u_i$, where that bijection fulfills $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $\MapVer_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$. Moreover it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for $j\le i+1$. By repeating this reasoning for $i=0, \ldots, |H|-1$, we get a full mapping $\phi \in \F(H, G)$, as desired.
+	The data structure $\MapVer_i$ will be used to identify the image of $v_{i+1}$ after already fixing images of $v_1, \ldots, v_i$.
+	That is, let us assume that we have already identified vertices $u_1, \ldots, u_i \in V(G)$ such that there exists a mapping $\phi \in \F(H, G)$, where $\phi(v_j)=u_j$ for $j \le i$. Let $G_0, G_1, \ldots, G_i$ be the sequence of graphs such that $G=G_0$ and $G_i$ is created from $G_{i-1}$ by adding pendants $q_{2i-1}$ and $q_{2i}$ connected to $u_i$ by edges of  colors $k+2i-1$ and $k+2i$, respectively (for that reason $\MapVer_i$ should be initialized on $|G|+2i$ vertices rather than on $|G|$). By using the $2i$ isolated vertices in the graph stored in $\MapVer_i$ and temporarily adding $2i$ edges to them, we can turn the graph stored in $\MapVer_i$ into $G_i$. Since $\F$ is root-gadgetable (by \cref{lem:root-gadget}), a straightforward induction on $i$ shows that there is a natural bijection between mappings $\phi' \in \F(H_i, G_i)$ and mappings $\phi \in \F(H, G)$ satisfying $\phi(v_j)=u_j$ for all $j\leq i$, defined by $\phi'|_{V(H)} = \phi$. As we assumed that there exists $\phi \in \F(H, G)$ such that $\phi(v_i) = u_i$, we conclude that $\F(H_i, G_i)$ is nonempty. Hence, $\MapVer_i$ is able to provide a vertex $u_{i+1}$ such that there exists $\phi' \in \F(H_i, G_i)$ where $\phi'(v_{i+1})=u_{i+1}$, or conclude that no such vertex exists. Moreover, if such $u_{i+1}$ is found, then it has to be the case that $u_{i+1} \in V(G)$ (that is, it is not possible that $u_{i+1}=q_j$ for some $j\le i$), so by restricting $\phi'$ to $V(H)$ we get a mapping $\phi$ such that $\phi(v_j)=u_j$ for all $j\le i+1$. By repeating this reasoning for $i=0, \ldots, |H|-1$, we get a full mapping $\phi \in \F(H, G)$, as desired; or a conclusion at some step that no such mapping exists.
 	
-	Note that we can set $g'(|H|, k) = g(3|H|, k+2|H|)$ and $|G_i| \le |G| + 2|H| = \Oh_{H}(|G|)$. As we make $|H|$ queries to all $\MapVer_i$ structures in total, the total probability of not succeeding at some step is at most $|H|\eps$.	
+	Note that we have $|H_i|\leq |H|+2i\leq 3|H|$ and $|G_i| \le n + 2|H|$. Therefore, the asserted guarantees on the amortized update time, initialization time, and space complexity follow directly from the guarantees for the data structures $\MapVer_i$, provided by \cref{lem:map-vertex}. Clearly the data structures provides no false positives, and since we make $|H|$ queries to the $\MapVer_i$ data structures in total, the probability of a false negative is bounded by $|H|\eps'=\eps$.
 \end{proof}
 
-
-We remark that as $|\F(H, G)| \le |G|^{|H|}$ and $\val_w(\phi) \le |G|$ for any considered $\F$, $w$ and $\phi$, all integers involved in the computations are of size at most $\Oh(|H|)$ words, hence for a constant $H$, any arithmetic computations can be performed in constant time as well. 
+Finally, we remark that since $|\F(H, G)| \le |G|^{|H|}$ and $\val_\wei(\phi) \le |G|$ for any $\F$, $\wei$, and $\phi$ considered in the proofs presented above, all the integers involved in the computations are of bitlength $\Oh(|H|\log n)$, and hence they fit into $\Oh(|H|)$ words in the RAM model. Therefore, all the arithmetic operations can be performed in time $\Oh_H(1)$.
 
 \subsection{Extension to rooted relational structures}
-There is a natural question to ask about whether \cref{thm:dvorak-tuma-examples} extends to more general settings, e.g. can we ask about directed edges or hyperedges? The short answer is affirmative. In fact, in the following sections we are going to use a generalization to retrieving example homomorphisms between directed graphs. However, due to a technical nature of this argument, we defer precise statement and its proof to \cref{app:relations}. 
- 
+
+In the next section we will need a variant of \cref{thm:dvorak-tuma-examples} for rooted, colored directed graphs. While it is easy to add those features to the proof of \cref{thm:dvorak-tuma-examples}, for the sake of providing a robust citation interface for future works, we choose to take an extra mile and lift \cref{lem:weighted-dvorak,thm:dvorak-tuma-examples} to the setting of rooted relational structures. The proof is a reduction to \cref{lem:weighted-dvorak,thm:dvorak-tuma-examples} by means of rather simple gadgeteering, similar to the arguments proposed by Dvo\v{r}\'ak and T\r{u}ma in~\cite[Section~4]{DvorakTumaArxiv}, where they argued that \cref{thm:dvorak-tuma} lifts to this setting.
+
+To clarify the model, for a signature $\Sigma$, by a \emph{dynamic $\Sigma$-structure} we mean a $\Sigma$-structure $\Af$ whose universe stays fixed, but which is modified by updates of the following kind: given a relation $R\in \Sigma$ and a tuple $\tup u\in \Af^{\ar(R)}$, add/remove $\tup u$ from $R^\Af$. Then, data structures for dynamic $\Sigma$-structures are defined analogously to the graph setting.
 
 
+%There is a natural question to ask about whether \cref{thm:dvorak-tuma-examples} extends to more general settings, e.g. can we ask about directed edges or hyperedges? The short answer is affirmative. In fact, in the following sections we are going to use a generalization to retrieving example homomorphisms between directed graphs. However, due to a technical nature of this argument, we defer precise statement and its proof to \cref{app:relations}. 
+
+\begin{theorem}\label{thm:homcounts-relational}
+	Let $\Cc$ be a graph class of bounded expansion, $\Sigma$ be a signature, $\rt{\Bf}{\tup x}$ be a fixed $\Sigma$-structure with roots $\tup x$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Let $\Af$ be a dynamic $\Sigma$-structure with a universe of size $n$ whose Gaifman graph belongs at all times to $\Cc$. Further, let $\wei\colon U(\Bf)\times U(\Af)\to \Z$ be a fixed weight function. Then there is a deterministic data structure $\WeiMaps_{\F, \rt{\Bf}{\tup x},\wei}[\Af]$ for $\Af$ that supports queries:
+	\begin{itemize}
+		\item Given a tuple $\tup u\in U(\Af)^{|\tup x|}$, compute $\val_\wei(\F(\rt{\Bf}{\tup x},\rt{\Af}{\tup u}))$.
+	\end{itemize}
+	Moreover, for every $\eps>0$, there is a randomized data structure $\MapEx_{\F, \rt{\Bf}{\tup x},\eps}[\Af]$ for $\Af$ that supports queries:
+	\begin{itemize}
+		\item Given a tuple $\tup u\in U(\Af)^{|\tup x|}$, return any $\varphi\in\F(\rt{\Bf}{\tup x},\rt{\Af}{\tup u})$, or $\bot$ if this set is empty.
+	\end{itemize}
+	The amortized update and query time of the data structure $\WeiMaps_{\F, \rt{\Bf}{\tup x},\wei}[\Af]$ is $\Oh_{\Cc}(\log^{\Oh_{\rt{\Bf}{\tup x},\Sigma}(1)} \log n)$, while the initialization time and the space complexity is $\Oh_{\Cc,\rt{\Bf}{\tup x},\Sigma}(n)$. 
+	The amortized update and query time of the data structure $\MapEx_{\F, \rt{\Bf}{\tup x},\eps}[\Af]$ is $\Oh_{\Cc}(\log^{\Oh_{\rt{\Bf}{\tup x},\Sigma}(1)} \log n \log \tfrac{1}{\eps})$, while the initialization time and the space complexity is $\Oh_{\Cc,\rt{\Bf}{\tup x},\Sigma}(n\log n\log \tfrac{1}{\eps})$. The data structure $\WeiMaps_{\F, \rt{\Bf}{\tup x},\wei}[\Af]$ always provides correct answers to the queries. The data structure $\MapEx_{\F, \rt{\Bf}{\tup x},\eps}[\Af]$ never outputs false positives, but may output a false negative with probability at most $\eps$ against an oblivious adversary.
+\end{theorem}
+	
+	%Let $H$ and $G$ be two relational structures with $U_H$ and $U_G$ as their universes equipped with relations $R_1, \ldots, R_r$, where the arity of $R_i$ is $c_i$. $H$ is a fixed relational structure, i.e. $R_i(H)$ stays fixed, while $G$ is a dynamic relational structure, i.e. it receives a series of additions and removals to any of $R_1(G), \ldots, R_r(G)$. Let $\F \in \{\Hom, \Sub, \ISub\}$. Let $\eps \in (0, 1)$ be a real number. Then, there exist deterministic data structure $\WeiMaps_{\F, H}(G)$, which is able to determine $|\F(H, G)|$ after each update, and a randomized data structure $\MapEx_{\F, H, \eps}(G)$, which is able to report any $\phi \in \F(H, G)$ if it is nonempty. Let $\G$ be a class of graphs such that $\mathsf{Gaif}(G) \in \G$ at any point in time.
+	
+	%If $\G$ is of bounded expansion, then the data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G|)$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G|)$ space complexity, while $\MapEx_{\F, H \eps}(G)$ processes each update in $\Oh_{\G, H}(\log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ amortized time complexity and requires $\Oh_{\G, H}(|U_G| \log^{g(H)} |U_G| \log{\frac{1}{\eps}})$ space complexity. 
+	
+%	If $\G$ is a nowhere-dense class, then the data structure $\mathsf{UnweightedMappings}_{\F, H}(G)$ processes each update in $\Oh_{\G, H}(|U_G|^\delta)$ amortized time complexity and requires $\Oh_{\G, H}(|U_G|^\delta)$ space complexity, while $\MapEx_{\F, H, \eps}(G)$ processes each update in $\Oh_{\G, H}(|U_G|^\delta \log{\frac{1}{\eps}})$ amortized time complexity and requires $\Oh_{\G, H}(|U_G|^\delta \log{\frac{1}{\eps}})$ space complexity. 
+	
+	%The data structure $\MapEx_{\F, H, \eps}(G)$ provides no false positives, but may fail to provide $\phi$ with probability at most $\eps$.
+\begin{proof}
+	%We are going to mainly follow the proof of \cite{DvorakTumaArxiv}, but apply a few required changes. We are going to (almost) reduce the problem to the cases of colored undirected graphs already covered by \ref{lem:weighted-dvorak} and \ref{thm:dvorak-tuma-examples}.
+	We first argue that we may focus on the case where there are not roots ($\tup x$ and $\tup u$ are empty tuples). Indeed, if $|\tup x|=k$, then we may add to the signature $k$ additional new unary relations $Q_1,\ldots,Q_k$ and mark the $i$th root $x_i$ of $\rt{\Bf}{\tup x}$ using $Q_i$. Upon query about a tuple $\tup u$ in $\Af$ (either in $\WeiMaps_{\F, \rt{\Bf}{\tup x},\wei}[\Af]$ or in $\MapEx_{\F, \rt{\Bf}{\tup x},\eps}[\Af]$), we may temporarily mark each $u_i$ using $Q_i$, answer the query for unrooted but $\{Q_1,\ldots,Q_k\}$-decorated $\Bf$ and $\Af$, and restore the original state of $\Af$ by unmarking back the elements $u_i$. Thus, from now on we focus on the case where there are no roots.
+	
+	By adding a unary relation that hold on every element of $\Af$ and every element of $\Bf$ at all times, we may assume that every element of $\Bf$ is in some relation.
+	
+	We first focus on designing the $\WeiMaps_{\F,\Bf,\wei}[\Af]$ data structure.
+	Let $C=\Sigma\uplus 2^{[q]}$, where $q\coloneqq \max_{R\in \Sigma} \ar(R)$.
+	Let $M_\Bf$ be a $C$-colored undirected graph defined in the following way. First, we include the universe $U(\Bf)$ in the vertex set of $M_{\Bf}$. Then, for each $R\in \Sigma$ and $\tup v\in R^\Bf$, we create two new vertices $t^{R,1}_{\tup v}, t^{R,2}_{\tup v} \in V(M_\Bf)$ and add to $M_\Bf$ the following edges:
+	\begin{itemize}
+		\item edge $t^{R,1}_{\tup v}t^{R,2}_{\tup v}$ of color $R$; and
+		\item for each vertex $w\in U(\Bf)$ appearing in $\tup v$, an edge $wt^{R,1}_{\tup v}$ of color $\{j\in [k]\mid w=v_i\}$\footnote{In \cite[Section~4]{DvorakTumaArxiv} all edges of the form $wt^{R,1}_{\tup v}$ are of the same color. However, it is necessary to assign them different colors in order not lose information about the position(s) in the tuple $\tup v$ occupied by the vertex $w$.}.
+	\end{itemize}
+	We define the graph $M_\Af$ analogously. Note the following (an analogous statement is also proved in~\cite{DvorakTumaArxiv}).
+	
+	\begin{claim}\label{cl:still-bnd}
+		There is a class of bounded expansion $\Cc'$, depending only on $\Cc$ and $\Sigma$, such that
+		$M_\Af\in \Cc'$.
+	\end{claim}
+	\begin{claimproof}
+		Let $G$ be the Gaifman graph of $\Af$. Since $G\in \Cc$, $G$ is $d$-degenerate where $d\coloneqq \nabla_0(\Cc)$, hence there exists an ordering $\preceq$ of vertices of $G$ such that every vertex $u$ of $G$ has at most $d$ neighbors that are smaller in $\preceq$. (Such an ordering can be obtained by repeatedly removing from $G$ a vertex of the smallest degree and ordering the vertices by the reverse order of removal.) For any $R\in \Sigma$ and any tuple $\tup v\in R^{\Af}$, let $\mu(\tup v)$ be the $\preceq$-maximal vertex featured in $\tup v$. Note that for every $u\in V(G)$ we have $|\mu^{-1}(u)|\leq |\Sigma|\cdot (d+1)^q$, for every tuple $\tup v\in \mu^{-1}(u)$ is entirely contained in the set consisting $u$ and its $\preceq$-smaller neighbors --- which is of size at most $d+1$. Hence, it is easy to verify that the map $\eta$ defined~as
+		\begin{align*}
+			\eta(u)& \coloneqq \{u\} && \textrm{for }u\in U(\Af);\textrm{ and}\\
+			\eta(t^{R,1}_\tup v)\coloneqq \eta(t^{R,2}_\tup v)& \coloneqq \{\mu(\tup v)\} && \textrm{for }\tup v\in R^\Af, R\in \Sigma;
+		\end{align*} 
+		is a congestion-$(|\Sigma|\cdot (d+1)^q)$ depth-$0$ model of $M_\Af$ in $G$. It follows that $M_\Af\in \Minors^{|\Sigma|\cdot (d+1)^q,0}(\Cc)$, which is a class of bounded expansion by \cref{thm:cong-minors}.
+	\end{claimproof}
+	
+	It is now straightforward to see that subgraph isomorphism from $M_\Bf$ to $M_\Af$ are in one-to-one correspondence to substructure isomorphisms from $\Bf$ to $\Af$. We leave the easy verification of the following claim to the reader.
+	
+	\begin{claim}\label{cl:subgraph-works}
+		Every substructure isomorphism $\varphi\in \Sub(\Bf,\Af)$ can be uniquely extended to a subgraph isomorphism $\varphi'\in \Sub(M_\Bf,M_\Af)$. Conversely, every subgraph isomorphism $\varphi'\in \Sub(M_\Bf,M_\Af)$ becomes a substructure isomorphism after restricting the domain to $U(\Bf)$.
+	\end{claim}
+	
+	Therefore, if we extend the function $\wei \colon U(\Bf) \times U(\Af) \to \Z$ to a function $\wei' \colon V(M_H) \times V(M_G) 
+	\to \Z$ by setting $\wei'(x, u) = \wei(x, u)$ for all $(x, u) \in U(\Bf) \times U(\Af)$, and $\wei'(x, u)=1$ for all other pairs $(x,u)$ otherwise, then
+	\[\val_{\wei'}(\Sub(M_\Bf,M_\Af))=\val_\wei(\Sub(\Bf,\Af)).\]
+	Consequently, if we maintain the data structure $\WeiMaps_{\Sub, M_\Bf, \wei}(M_\Af)$ provided by \cref{lem:weighted-dvorak} for the class $\Cc'$ given by \cref{cl:still-bnd}, then these data structure can be directly used to answer queries to $\WeiMaps_{\Sub,\Bf,\wei}[\Af]$. Noting that one update to $\Af$ corresponds to at most $q+1$ updates to $M_\Af$, the claimed complexity guarantees about $\WeiMaps_{\Sub,\Bf,\wei}[\Af]$ follow directly from the guarantees provided by \cref{lem:weighted-dvorak}.
+	
+	% then the $w-$weight of the subrelation isomorphism will be the same as the $w'$-weight of the corresponding subgraph isomorphism.
+	%As each update to either of $R_i(G)$ incurs a constant number of updates to $M_G$, we easily get the existence of $\WeiMaps_{\Sub, H, w}(G)$ and $\MapEx_{\Sub, H, \eps}(G)$. Also, let $\G'$ be the class of graphs that can be obtained as $M_G$ for $G \in \G$. In \cite{DvorakTumaArxiv} it is proven that if $\G$ is of bounded expansion then $\G'$ is of bounded expansions as well, and if $\G$ is nowhere-dense, then $\G'$ is nowhere-dense as well.
+	
+	%	\wninline{Pogadac o Gaifmanach, tzn. udowodnić, że $Gaif(G) \in \G$, gdzie $\G$ jest bnd exp/nowhere-dense daje że $M_G \in \G'$, gdzie $\G'$ też jest bnd exp/nowhere-dense}
+	
+	While \cref{cl:subgraph-works} holds for subgraph isomorphisms, it unfortunately fails for induced subgraph isomorphisms and homomorphisms. Fortunately, it is well-known that weighted homomorphism counts and weighted induced subgraph isomorphism counts can be expressed as linear combinations of weighted subgraph isomorphism counts. Let us explain this argument in more detail, using the argumentation from \cite{DvorakTumaArxiv}, which is repeated in \cref{sec:app-weighted-dvorak}. In the following we assume that the reader is familiar with the material from this section.
+	
+	%In order to extend this conclusion to $\Hom$ and $\ISub$ we are going to use similar relations between them and $\Sub$ as in the case of graphs, however we are going to apply them directly on the relations rather than on $M_H$ and $M_G$\footnote{We note that in \cite{DvorakTumaArxiv} the authors worked on induced subgraph isomorphisms between corresponding graphs, but this does not lead to a correct algorithm as induced subrelation isomorphisms do not correspond to induced subgraph isomorphisms from $M_H$ to $M_G$.}.
+	
+	Let us tackle the case of homomorphisms first. Similarly as in \cref{def:projections}, for any partition $\Pp$ of $U(\Bf)$, we may define the quotient $\Sigma$-structure $\Bf_\Pp$ by identifying every part $P\in\Pp$ into a single element $z_P$, and pushing the relations in $\Bf$ naturally to relations in $\Bf_\Pp$ through this identification mapping. We may also naturally define the projected weight function $\wei_\Pp\colon U(\Bf)\times U(\Af)$ by setting $\wei_\Pp(z_P,u)\coloneqq \prod_{x\in P} \wei(x,u)$, for each $P\in \Pp$ and $u\in U(\Af)$. It then follows that 
+	\[\val_\wei(\Hom(\Bf, \Af)) = \sum_{\Pp\colon \textrm{partition of }U(\Bf)} \val_{\wei_{\Pp}}(\Sub(\Bf_\Pp, \Af)).\]
+	Hence, maintaining the data structures $\WeiMaps_{\Sub, \Bf_\Pp, \wei_\Pp}(\Af)$ for all partitions $\Pp$ pf $U(\Bf)$ allows us to answer the queries to $\WeiMaps_{\Hom, \Bf, \wei}[\Af]$ within the claimed complexity bounds.
+	
+	For the case of induced substructure isomorphisms we use the same Inclusion--Exclusion argument as in \cref{lem:weighted-isub-to-sub}, but instead of iterating over all supergraphs, it suffices to iterate over all superstructures, that is, all $\Sigma$-structures $\Bf'$ such that $U(\Bf') = U(\Bf)$ and $R^\Bf \subseteq R^{\Bf'}$ for all $R\in \Sigma$. Specifically, we have
+	\[\val_\wei(\ISub(H, G)) = \sum_{\Bf'\colon \textrm{superstructure of } \Bf} (-1)^{\|\Bf'\| - \|\Bf\|}\cdot \val_\wei(\Sub(\Bf', \Af)),\]  where $\|\Bf\| = \sum_{R\in \Sigma} |R^\Bf|$, and similarly for $\Bf'$. Since all such superstructures $\Bf'$ are still of size $\Oh_{\Bf,\Sigma}(1)$ and there is $\Oh_{\Bf,\Sigma}(1)$ of them, maintaining the data structures $\WeiMaps_{\Sub, \Bf', \wei}(\Af)$ allows us to answer the queries to $\WeiMaps_{\ISub, \Bf, \wei}[\Af]$ within the claimed complexity bounds.
+	
+	Having designed a suitable data structure $\WeiMaps_{\F, \Bf, \wei}[\Af]$ for each $\F\in \{\Hom,\Sub,\ISub\}$, we may repeat the argumentation of \cref{lem:restore-by-sampling,lem:map-vertex,thm:dvorak-tuma-examples} to design also the data structure $\MapEx_{\F, \Bf,\eps}[\Af]$. The reasoning lifts essentially verbatim; we leave the details to the reader.
+\end{proof}
+	
+	
+	%All graphs obtained from this reduction will still be of constant sizes and there will be a constant number of them, hence the data structures $\WeiMaps_{\ISub, H, w}(G)$ and $\MapEx_{\ISub, H}(G)$ can be designed by reducing them to a constant number of $\WeiMaps_{\Sub, H', w}(G)$ and $\MapEx_{\Sub, H'}(G)$ structures.
+	
+	%where $\val_{w_{H'}}$ is defined similarly as in \cref{lem:unweighted-sub-to-homo}. Hence, we can design $\WeiMaps_{\Hom, H, w}(G)$ and $\MapEx_{\Hom, H}(G)$ by reducing them to a constant number of corresponding data structures $\WeiMaps_{\Sub, H', w_{H'}}(G)$ and $\MapEx_{\Sub, H'}(G)$.
+	
+	
 
 
 
