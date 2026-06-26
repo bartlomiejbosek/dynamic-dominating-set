@@ -10,7 +10,7 @@ A $d$-degenerate graph has arboricity at most $d$.
 
 We use the following result of Brodal and Fagerberg~\cite[Theorem~3]{BrodalF99}.
 
-\begin{theorem}[Brodal--Fagerberg]\label{thm:bf}
+\begin{theorem}[Brodal--Fagerberg]\label{thm:bf-bartek}
 There exists a deterministic data structure that maintains a graph of arboricity at most $\alpha$ under edge insertions and deletions.
 The data structure stores an orientation $\vec{G}$ of $G$ with maximum out-degree $4\alpha$, i.e., for every vertex $u$ we have $|N^+(u)| \le 4\alpha$.
 An edge insertion has amortized cost $\Oh(1)$, an edge deletion has amortized cost $\Oh(\alpha + \log n)$, and the amortized number of edges that change orientation in a single operation is $\Oh(\alpha + \log n)$.

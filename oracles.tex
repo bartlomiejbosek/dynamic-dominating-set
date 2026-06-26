@@ -7,9 +7,12 @@
 
 \section{Implementation of oracles in classes of bounded expansion}\label{sec:implementation}
 
-Here we implement the oracles for an arbitrary distance parameter $r$ in classes of bounded expansion.
+Here we implement the oracles for an arbitrary distance parameter $r$ in classes of bounded expansion. 
 
 %\michalin{In the following I assume that we replaced all the $\tfrac{1}{\eps}$ terms in the probabilities with $\tfrac{1}{n}$.}
+
+
+
 
 \subsection{Detecting near vertices}
 
@@ -51,6 +54,117 @@ We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ oracle, whi
 	Since $|\Xi_{r}|\leq \Oh_{r,k}(1)$ and $|H|\leq \Oh_{r,k}(1)$ for all $\rt{H}{\tup z,y}\in \Xi_r$, the promised bounds on the amortized update and query time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
 \end{proof}
 
+\subsection{Maintaining augmentations}
+Before proceeding to the specific description of the $\farVertexDS{G}{r,k,\eps}$ oracle, we explain how we dynamically maintain an augmented version of our graph, which will be a key tool in the design of this oracle.
+
+The approach will be based on maintaining an iterated fraternal augmentation of $G$, which will be still sparse thanks to \cref{lem:fraternal}. The edges of this augmentation will be decorated by some information memorized during the augmentation process. Formally, we will adhere to the following definitions.
+
+
+%Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$ and if the maximum outdegree of vertices in $D$ is upper bounded by $\Delta$, then we may additionally specify that it is a $\Delta$-orientation.
+
+\begin{definition} 
+	Let $r \in \N$. An $r$-decorated graph is an (either directed or undirected) graph $G$ together with a length function $\length_G : E(G) \to [r]$.
+\end{definition}
+
+\begin{definition}
+	Let $\Lambda$ be a finite set of labels and $r\in \N$.
+	A \emph{$(\Lambda,r)$-decorated graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [r]$. The subscript can be omitted if $D$ is clear from the context. 
+	
+	We say that a $(\Lambda,r)$-decorated graph $D$ is \emph{unambiguous} if for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. Note that this in particular implies that the maximum outdegree in $D$ is at most $|\Lambda|$.
+	
+	For an undirected graph $G$, we say that a $(\Lambda,r)$-decorated graph $D$ is a \emph{faithful $(\Lambda,r)$-augmentation} of $G$ if the following conditions are satisfied:
+	\begin{enumerate}[label={(A\arabic*)}]
+		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
+		\item $D$ is unambiguous.
+		\item\label{c:short} For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length_D(u,v)$.
+		\item\label{c:center} For every path $P=(u_0,u_1,\ldots,u_{r'})$ in $G$ of length $r'\leq r$, there exist indices 
+		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=r',\]
+		for some $s,t\in \N$, such that 
+		\begin{itemize}
+			\item for every $i\in [s]$, the edge $(u_{\alpha_{i-1}},u_{\alpha_i})$ is present in $D$ and $\length_D(u_{\alpha_{i-1}},u_{\alpha_i})\leq \alpha_i-\alpha_{i-1}$; and 
+			\item for every $j\in [t]$, the edge $(u_{\beta_{j-1}},u_{\beta_j})$ is present in $D$ and $\length_D(u_{\beta_{j-1}},u_{\beta_j})\leq \beta_{j-1}-\beta_{j}$. 
+		\end{itemize}
+		The subgraph of $D$ consisting of the edges  $(u_{\alpha_{i-1}},u_{\alpha_i})$, for $i\in [s]$, and  $(u_{\beta_{j-1}},u_{\beta_j})$, for $j\in [t]$, will be called a \emph{shortcut} of $P$. 
+	\end{enumerate}
+\end{definition}
+
+Homomorphisms of $(\Lambda,r)$-decorated graphs are defined naturally, as for general relational structures: for $\varphi$ to be a homomorphism we require that for every edge $(u,v)$ of the source graph, there is an edge $(\varphi(u),\varphi(v))$ of the target graph with exactly the same label and length.
+
+We aim to show that in any class $\Cc$ of bounded expansion, faithful augmentations of any fixed depth can be maintained in polylogarithmic amortized update time. The proof is based on ideas from Theorem 4 of \cite{DvorakTumaArxiv}.
+
+However, before we proceed to the description of the algorithm maintaining the faithful augmentation, let us prepare for that by describing a sequence of graph classes of bounded expansion. Let $\Cc$ be a graph class of bounded expansion and let us define the sequence $\Cc_1, \ldots, \Cc_r$ inductively in the following way: let $\Cc_1 \coloneqq \Cc$ and let $\Cc_{i+1} \coloneqq \Fra(\Cc_i, 4 \cdot i \cdot d_i)$ for $i=1, \ldots, r-1$, where $d_i$ is some upper bound for $\nabla_0(\Cc_i)$ that stems from the unraveled proof of \cref{lem:fraternal}, which can be applied here as it is easily seen that based on \cref{lem:fraternal} each $\Cc_i$ is a class of graphs of bounded expansion. Additionally, note that we can assume that $d_1 \le d_2 \le \ldots \le d_r$ and that the values of $d_i$ can be effectively computed given access to the values of the function bounding the expansion of $\Cc$. With that, let us state the main lemma of this section.
+
+
+\begin{lemma}\label{lem:dyn-augmentation}
+	Fix a graph class $\Cc$ of bounded expansion and $r\in \N$. Then there exists a finite set of labels $\Lambda$ such that every graph $G\in \Cc$ has a faithful $(\Lambda,r)$-augmentation $D$. 
+	
+	Also, there is a data structure that for a dynamic $n$-vertex graph $G\in \Cc$, maintains its faithful $(\Lambda,r)$-orientation $D$ with amortized update time $\Oh_{\Cc,r}(\log^{r-1} n)$. Moreover, every update to $G$ triggers $\Oh_{\Cc,r}(\log^{r-1} n)$ updates to $D$ in the amortized sense. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r}(n)$ and occupies $\Oh_{\Cc,r}(n)$ space at all times. 
+\end{lemma}
+
+%The key ingredient to obtaining faithful augmentations will be following result by Brodal and Fagerberg \cite{BrodalF99}.
+
+%\wninline{Moze tego Brodala wyrzucic do prelimów skoro go używamy trzy razy?}
+
+
+%Another tool that we will require will be \emph{fraternal augmentations}, introduced by Ne\v{s}et\v{r}il and Ossona de Mendez \cite{NesetrilOssona}.
+
+%\begin{definition}
+%	Let $G$ be an undirected graph and let $D$ be its orientation. Let $F(D)$ be an undirected graph such that $V(F(D)) = V(G)$ and $E(F(D))$ is the union of $E(G)$ and all edges $uv$ such that there exists a vertex $w \in V(G)$ such that $(w, u), (w, v) \in E(D)$. Then, $F(D)$ is called a \emph{fraternal augmentation} of $G$. Each such pair $(w, u)$ and $(w, v)$ will be called a \emph{fork}.
+%\end{definition}
+
+%\begin{theorem} {\cite{NesetrilOssona}} Let $\mathcal{C}$ be a graph class of bounded expansion and let $G \in \mathcal{C}$. Let $D$ be a $d$-orientation of $G$ and let $F(D)$ be a fraternal augmentation of $G$. 
+%\end{theorem}
+%\wninline{todo: wyspecyfikować}
+
+
+\begin{proof} [Proof of \cref{lem:dyn-augmentation}]
+	Let us define dynamic graphs $G_i, G_i', R_i, D_i$ and $D_i'$ for $i=1, \ldots, r$, all on the same vertex set. All of them are going to be $r$-decorated, except for $D_r$, which will be $(\Lambda, r)$-decorated. The graphs $G_i, G_i'$ and $R_i$ will be undirected, while $D_i$ and $D_i'$ will be orientations of $G_i$ and $G_i'$, respectively. For convenience we also define $G_0$ and $D_0$ to be edgeless graphs on the same vertex set too. We set $G_1' \coloneqq G$, where $\length_{G_1'}(e) \coloneqq 1$ for each $e \in E(G_1')$ and set $R_1$ to be an edgeless graph. The graphs $G_1', G_2', \ldots, G_r'$ will be edge-disjoint and we define $G_i \coloneqq G_{i-1} \cup G_i'$, and similarly $D_i \coloneqq D_{i-1} \cup D_i'$. We want to maintain that $D_i'$ is a $4d_i$-orientation of $G_i'$. Consequently, $D_i$ will be $\Delta_i \coloneqq 4(d_1+\ldots+d_i)$-oriented. Note that $\Delta_i \le 4 \cdot i \cdot d_i$. Based on the construction, it will become apparent that $G_i' \in \Cc_i$, which is why $4d_i$-orientation of $G_i'$ exists and can be effectively maintained using \cref{thm:bf}.
+	
+	Let $1 \le i<r$ and $u, v, w \in V(G)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) \le r$. If $(u, v)$ or $(v, u)$ already belongs to $E(D_i)$, we put $(u, v)$ to $R_{i+1}$. Otherwise, we put $(u, v)$ to $G_{i+1}'$. There are no other edges in $R_{i+1}$ and $G_{i+1}'$. Note that this specification ensures that $G_{i+1}'$ will be edge-disjoint from $G_1', \ldots, G_i'$, as desired. Also note that $G_{i+1}$ defined in this way is a subgraph of some graph that can be obtained as $\Fra(G_i, \Delta_i)$, so if $G_i \in \Cc_i$ and $\Delta_i \le 4 \cdot i \cdot d_i$, we have that $G_{i+1} \in \Cc_{i+1}$, as desired. For an edge $(u, v)$ either from $R_{i+1}$ or from $G_{i+1}'$, we define its length $\length_{\cdot}(u, v)$ as $\min_{w \in V(G)} (\length_{G_i}(w, u) + \length_{G_i}(w, v))$. 
+	
+	Let $1 \le i \le r$.  
+	If for $e \in D_{i}$ we have that $e \in D_{i}'$, then $\length_{D_{i}}(e) \coloneqq \length_{D_{i}'}(e)$. If $e \in R_{i}$, then $\length_{D_{i}}(e) \coloneqq \min(\length_{D_{i-1}}(e), \length_{R_{i}}(e))$. Otherwise $\length_{D_{i}}(e) \coloneqq \length_{D_{i-1}}(e)$. Note that such definition ensures that $\dist_{D_{i}}(u,v)\leq \length_{D_i}(u,v)$, which is easily seen through an induction argument. That concludes the definitions of $G_i, G_i', R_i, D_i$ and $D_i'$. The resulting $D_r$ will be our faithful $(\Lambda, r)$-augmentation of $G$.
+	
+%	Firstly, we are going to argue that $D_r$ comes from a fixed class of bounded expansion.
+%	\begin{claim} The underlying undirected graph of $D_i$ comes from a class of bounded expansion that depends only on $\Cc$ and $r$.
+%	\end{claim}
+%	\begin{proof}
+%	
+%	
+%	
+%	\end{proof}
+	
+	
+	We are now going to show how to effectively maintain them dynamically:
+	
+	\begin{claim}
+		The graphs $G_i, R_i, D_i$ and $D_i'$ can all be maintained with amortized update time $\Oh_r(\log^{r-1}(n) \Delta_1 \Delta_2 \ldots \Delta_r)$ per a~single edge addition or removal to $G$.
+	\end{claim}
+	
+	\begin{proof}
+		The graphs $D_i'$, which are orientations of $G_i$, are maintained using the Brodal-Fagerberg algorithm from the \cref{thm:bf}, i.e. assuming that $d_i$ is chosen such that $G_i$ is $d_i$-degenerate, then the \cref{thm:bf} indeed maintains the $4d_i$-orientation of $G_i$, which we call $D_i'$.
+		
+		Whenever an update to the edge set of $G$ happens, that starts a series of updates to all of $G_i, G_i', R_i, D_i$ and $D_i'$ for $i=1,\ldots,r$. Whenever an edge is supposed to change its orientation or its length, it is modeled as one removal and one addition. Each change to the edge set of $D_i$ causes $\Oh(\Delta_i)$ changes to the edge sets of $G_{i+1}'$ and $R_{i+1}$ since for a given edge $(w, u)$ there are only $ \le \Delta_i$ edges of the form $(w, v)$, that is, ones that would form a fork along with it.
+		Each change to $G_i'$ incurs $\Oh(\log n)$ amortized reorientations in $D_i'$, which incurs the same number of reorientations in $D_i$, which then incurs $\Oh(\log n \cdot \Delta_i)$ changes in $G_{i+1}$ and $R_{i+1}$. Each change to $R_i$ incurs $\Oh(1)$ changes to $D_i'$ and $D_i$ and $\Oh(\Delta_i)$ changes to $G_{i+1}'$ and $R_{i+1}$. Hence, the amortized number of changes to all maintained graphs caused by one change to $G$ is $\Oh_r(\log^{r-1} (n) \cdot \Delta_1 \Delta_2 \ldots \Delta_{r-1})$ (one can easily argue that amortized costs multiply in the same way that worst-case costs do). Whenever we perform a series of reorientations, we should first perform all corresponding removals and only then all corresponding additions, to make sure that we stay within the relevant graph classes during the intermediate computations as well.
+		\wninline{zastanowic sie czy była ważna ta własność, która wspomniał Dvorak, że usuwanie nic nie reorientuje (ktora nie jest zachowana w aktualnie cytowanym Brodalu)}
+		
+		An additional aspect requiring careful bookkeeping is the maintenance of labels and lengths. If we remove an edge $(w, u)$ from $D_i$ that along with $(w, v)$ formed a fork and gave rise to an edge $(u, v) \in G_{i+1}'$, then $(u, v)$ may still belong to $G_{i+1}'$ if $w$ was not a unique vertex with edges to $u$ and $v$ in $D_i$. However, in that case the length of $(u, v)$ might change if $w$ was a unique vertex with the lowest value of $\length_{D_i}(w, u) + \length_{D_i}(w, v)$. In order to correctly update these values, for every edge $e$ in $R_{i+1}$ and $G_{i+1}'$ we additionally keep an auxiliary array $\mathrm{cnt_{e, i}}[0], \ldots, \mathrm{cnt_{e, i}}[r]$, where $\mathrm{cnt_{e, i}}[j]$ tells us the number of vertices $w \in V(G_i)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) = j$. Maintaining these arrays lets us effectively (with $\Oh(r) = \Oh_r(1)$ overhead) determine the correctly updated lengths of edges in $R_{i+1}$ and $G_{i+1}'$ under any additions or removals of edges from $D_i$ (and whether they should still exist in the first place). As for labels in $D_r$, it is enough to set $\Lambda = \{1, 2, \ldots, \Delta_r\}$ and for each edge $v \in V(G)$ keep an array $\mathrm{used_v}[1], \ldots, \mathrm{used_v}[\Delta_r]$, where $\mathrm{used_v}[j]$ denotes whether there exists an edge outgoing of $v$ with the label $j$. Navigating through that array incurs $\Oh(\Delta_r)$ overhead totalling to $\Oh_r(\log^{r-1}(n) \Delta_1 \Delta_2 \ldots \Delta_r)$ total time of processing all necessary updates to all intermediate structures stemming from one edge change in $G$.
+	\end{proof}
+	
+	We now shall prove that $D_r$ indeed contains the desired shortcuts.
+	
+	\begin{claim}
+		Let $(u_0, \ldots, u_r')$ be a path in $G$ of length $r' \le r$. Then, $D_r$ contains a shortcut of that path. 
+	\end{claim}
+	\begin{proof}
+		We are going to generalize this statement in the following way. We are going to prove that if $P$ is a path in $G_{r-i+1}$ of at most $i$ edges and of total length at most $r$, then $D_r$ contains a shortcut of $P$. We are going to prove it inductively on $i$. Our original claim is our inductive claim for $i=r$. 
+		
+		The base of the induction $i=1$ is straightforward, so let us assume correctness of our inductive hypothesis for $i$ and prove the inductive claim for $i+1$. Let $P = (u_0, \ldots, u_c)$ be a path in $G_{r-i}$ of at most $c \le i+1$ hops and length at most $r$. Let $Q$ be the same path, but in $D_i$ rather than in $G_i$ (so, edges of $Q$ are oriented). The key observation is that it either $Q$ already is a shortcut of $P$ (in which case the inductive claim is vacuously true as $D_i$ is a subgraph of $D_r$), or $Q$ contains a fork of edges $(u_j, u_{j-1})$ and $(u_j, u_{j+1})$ for some $1 \le j \le c-1$. In this case we are guaranteed that $(u_{j-1}, u_{j+1}) \in G_{r-i+1}$ and $P'=(u_0, \ldots, u_{j-1}, u_{j+1}, \ldots, u_c)$ is a path of $c-1\le i$ edges in $G_{r-i+1}$ and total length at most $r$ as well. Based on the inductive hypothesis for $i$, we know that $D_r$ contains a shortcut $S$ of $P'$. Hence any shortcut of $P'$ is also a shortcut of $P$, the claim follows.
+	\end{proof}
+	
+\end{proof}
+
+
 \subsection{Detecting far vertices}
 
 We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data structure. Our implementation is encapsulated in the following statement.
@@ -65,118 +179,7 @@ We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data str
 	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{theorem}
 
-We will now gradually build tools towards the proof of \cref{thm:FarVertex-new}. The approach will be based on maintaining an iterated augmentation of $G$, which will be still sparse thanks to \cref{lem:fraternal}. The edges of this augmentation will be decorated by some information memorized during the augmentation process. Formally, we will adhere to the following definition.
-
-
-%Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$ and if the maximum outdegree of vertices in $D$ is upper bounded by $\Delta$, then we may additionally specify that it is a $\Delta$-orientation.
-\wninline{dorzucic $d$-orientacje gdzies}
-
-\begin{definition} 
-	Let $r \in \N$. An $r$-decorated graph is a (either directed or undirected) graph $G$ together with a length function $\length_G : E(G) \to [r]$.
-\end{definition}
-
-\begin{definition}
-	Let $\Lambda$ be a finite set of labels and $r\in \N$.
-	A \emph{$(\Lambda,r)$-oriented graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [r]$. The subscript can be omitted if $D$ is clear from the context. 
-	
-	We say that a $(\Lambda,r)$-oriented graph $D$ is \emph{unambigious} if for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. Note that this in particular implies that the maximum outdegree in $D$ is at most $|\Lambda|$.
-	
-	For an undirected graph $G$, we say that a $(\Lambda,r)$-oriented graph $D$ is a \emph{faithful $(\Lambda,r)$-augmentation} of $G$ if the following conditions are satisfied:
-	\begin{enumerate}[label={(A\arabic*)}]
-		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
-		\item $D$ is unambigious.
-		\item\label{c:short} For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length_D(u,v)$.
-		\item\label{c:center} For every path $P=(u_0,u_1,\ldots,u_{r'})$ in $G$ of length $r'\leq r$, there exist indices 
-		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=r',\]
-		for some $s,t\in \N$, such that 
-		\begin{itemize}
-			\item for every $i\in [s]$, the edge $(u_{\alpha_{i-1}},u_{\alpha_i})$ is present in $D$ and $\length_D(u_{\alpha_{i-1}},u_{\alpha_i})\leq \alpha_i-\alpha_{i-1}$; and 
-			\item for every $j\in [t]$, the edge $(u_{\beta_{j-1}},u_{\beta_j})$ is present in $D$ and $\length_D(u_{\beta_{j-1}},u_{\beta_j})\leq \beta_{j-1}-\beta_{j}$. 
-		\end{itemize}
-		The subgraph of $D$ consisting of the edges  $(u_{\alpha_{i-1}},u_{\alpha_i})$, for $i\in [s]$, and  $(u_{\beta_{j-1}},u_{\beta_j})$, for $j\in [t]$, will be called a \emph{shortcut} of $P$. 
-	\end{enumerate}
-\end{definition}
-
-Homomorphisms of $(\Lambda,r)$-oriented graphs are defined naturally, as for general relational structures: for $\varphi$ to be a homomorphism we require that for every edge $(u,v)$ of the source graph, there is an edge $(\varphi(u),\varphi(v))$ of the target graph with exactly the same label and length.
-
-We now show that in any class $\Cc$ of bounded expansion, faithful augmentations of any fixed depth can be maintained in polylogarithmic amortized update time. The proof is a (careful) repetition of the arguments from \cite{DvorakT13}.
-
-\begin{lemma}\label{lem:dyn-augmentation}
-	Fix a graph class $\Cc$ of bounded expansion and $r\in \N$. Then there exists a finite set of labels $\Lambda$ such that every graph $G\in \Cc$ has a faithful $(\Lambda,r)$-augmentation $D$. 
-	
-	Also, there is a data structure that for a dynamic $n$-vertex graph $G\in \Cc$, maintains its faithful $(\Lambda,r)$-orientation $D$ with amortized update time $\log^{\Oh_{\Cc,r}(1)} n$. Moreover, every update to $G$ triggers $\log^{\Oh_{\Cc,r}(1)} n$ updates to $D$ in the amortized sense. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r}(n)$ and occupies $\Oh_{\Cc,r}(n)$ space at all times. 
-\end{lemma}
-
-The key ingredient to obtaining faithful augmentations will be following result by Brodal and Fagerberg \cite{BrodalF99}.
-
-\wninline{Moze tego Brodala wyrzucic do prelimów skoro go używamy trzy razy?}
-\wninline{Czy chcę go przeformułować aby koszt był na dodawaniu a nie usuwaniu krawędzi i usuwanie nic nie reorientowało?}
-\begin{theorem}[Brodal--Fagerberg]\label{thm:bf}
-	There exists a deterministic data structure that maintains a graph of degeneracy at most $d$ under edge insertions and deletions.
-	The data structure stores an explicit orientation $\vec{G}$ of $G$ with maximum out-degree $4d$.
-	An edge insertion has amortized cost $\Oh(1)$, an edge deletion has amortized cost $\Oh(d + \log n)$, and the amortized number of edges that change orientation in a single operation is $\Oh(\log n)$. Moreover, the reorientations can be reported within the same time bounds.
-	The data structure uses $\Oh(n + m)$ memory, where $n$ and $m$ are the number of vertices of $G$ and the current number of edges of $G$, respectively. The data structure requires the knowledge of $d$.
-\end{theorem}
-
-Another tool that we will require will be \emph{fraternal augmentations}, introduced by Ne\v{s}et\v{r}il and Ossona de Mendez \cite{NesetrilOssona}.
-
-\begin{definition}
-	Let $G$ be an undirected graph and let $D$ be its orientation. Let $F(D)$ be an undirected graph such that $V(F(D)) = V(G)$ and $E(F(D))$ is the union of $E(G)$ and all edges $uv$ such that there exists a vertex $w \in V(G)$ such that $(w, u), (w, v) \in E(D)$. Then, $F(D)$ is called a \emph{fraternal augmentation} of $G$. Each such pair $(w, u)$ and $(w, v)$ will be called a \emph{fork}.
-\end{definition}
-
-\begin{theorem} {\cite{NesetrilOssona}} Let $\mathcal{C}$ be a graph class of bounded expansion and let $G \in \mathcal{C}$. Let $D$ be a $d$-orientation of $G$ and let $F(D)$ be a fraternal augmentation of $G$. 
-\end{theorem}
-\wninline{todo: wyspecyfikować}
-
-
-\begin{proof} [Proof of \cref{lem:dyn-augmentation}]
-	Let us define dynamic graphs $G_i, R_i, D_i$ and $D_i'$ for $i=1, \ldots, r$, all on the same vertex set. All of them are going to be $r$-decorated, except for $D_r$, which will be $(\Lambda, r)$-decorated. For convenience we also define $D_0$ to be an edgeless graph on the same vertex set too. We set $G_1 \coloneqq G$, where $\length_{G_1}(e) \coloneqq 1$ for each $e \in E(G_1)$ and set $R_1$ to be an edgeless graph. The graphs $D_1', D_2', \ldots, D_r'$ will be edge-disjoint and we define $D_i \coloneqq D_{i-1} \cup D_i'$. We will prove that $G_i$ is a $d_i$-degenerate graph for $d_i$ to be specified later, and maintain that $D_i'$ is a $4d_i$-orientation of $G_i$. Consequently, $D_i$ will be $\Delta_i \coloneqq 4(d_1+\ldots+d_i)$-oriented.
-	
-	Let $1 \le i<r$ and $u, v, w \in V(G)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) \le r$. If $(u, v)$ or $(v, u)$ already belongs to $E(D_i)$, we put $(u, v)$ to $R_{i+1}$. Otherwise, we put $(u, v)$ to $G_{i+1}$. There are no other edges in $R_{i+1}$ and $G_{i+1}$. Note that this specification ensures that $D_{i+1}'$, which will be some orientation of $G_{i+1}$, will be edge-disjoint from $D_1', \ldots, D_i'$, as desired. For an edge $(u, v)$ either from $R_{i+1}$ or from $G_{i+1}$, we define its length $\length_{\cdot}(u, v)$ as $\min_{w \in V(G)} (\length_{D_i}(w, u) + \length_{D_i}(w, v))$.
-	
-	Let $1 \le i \le r$.  
-	If for $e \in D_{i}$ we have that $e \in D_{i}'$, then $\length_{D_{i}}(e) \coloneqq \length_{D_{i}'}(e)$. If $e \in R_{i}$, then $\length_{D_{i}}(e) \coloneqq \min(\length_{D_{i-1}}(e), \length_{R_{i}}(e))$. Otherwise $\length_{D_{i}}(e) \coloneqq \length_{D_{i-1}}(e)$. Note that such definition ensures that $\dist_{D_{i}}(u,v)\leq \length_{D_i}(u,v)$, which is easily seen through an induction argument. That concludes the definitions of $G_i, R_i, D_i$ and $D_i'$. The resulting $D_r$ will be our faithful $(\Lambda, r)$-augmentation of $G$.
-	
-	Firstly, we are going to argue that 
-	\wninline{Powstawiac tutaj te boundy na degeneracje}
-	
-	We are now going to show how to effectively maintain them dynamically:
-	
-	\begin{claim}
-		The graphs $G_i, R_i, D_i$ and $D_i'$ can all be maintained with amortized update time $\Oh_r(\log^{r-1}(n) \Delta_1 \Delta_2 \ldots \Delta_r)$ per a~single edge addition or removal to $G$.
-	\end{claim}
-
-	\begin{proof}
-		The graphs $D_i'$, which are orientations of $G_i$, are maintained using the Brodal-Fagerberg algorithm from the \cref{thm:bf}, i.e. assuming that $d_i$ is chosen such that $G_i$ is $d_i$-degenerate, then the \cref{thm:bf} indeed maintains the $4d_i$-orientation of $G_i$, which we call $D_i'$.
-		
-		Whenever an update to the edge set of $G$ happens, that starts a series of updates to all of $G_i, R_i, D_i$ and $D_i'$ for $i=1,\ldots,r$. Whenever an edge is supposed to change its orientation or its length, it is modeled as one removal and one addition. Each change to the edge set of $D_i$ causes $\Oh(\Delta_i)$ changes to the edge sets of $G_{i+1}$ and $R_{i+1}$ since for a given edge $(w, u)$ there are only $ \le \Delta_i$ edges of the form $(w, v)$, that is, ones that would form a fork along with it.
-		Each change to $G_i$ incurs $\Oh(\log n)$ amortized reorientations in $D_i'$, which incurs the same number of reorientations in $D_i$, which then incurs $\Oh(\log n \cdot \Delta_i)$ changes in $G_{i+1}$ and $R_{i+1}$. Each change to $R_i$ incurs $\Oh(1)$ changes to $D_i'$ and $D_i$ and $\Oh(\Delta_i)$ changes to $G_{i+1}$ and $R_{i+1}$. Hence, the amortized number of changes to all maintained graphs caused by one change to $G$ is $\Oh_r(\log^{r-1} (n) \cdot \Delta_1 \Delta_2 \ldots \Delta_{r-1})$ (one can easily argue that amortized costs multiply in the same way that worst-case costs do). Whenever we perform a series of reorientations, we should first perform all corresponding removals and only then all corresponding additions, to make sure that we stay within the relevant graph classes during the intermediate computations as well.
-		\wninline{zastanowic sie czy była ważna ta własność, która wspomniał Dvorak, że usuwanie nic nie reorientuje (ktora nie jest zachowana w aktualnie cytowanym Brodalu)}
-	
-		An additional aspect requiring careful bookkeeping is the maintenance of labels and lengths. If we remove an edge $(w, u)$ from $D_i$ that along with $(w, v)$ formed a fork and gave rise to an edge $(u, v) \in G_{i+1}$, then $(u, v)$ may still belong to $G_{i+1}$ if $w$ was not a unique vertex with edges to $u$ and $v$ in $D_i$. However, in that case the length of $(u, v)$ might change if $w$ was a unique vertex with the lowest value of $\length_{D_i}(w, u) + \length_{D_i}(w, v)$. In order to correctly update these values, for every edge $e$ in $R_{i+1}$ and $G_{i+1}$ we additionally keep an auxiliary array $\mathrm{cnt_{e, i}}[0], \ldots, \mathrm{cnt_{e, i}}[r]$, where $\mathrm{cnt_{e, i}}[j]$ tells us the number of vertices $w \in V(G_i)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) = j$. Maintaining these arrays lets us effectively (with $\Oh(r) = \Oh_r(1)$ overhead) determine the correctly updated lengths of edges in $R_{i+1}$ and $G_{i+1}$ under any additions or removals of edges from $D_i$ (and whether they should still exist in the first place). As for labels in $D_r$, it is enough to set $\Lambda = \{1, 2, \ldots, \Delta_r\}$ and for each edge $v \in V(G)$ keep an array $\mathrm{used_v}[1], \ldots, \mathrm{used_v}[\Delta_r]$, where $\mathrm{used_v}[j]$ denotes whether there exists an edge outgoing of $v$ with the label $j$. Navigating through that array incurs $\Oh(\Delta_r)$ overhead totalling to $\Oh_r(\log^{r-1}(n) \Delta_1 \Delta_2 \ldots \Delta_r)$ total time of processing all necessary updates to all intermediate structures stemming from one edge change in $G$.
-	\end{proof}
-	
-	We now shall prove that $D_r$ indeed contains the desired shortcuts.
-	
-	\begin{claim}
-		Let $(u_0, \ldots, u_r')$ be a path in $G$ of length $r' \le r$. Then, $D_r$ contains a shortcut of that path. 
-	\end{claim}
-	\begin{proof}
-		We are going to generalize this statement in the following way. Let $\widetilde{G}_i$
-		be the undirected version of $D_i$ for each $i=1, \ldots, r$, in particular $\widetilde{G}_1 = G_1 = G$. We are going to prove that if $P$ is a path in $\widetilde{G}_{r-i+1}$ of at most $i$ edges and of total length at most $r$, then $D_r$ contains a shortcut of $P$. We are going to prove it inductively on $i$. Our original claim is our inductive claim for $i=r$. 
-		
-		The base of the induction $i=1$ is straightforward, so let us assume correctness of our inductive hypothesis for $i$ and prove the inductive claim for $i+1$. Let $P = (u_0, \ldots, u_c)$ be a path in $\widetilde{G}_{r-i}$ of at most $c \le i+1$ hops and length at most $r$. Let $Q$ be the same path, but in $D_i$ rather than in $\widetilde{G}_i$ (so, edges of $Q$ are oriented). The key observation is that it either $Q$ already is a shortcut of $P$ (in which case the inductive claim is vacuously true as $D_i$ is a subgraph of $D_r$), or $Q$ contains a fork of edges $(u_j, u_{j-1})$ and $(u_j, u_{j+1})$ for some $1 \le j \le c-1$. In this case we are guaranteed that $(u_{j-1}, u_{j+1}) \in \widetilde{G}_{r-i+1}$ and $P'=(u_0, \ldots, u_{j-1}, u_{j+1}, \ldots, u_c)$ is a path of $c-1\le i$ edges in $\widetilde{G}_{r-i+1}$ and total length at most $r$ as well. Based on the inductive hypothesis for $i$, we know that $D_r$ contains a shortcut $S$ of $P'$. Hence any shortcut of $P'$ is also a shortcut of $P$, the claim follows.
-	\end{proof}
-	
-	
-	\wninline{dorzucic boundy na te stopnie}
-	
-	
-	
-	\wninline{Todo}
-\end{proof}
-
-We will also use the following statement about maintaining weighted homomorphism counts.
+The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
 
 \begin{lemma}\label{lem:dyn-rooted-homs}
 	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $r\in \N$, and a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,r)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
