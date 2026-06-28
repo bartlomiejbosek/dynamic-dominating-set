@@ -16,11 +16,11 @@ A \emph{rooted graph} is a graph $G$ together with a tuple $\tup u$ of vertices 
 
 %We sometimes consider graphs with colored edges. In this case, $G$ is also equipped with a function $\mathrm{col} : V(G) \to C$, where $C$ is a set of admissible colors.\michal{Move to the place where we use it.}
 
-We use the standard notion of directed graphs, again disallowing loops and parallel edges (edges with same head and tail). An \emph{oriented graph} is a directed graph $D$ where any pair of vertices can be the endpoints of at most one edge; that is, for distinct vertices $u,v$ we disallow that the edges $(u,v)$ and $(v,u)$ are simultaneously present. For an undirected graph $G$, an \emph{orientation} of $G$ is an oriented graph obtained from $G$ by choosing an orientation of every edge of $G$. Moreover, if an orientation of $G$ satisfies that the max outdegree is at most $d$, we will call it a \emph{$d$-orientation}. 
+We use the standard notion of directed graphs, again disallowing loops and parallel edges (edges with same head and tail). An \emph{oriented graph} is a directed graph $D$ where any pair of vertices can be the endpoints of at most one edge; that is, for distinct vertices $u,v$ we disallow that the edges $(u,v)$ and $(v,u)$ are simultaneously present. For an undirected graph $G$, an \emph{orientation} of $G$ is an oriented graph obtained from $G$ by choosing an orientation of every edge of $G$. Moreover, if an orientation of $G$ satisfies that the maximum outdegree is at most $d$, we will call it a \emph{$d$-orientation}. 
 
 A directed graph is \textit{connected} if its underlying undirected graph is connected.
 
-A graph $G$ is \emph{$d$-degenerate} if every subgraph of $G$ contains a vertex of degree at most $d$. The \emph{degeneracy} of $G$ is the smallest $d$ for which $G$ is $d$-degenerate. Note that if $G$ is $d$-degenerate, then it has an orientation with maximum outdegree at most $d$. Indeed, such an orientation can be obtained by iteratively removing from $G$ a vertex of the smallest degree (which is always at most~$d$) and orienting the edges incident to it away from it.
+A graph $G$ is \emph{$d$-degenerate} if every subgraph of $G$ contains a vertex of degree at most $d$. The \emph{degeneracy} of $G$ is the smallest $d$ for which $G$ is $d$-degenerate. Note that if $G$ is $d$-degenerate, then it has a $d$-orientation. Indeed, such an orientation can be obtained by iteratively removing from $G$ a vertex of the smallest degree (which is always at most~$d$) and orienting the edges incident to it away from it.
 
 The \emph{arboricity} of a graph $G$ is the smallest $\alpha\in \N$ such that the edge of $G$ can be partitioned into $\alpha$ sets each of which forms a forest. It is well-known that if $d$ and $\alpha$ are the degeneracy and the arboricity of~$G$, respectively, then we have
 \[\alpha\leq d\leq 2\alpha.\]
@@ -60,8 +60,8 @@ The \emph{Gaifman graph} of a $\Sigma$-structure $\Af$ is the graph on vertex se
 
 Homomorphisms of relational structures are defined naturally: For two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well. 
 
-Similarly to graphs, we may consider \emph{rooted relational structures} by equipping a structure $\Af$ with a tuple $\tup u$ of roots, which are (not necessarily distinct) elements of the universe; we denote it by $\rt{\Af}{\tup u}$. Homomorphisms and (induced) substructure isomorphisms can be again extended to rooted structures in the expected way. Thus, we may speak about homomorphisms of colored directed graphs etc.
-\wninline{Dziwne to ostatnie zdanie, bo ma "thus", a to co po nim następuje jakoś nie chce być wnioskiem z tego co było przed nim}
+Similarly to graphs, we may consider \emph{rooted relational structures} by equipping a structure $\Af$ with a tuple $\tup u$ of roots, which are (not necessarily distinct) elements of the universe; we denote it by $\rt{\Af}{\tup u}$. Homomorphisms and (induced) substructure isomorphisms can be again extended to rooted structures in the expected way. Thus, we may speak about homomorphisms of rooted, colored directed graphs etc.
+%\wninline{Dziwne to ostatnie zdanie, bo ma "thus", a to co po nim następuje jakoś nie chce być wnioskiem z tego co było przed nim}
 
 \paragraph*{Sparsity.} For $r\in \N$, we say that a \emph{depth-$r$ model} of a graph $H$ in a graph $G$ is a mapping $\eta$ from the vertices of $H$ to subsets of the vertices of $G$ satisfying the following two conditions:
 \begin{itemize}
