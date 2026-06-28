@@ -2,8 +2,8 @@
 
 In this section we recall the framework of \emph{progressive exploration}, proposed by Fabia\'nski et al.~\cite{FabianskiPST19} for  designing parameterized algorithms for \drds{r} and \dris{r}, among other problems of similar kind. Our main focus here is to explain that the progressive exploration algorithms for \drds{r} and \dris{r} can be executed using a bounded number of calls to the following two basic queries, each working on a graph $G$ and stipulated by a distance parameter $r\in \N$:
 \begin{itemize}
-	\item $\far{S,r}$: Given a set $S$, return a vertex $v$ of $G$ such that $\dist_G(v,S)>r$; or $\bot$ if no such vertex exists.
-	\item $\near{S,r}$: Given a set $S$, return a vertex $v$ of $G$ such that $\dist_G(v,s)\leq r$ for all $s\in S$; or $\bot$ if no such vertex exists.
+	\item $\far{S,r}$: Given a set $S \subseteq V(G)$, return a vertex $v$ of $G$ such that $\dist_G(v,S)>r$; or $\bot$ if no such vertex exists.
+	\item $\near{S,r}$: Given a set $S \subseteq V(G)$, return a vertex $v$ of $G$ such that $\dist_G(v,s)\leq r$ for all $s\in S$; or $\bot$ if no such vertex exists.
 \end{itemize}
 For the \dris{r} problem, we will need a slight generalization of these.
 This will allow us to concentrate in subsequent sections on implementing those queries efficiently in the setting of dynamic data structures.
@@ -13,6 +13,8 @@ For \drds{r}, Fabia\'nski et al. proposed a \emph{semi-ladder algorithm} that pr
 \begin{itemize}
 	\item $\notDominated{D,r}$:
 	Given a set $D$ of at most $k$ vertices, return a vertex $v$ that is not distance-$r$ dominated by~$D$, that is, such that $\dist_G(v,D)>r$. In case no such vertex $v$ exists, return $\bot$.
+	\wninline{Nie lubię nazwy $\mathrm{witnessDom}$, bo sugeruje jakby to był świadek \emph{dominacji}, a to świadek \emph{niedominacji}. Podobna uwaga co do $\mathrm{witnessInd}$}
+	\wninline{W sporą konfuzję mnie wprowadziła ta narracja i wording tutaj, że zakładamy istnienie ,,more basic query farVertex'' i zarysowywujemy, że będzie chcieli za jego pomocą jakoś zaimplementować zapewne bardziej skomplikowane ,,witnessDom'', które jest dokładnie tym samym. Rozumiem, że obie nazwy mają sens w swoich kontekstach, ale uważnemu czytelnikowi się zapala lampka, że pewnie czegoś nie zrozumiał.}
 	\item $\candidate{W,r,k}$: Given a vertex subset $W$, return a set $D$ of at most $k$ vertices that distance-$r$ dominates~$W$, that is, $\dist_G(w,D)\leq r$ for all $w\in W$. In case no such set $D$ exists, return $\bot$.
 \end{itemize}
 The algorithm iteratively constructs two sequences:
@@ -25,7 +27,7 @@ After the $(i-1)$st iteration, candidates $D_1,\ldots,D_{i-1}$ and witnesses $w_
 	\item First, we call $\candidate{W,r,k}$ where $W$ comprises of all the  witnesses gathered so far, that is, $W\coloneqq \{w_1,\ldots,w_{i-1}\}$. This either yields the next candidate $D_i$ that distance-$r$ dominates $W$, or a conclusion that no such $D_i$ exists. In the latter case, we may conclude that $G$ has no distance-$r$ dominating set of size at most $k$.
 	\item Second, we call $\notDominated{D_i,r}$ to verify whether $D_i$ already distance-$r$ dominates the whole graph. If so, then we have found a solution, and otherwise the call provides the next witness $w_i$, with which we may proceed to the next round of the iteration.  
 \end{itemize}
-It is clear that when this algorithm returns an answer, then this answer is always correct. The main insight of Fabia\'nski et al. is that since every candidate $D_i$ distance-$r$ dominates all the witnesses $w_1,\ldots,w_{i-1}$ but not the witness $w_i$, the constructed candidates and witnesses form a pattern called a \emph{semi-ladder}. As such semi-ladders cannot be too long in classes of bounded expansion, this provides a bound on the number of iterations that the algorithm executes before breaking the loop and reporting an outcome.
+It is clear that when this algorithm returns an answer, then this answer is always correct. The main insight of Fabia\'nski et al. is that since every candidate $D_i$ distance-$r$ dominates all the witnesses $w_1,\ldots,w_{i-1}$ but not the witness $w_i$, the constructed candidates and witnesses form a pattern called a \emph{semi-ladder}. Since semi-ladders cannot be too long in classes of bounded expansion, this provides a bound on the number of iterations that the algorithm executes before breaking the loop and reporting an outcome.
 
 
 \begin{algorithm}
@@ -41,14 +43,14 @@ It is clear that when this algorithm returns an answer, then this answer is alwa
 	\Repeat
 	{
 		$D\coloneqq \candidate{W,r,k}$\;
-		\If{$S = \bot$}
+		\If{$D = \bot$}
 		{
 			\KwRet{$\bot$} \;
 		}
 		$w \coloneqq \notDominated{D,r}$ \;
 		\If{$w = \bot$}
 		{
-			\KwRet{$S$} \;
+			\KwRet{$D$} \;
 		}
 		$W \coloneqq W \cup \{ w \}$ \;
 	}
@@ -214,6 +216,8 @@ The ladder algorithm will be parameterized by one more parameter $p\in \N$, whic
 	}
 	\caption{Ladder algorithm for distance-$r$ independent set of size $k$ in a graph $G$}\label{alg:2}
 \end{algorithm}
+
+\wninline{Dlaczego ten algorytm jest konsystentnie nazywany ladder algorithm, a domset konsystentnie semi-ladder? Oba robią semi-ladder, tak?}
 
 The ladder algorithm for parameters $r,k,p$ proceeds iteratively in rounds as follows (see \cref{alg:2} for a pseudocode). We construct two sequences: candidates $\tup a_1,\tup a_2,\tup a_3,\ldots$, each being a $k$-tuple of vertices, and witnesses $P_1,P_2,P_3,\ldots$, each being a vertex subset of size at most $p$. After the $(i-1)$st iteration, the candidates $\tup a_1,\ldots,\tup a_{i-1}$ and the witnesses $P_1,\ldots,P_{i-1}$ are already constructed. Then, the $i$th iteration is as follows:
 \begin{itemize}
