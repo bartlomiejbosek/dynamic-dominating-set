@@ -117,6 +117,7 @@ Using again that $|S(v)|\le \Delta+1$ for every $v\in V(G)$, we obtain \[|D| = \
 
 We now propose a dynamic data structure that maintains an approximation domination number of a graph of bounded degeneracy based on the approximation method yielded by \cref{lem:apx-static}. We will exploit the following two results.
 
+\wninline{Zdeduplikowac Brodala}
 \begin{theorem}[Brodal--Fagerberg orientation data structure,~\cite{BrodalF99}]\label{thm:BF}
 	For every $d\in \N$, there is a deterministic dynamic data structure that for a fully dynamic $n$-vertex graph $G$ whose degeneracy is always bounded by $d$, maintains an orientation $\vec{G}$ with maximum out-degree bounded by $4d$, using $\Oh(n+m)$ words of memory, where $m$ is the current edge count of $G$. It can be initialized on the edgeless $n$-vertex graph in time $\Oh(n)$. It supports edge insertions in amortized time $\Oh(1)$ and edge deletions in amortized time $\Oh(d+\log n)$. Moreover, after each update it can report all edges whose orientation changed during this update, and the amortized number of such edges is $\Oh(d+\log n)$.
 \end{theorem}
@@ -210,9 +211,8 @@ Hence the whole data structure occupies $\Oh(n+m_t)+\Oh(n+m_t)+\Oh(dn)=\Oh(dn+m_
 
 The description provided above amounts to the proof of the following result, which summarizes our data structure.
 
-\begin{theorem}\label{thm:apx-dynamic}
-For every $d\in \N$ there is a randomized dynamic data structure that, against an oblivious adversary, maintains a fully dynamic $d$-degenerate graph $G$ on $n$ vertices together with a dominating set $D$ in $G$ satisfying $|D|\leq (4d+1)^2\cdot \gamma(G)$. The access to $D$ is provided by queries that report its size in time $\Oh(1)$ and enumerate all its vertices in time $\Oh(|D|)$. The data structure can be initialized on an edgeless $n$-vertex graph in time $\Oh(n)$, uses $\Oh(dn+m)$ words of space where $m$ denotes the current number of edges, and processes each edge insertion and deletion in expected amortized time $\Oh(d^2(d+\log n))$.
-\end{theorem}
+\mainApx*
+
 \begin{comment}
 \begin{proof}
 The description above already specifies the whole persistent state, all supported methods, and their local invariants.

@@ -1,3 +1,317 @@
+\newcommand{\Labs}{\Lambda}
+\newcommand{\lab}{\lambda}
+\newcommand{\length}{\mathsf{len}}
+%\newcommand{\wei}{\mathbb{w}}
+
+\newcommand{\Mm}{\mathcal{M}}
+
 \section{Implementation of oracles in classes of bounded expansion}\label{sec:implementation}
 
-Here we implement the oracles for an arbitrary distance $d$ in classes of bounded expansion.
+Here we implement the oracles for an arbitrary distance parameter $r$ in classes of bounded expansion. 
+
+%\michalin{In the following I assume that we replaced all the $\tfrac{1}{\eps}$ terms in the probabilities with $\tfrac{1}{n}$.}
+
+
+
+
+\subsection{Detecting near vertices}
+
+We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ oracle, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
+
+\begin{theorem}\label{thm:NearVertex-new}
+	Fix a graph class $\Cc$ of bounded expansion, $k,r\in \N$, and $\eps>0$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Then there exists a randomized data structure $\nearVertexDS{G}{r,k,\eps}$ that provides access to the following query:
+	\begin{itemize}
+		\item $\near{S,\rho}$: For a given set of vertices $S\subseteq V(G)$ with $|S|\leq k$ and a function $\rho\colon S\to [0,r]$, return a vertex $v$ such that $\dist_G(s,v)\leq \rho(s)$ for every $s\in S$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$, and uses $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{theorem}
+\begin{proof}
+	Consider a query $\near{S,\rho}$. Enumerate all the vertices of $S$ as a $k$-tuple $\tup s$, possibly repeating some of them if necessary. Define $\rho'\colon [k]\to [0,r]$ by setting $\rho'(i)\coloneqq \rho(s_i)$, for all $i\in [k]$. 
+	
+	Let $\tup z$ be a tuple consisting of $k$ distinct vertices. 
+	Consider a family of $\Xi_{\rho'}$ of all the rooted graphs $\rt{H}{\tup z,y}$ that can be obtained as follows: 
+	\begin{itemize}
+		\item for every $i\in [k]$, attach to $z_i$ a path of some length between $0$ and $\rho'(i)$, and
+		\item fuse all the other endpoints of those paths into a single vertex and call it $y$.
+	\end{itemize}
+	We also let $\Xi_r\coloneqq \Xi_{\rho_0}$ where $\rho_0(i)=r$ for all $i\in [k]$. 
+	Note that $\Xi_{\rho'}\subseteq \Xi_r$ for every $\rho'\colon [i]\to [0,r]$, while $|\Xi_r|=(r+1)^{k}\leq \Oh_{r,k}(1)$ and $|H|\leq 1+(r-1)k\leq \Oh_{r,k}(1)$ for all $\rt{H}{\tup z,y}\in \Xi_r$.
+	The following is clear.
+	
+	\begin{claim}\label{cl:distExample}
+		For any vertex $v$ of $G$, the following conditions are equivalent:
+		\begin{itemize}
+			\item $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$; and
+			\item there exists $\rt{H}{\tup z,y}\in \Xi_{\rho'}$ such that $\Hom(\rt{H}{\tup z,y},\rt{G}{\tup s,v})\neq\emptyset$.
+		\end{itemize}
+	\end{claim}
+
+	Let $\eps'\coloneqq \tfrac{\eps}{|\Xi_r|}\geq \tfrac{\eps}{\Oh_{r,k}(1)}$.
+	For every rooted graph $\rt{H}{\tup z,y}\in \Xi_{r}$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$; note that here, we remove $y$ from the roots. Upon query $\near{S,\rho}$, we let $\tup s$ be a $k$-tuple that enumerates $S$ (possibly with repetitions). Then, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, we ask the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ for an example homomorphism $\varphi_{\rt{H}{\tup z,y}}\in \Hom(\rt{H}{\tup z},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup z,y}}(y)$; so $v$ can be reported. And if no such homomorphism exists, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, then by \cref{cl:distExample} we may conclude that there is no vertex $v\in V(G)$ such that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$. By the union bound, the probability that any of the $|\Xi_{\rho}|\leq |\Xi_r|$ calls to  $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ returns an incorrect answer is upper bounded by $\eps'\cdot |\Xi_\rho|\leq \eps$; this bounds the error probability of the algorithm.
+
+	Since $|\Xi_{r}|\leq \Oh_{r,k}(1)$ and $|H|\leq \Oh_{r,k}(1)$ for all $\rt{H}{\tup z,y}\in \Xi_r$, the promised bounds on the amortized update and query time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
+\end{proof}
+
+\subsection{Maintaining augmentations}
+Before proceeding to the specific description of the $\farVertexDS{G}{r,k,\eps}$ data structure, we explain how we dynamically maintain an augmented version of our graph. This is a key technical ingredient in the approach, which was already exploited by Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} in a similar manner. Here we repeat their reasoning and adjust it to our setting.
+
+The approach is based on maintaining an iterated fraternal augmentation of $G$, which is still sparse thanks to \cref{lem:fraternal}. The edges of this augmentation are decorated by some information memorized during the augmentation process. Formally, we will adhere to the following definitions.
+
+
+%Recall that an \emph{oriented graph} is a loopless directed graph where for every pair of distinct vertices $u,v$, there is at most one edge with endpoints $u$ and $v$. In particular, in an oriented graph we forbid the edges $(u,v)$ and $(v,u)$ to be simultaneously present. If $G$ is the underlying undirected graph of an oriented graph $D$, then we may say that $D$ is an \emph{orientation} of $G$ and if the maximum outdegree of vertices in $D$ is upper bounded by $\Delta$, then we may additionally specify that it is a $\Delta$-orientation.
+
+%\begin{definition} 
+%	Let $r \in \N$. An \emph{$r$-decorated graph} is an (either directed or undirected) graph $G$ together with a length function $\length_G \colon E(G) \to [r]$.
+%\end{definition}
+
+\begin{definition}
+	Let $\Lambda$ be a finite set of labels and $r\in \N$.
+	A \emph{$(\Lambda,r)$-decorated graph} is an oriented graph $D$ together with a \emph{labeling function} $\lab_D\colon E(D)\to \Lambda$ and a \emph{length function} $\length_D\colon E(D)\to [r]$. The subscript can be omitted if $D$ is clear from the context. When speaking about just an \emph{$r$-decorated graph} we assume only the availability of the length function, and we allow $D$ to be also an undirected graph.
+	
+	We say that a $(\Lambda,r)$-decorated graph $D$ is \emph{unambiguous} if for every vertex $u$ of $D$, the edges of $D$ with tail $u$ receive pairwise different labels under $\lab_D$. Note that this in particular implies that the maximum outdegree in $D$ is at most $|\Lambda|$.
+	
+	For an undirected graph $G$, we say that a $(\Lambda,r)$-decorated graph $D$ is a \emph{faithful $(\Lambda,r)$-augmentation} of $G$ if the following conditions are satisfied:
+	\begin{enumerate}[label={(A\arabic*)}]
+		\item $V(D)=V(G)$ and the undirected graph underlying $D$ is a supergraph of $G$.
+		\item $D$ is unambiguous.
+		\item\label{c:short} For every edge $(u,v)$ of $D$, we have $\dist_G(u,v)\leq \length_D(u,v)$.
+		\item\label{c:center} For every path $P=(u_0,u_1,\ldots,u_{r'})$ in $G$ of length $r'\leq r$, there exist indices 
+		\[0=\alpha_0< \alpha_1< \ldots <\alpha_{s-1}<\alpha_s = \beta_t< \beta_{t-1}< \ldots< \beta_1< \beta_0=r',\]
+		for some $s,t\in \N$, such that 
+		\begin{itemize}
+			\item for every $i\in [s]$, the edge $(u_{\alpha_{i-1}},u_{\alpha_i})$ is present in $D$ and $\length_D(u_{\alpha_{i-1}},u_{\alpha_i})\leq \alpha_i-\alpha_{i-1}$; and 
+			\item for every $j\in [t]$, the edge $(u_{\beta_{j-1}},u_{\beta_j})$ is present in $D$ and $\length_D(u_{\beta_{j-1}},u_{\beta_j})\leq \beta_{j-1}-\beta_{j}$. 
+		\end{itemize}
+		The subgraph of $D$ consisting of the edges  $(u_{\alpha_{i-1}},u_{\alpha_i})$, for $i\in [s]$, and  $(u_{\beta_{j-1}},u_{\beta_j})$, for $j\in [t]$, will be called a \emph{shortcut} of $P$. 
+	\end{enumerate}
+\end{definition}
+
+Homomorphisms of $(\Lambda,r)$-decorated graphs are defined naturally, as for general relational structures: for $\varphi$ to be a homomorphism we require that for every edge $(u,v)$ of the source graph, there is an edge $(\varphi(u),\varphi(v))$ of the target graph with exactly the same label and length.
+
+We aim to show that in any class $\Cc$ of bounded expansion, faithful augmentations of any fixed depth can be maintained in polylogarithmic amortized update time. The proof is based on \cite[Theorem 4]{DvorakTumaArxiv}.
+
+In preparation for the description of the data structure maintaining the faithful augmentation, let us describe a sequence of graph classes of bounded expansion. Let $\Cc$ be a graph class of bounded expansion. We define a sequence of graph classes $\Cc_1, \ldots, \Cc_r$ inductively in the following way:
+\begin{itemize}
+	\item $\Cc_1 \coloneqq \Cc$; and
+	\item for $i\in [r-1]$, we set $\Cc_{i+1} \coloneqq \Fra(\Cc_i, 4 \cdot i \cdot \nabla_0(\Cc_i))$.
+	%. that stems from the unraveled proof of \cref{lem:fraternal}, which can be applied here as it is easily seen that based on \cref{lem:fraternal} each $\Cc_i$ is a class of graphs of bounded expansion.
+\end{itemize}
+Note that a straightforward induction using \cref{lem:fraternal} shows that the consecutive classes $\Cc_1,\Cc_2,\Cc_3,\ldots$ have bounded expansion, hence $\nabla_0(\Cc_i)$ is finite and can be used to define $\Cc_{i+1}$. We also note that the proof of \cref{lem:fraternal} is effective and gives a computable upper bounds on the parameters $\nabla_r(\Fra(\Cc,d))$ based on $d$ and the parameters $\nabla_r(\Fra(\Cc,d))$. Hence, if we are given access to the values of parameters $\nabla_0(\Cc),\nabla_1(\Cc),\nabla_2(\Cc),\ldots$, then in the construction we can compute a sequence of finite upper bounds $d_1\le d_2\leq \ldots\le d_r$ on $\nabla_0(\Cc_1)\le \nabla_0(\Cc_2)\leq \ldots \leq \nabla_0(\Cc_r)$, and to define $\Cc_{i+1}$ use the upper bound $d_i$ instead of $\nabla_0(\Cc_i)$.
+
+%Additionally, note that we can assume that $d_1 \le d_2 \le \ldots \le d_r$ and that the values of $d_i$ can be effectively computed given access to the values of the function bounding the expansion of $\Cc$. 
+With that, let us state the main lemma of this section.
+
+
+\begin{lemma}\label{lem:dyn-augmentation}
+	Fix a graph class $\Cc$ of bounded expansion and $r\in \N$. Then there exists a finite set of labels $\Lambda$ such that every graph $G\in \Cc$ has a faithful $(\Lambda,r)$-augmentation $D$. 
+	
+	Also, there is a data structure that for a dynamic $n$-vertex graph $G\in \Cc$, maintains its faithful $(\Lambda,r)$-orientation $D$ with amortized update time $\Oh_{\Cc,r}(\log^{r-1} n)$. Further, every update to $G$ triggers $\Oh_{\Cc,r}(\log^{r-1} n)$ updates to $D$ in the amortized sense. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r}(n)$ and occupies $\Oh_{\Cc,r}(n)$ space at all times. 
+\end{lemma}
+
+%The key ingredient to obtaining faithful augmentations will be following result by Brodal and Fagerberg \cite{BrodalF99}.
+
+%\wninline{Moze tego Brodala wyrzucic do prelimów skoro go używamy trzy razy?}
+
+
+%Another tool that we will require will be \emph{fraternal augmentations}, introduced by Ne\v{s}et\v{r}il and Ossona de Mendez \cite{NesetrilOssona}.
+
+%\begin{definition}
+%	Let $G$ be an undirected graph and let $D$ be its orientation. Let $F(D)$ be an undirected graph such that $V(F(D)) = V(G)$ and $E(F(D))$ is the union of $E(G)$ and all edges $uv$ such that there exists a vertex $w \in V(G)$ such that $(w, u), (w, v) \in E(D)$. Then, $F(D)$ is called a \emph{fraternal augmentation} of $G$. Each such pair $(w, u)$ and $(w, v)$ will be called a \emph{fork}.
+%\end{definition}
+
+%\begin{theorem} {\cite{NesetrilOssona}} Let $\mathcal{C}$ be a graph class of bounded expansion and let $G \in \mathcal{C}$. Let $D$ be a $d$-orientation of $G$ and let $F(D)$ be a fraternal augmentation of $G$. 
+%\end{theorem}
+%\wninline{todo: wyspecyfikować}
+
+
+\begin{proof} %[Proof of \cref{lem:dyn-augmentation}]
+	For $i\in [r]$, we denote $d_i\coloneqq \nabla_0(\Cc_i)$. Thus, every graph in $\Cc_i$ admits an orientation with maximum outdegree at most $d_i$.
+	
+	For each $i\in [d]$,
+	let us define dynamic graphs $G_i, G_i', R_i, D_i$ and $D_i'$, all on the same vertex set $V(G)$. All of them are going to be $r$-decorated, except for $D_r$, which will be $(\Lambda, r)$-decorated. The graphs $G_i, G_i'$ and $R_i$ will be undirected, while $D_i$ and $D_i'$ will be orientations of $G_i$ and $G_i'$, respectively. For convenience, we also define $G_0$ and $D_0$ to be edgeless graphs on the same vertex set too. We set $G_1' \coloneqq G$, where $\length_{G_1'}(e) \coloneqq 1$ for each $e \in E(G_1')$. The graphs $G_1', \ldots, G_r'$ will be edge-disjoint, so we can inductively define $G_1,\ldots,G_r$ and $D_1,\ldots,D_r$ from $G_1', \ldots, G_r'$ and $D_1', \ldots, D_r'$ by setting \[G_i \coloneqq G_{i-1} \cup G_i'\qquad\textrm{and}\qquad D_i \coloneqq D_{i-1} \cup D_i'.\] We want to maintain that $D_i'$ is a $4d_i$-orientation of $G_i'$. Consequently, $D_i$ will have maximum outdegree at most $\Delta_i \coloneqq 4(d_1+\ldots+d_i)$. Note that $\Delta_i \le 4 \cdot i \cdot d_i$. From the construction it will become apparent that $G_i' \in \Cc_i$, which is why a $4d_i$-orientation of $G_i'$ exists and can be effectively maintained using the data structure of \cref{thm:bf}.
+	
+	We now inductively define the graphs $R_1,\ldots,R_r,G_2',\ldots,G'_r,D_1',\ldots,D_r'$. The graph $R_1$ is set to be edgeless. To define $R_{i+1}$ and $G_{i+1}'$ for $i\in [r-1]$, consider a triple of distinct vertices $u, v, w \in V(G)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) \le r$. If $(u, v)$ or $(v, u)$ already belongs to $E(D_i)$, we add the edge $uv$ to $R_{i+1}$. Otherwise, we add the edge $uv$ to $G_{i+1}'$. There are no other edges in $R_{i+1}$ and $G_{i+1}'$. Note that this specification ensures that $G_{i+1}'$ will be edge-disjoint from $G_1', \ldots, G_i'$, as desired. Also note that $G_{i+1}$ defined in this way belongs to $\Fra(G_i, \Delta_i)$, so if $G_i \in \Cc_i$ and $\Delta_i \le 4 \cdot i \cdot d_i$, we have that $G_{i+1} \in \Cc_{i+1}$, as desired. For an edge $uv$ either from $R_{i+1}$ or from $G_{i+1}'$, we define its length $\length(u, v)$ as $\min_{w} (\length_{G_i}(w, u) + \length_{G_i}(w, v))$, where the minimum ranges over all vertices $w$ that are considered in connection to the edge $uv$ in the sense described above. Then $D_{i+1}'$ is a $4d_{i+1}$-orientation of $G_{i+1}'$, which will be eventually maintained using the data structure of \cref{thm:bf}. %\michal{Czy krawędź w $R_{i+1}$ może zmniejszyć swoją długość, jeśli okaże się, że jest podparta czymś krótszym?}
+	
+	Let $i\in [r]$. Consider an edge $e \in E(D_{i})$. If we have that $e \in E(D_{i}')$, then we set $\length_{D_{i}}(e) \coloneqq \length_{D_{i}'}(e)$. Next, if $e \in E(R_{i})$, then we set $\length_{D_{i}}(e) \coloneqq \min(\length_{D_{i-1}}(e), \length_{R_{i}}(e))$. Otherwise, we set $\length_{D_{i}}(e) \coloneqq \length_{D_{i-1}}(e)$. Note that such definition ensures that $\dist_{G_{i}}(u,v)\leq \length_{D_i}(u,v)$, which is easily seen through an induction argument. That concludes the definitions of $G_i, G_i', R_i, D_i$ and $D_i'$. The resulting $D_r$ will be our faithful $(\Lambda, r)$-augmentation of $G$.\michal{What is $\Lambda$?}
+	
+%	Firstly, we are going to argue that $D_r$ comes from a fixed class of bounded expansion.
+%	\begin{claim} The underlying undirected graph of $D_i$ comes from a class of bounded expansion that depends only on $\Cc$ and $r$.
+%	\end{claim}
+%	\begin{proof}
+%	
+%	
+%	
+%	\end{proof}
+	
+	
+	We now show how to effectively maintain the constructed graphs.
+	
+	\begin{claim}\label{cl:maintain}
+		The graphs $G_i, R_i, D_i$ and $D_i'$ can all be maintained with amortized update time bounded by $\Oh_r(\log^{r-1}n \Delta_1 \Delta_2 \ldots \Delta_r)$ per edge addition or removal in $G$. Moreover, every update to $G$ triggers that many updates to $G_i, R_i, D_i$, and $D_i'$ in the amortized sense.
+	\end{claim}
+	
+	\begin{claimproof}
+		The graphs $D_i'$, which are orientations of $G_i'$, are maintained using the Brodal--Fagerberg data structure of \cref{thm:bf}. That is, assuming that $d_i$ is chosen so that $G_i$ is $d_i$-degenerate (which follows from $G_i\in \Cc_i$ and $d_i=\nabla_0(\Cc_i)$), the data structure of \cref{thm:bf} indeed maintains a $4d_i$-orientation of $G_i'$ (a subgraph of $G_i$), which we call $D_i'$. Note that by \cref{thm:bf}, these data structures take time $\Oh_{\Cc,r}(n)$ to initialize and use $\Oh_{\Cc,r}(n)$ space at all times.
+		
+		Whenever an update to the edge set of $G$ occurs, this starts a series of updates to all of $G_i, G_i', R_i, D_i$ and $D_i'$, for $i=1,2,\ldots,r$. Whenever an edge is supposed to change its orientation or its length in any of these graphs, this is modeled by one edge removal and one edge addition. Each change to the edge set of $D_i$ causes $\Oh(\Delta_i)$ changes to the edge sets of $G_{i+1}'$ and $R_{i+1}$, since for a given edge $(w, u)$ there are only at most $\Delta_i$ edges of the form $(w, v)$, and consequently, at most $\Delta_i$ edges $uv$ that need updating.
+		Each change to $G_i'$ incurs $\Oh(\log n)$ reorientations in $D_i'$ in the amortized sense, which incurs the same number of reorientations in $D_i$, which then incurs $\Oh(\log n \cdot \Delta_i)$ changes in $G_{i+1}$ and $R_{i+1}$. Each change to $R_i$ incurs $\Oh(1)$ changes to $D_i'$ and $D_i$ and $\Oh(\Delta_i)$ changes to $G_{i+1}'$ and $R_{i+1}$. Hence, the amortized number of changes to all maintained graphs caused by one change to $G$ is $\Oh_r(\log^{r-1} n \cdot \Delta_1 \Delta_2 \ldots \Delta_{r-1})$ (one can easily argue that amortized costs multiply in the same way that worst-case costs do). Whenever we perform a series of reorientations, we should first perform all corresponding removals and only then all corresponding additions, to make sure that we stay within the relevant graph classes during the intermediate computations as well.
+		%\wninline{zastanowic sie czy była ważna ta własność, która wspomniał Dvorak, że usuwanie nic nie reorientuje (ktora nie jest zachowana w aktualnie cytowanym Brodalu)}
+		
+		An additional aspect requiring careful bookkeeping is the maintenance of labels and lengths. If we remove an edge $(w, u)$ from $D_i$ that along with some edge $(w, v)$  gave rise to an edge $(u, v) \in G_{i+1}'$, then $(u, v)$ may still belong to $G_{i+1}'$ if $w$ was not a unique vertex with edges to $u$ and $v$ in $D_i$. However, in that case the length of $(u, v)$ might change if $w$ was a unique vertex with the lowest value of $\length_{D_i}(w, u) + \length_{D_i}(w, v)$. In order to correctly update these values, for every edge $e$ in $R_{i+1}$ and $G_{i+1}'$ we additionally keep an auxiliary array $\mathrm{cnt}_{e, i}[0], \ldots, \mathrm{cnt}_{e, i}[r]$, where $\mathrm{cnt}_{e, i}[j]$ tells us the number of vertices $w \in V(G_i)$ such that $(w, u), (w, v) \in E(D_i)$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) = j$. Maintaining these arrays lets us effectively (with $\Oh(r) = \Oh_r(1)$ overhead) determine the correctly updated lengths of edges in $R_{i+1}$ and $G_{i+1}'$ under any additions or removals of edges from $D_i$ (and whether they should still exist in the first place). As for labels in $D_r$, it is enough to set $\Lambda \coloneqq \{1, 2, \ldots, \Delta_r\}$ and for each vertex $v \in V(G)$ keep a boolean array $\mathrm{used}_v[1,\ldots,\Delta_r]$, where $\mathrm{used}_v[j]$ denotes whether there exists an edge outgoing of $v$ with the label $j$. When a new outgoing edge is added to $v$, we search for an unused label for it. Navigating through the $\mathrm{used}_v[1,\ldots,\Delta_r]$ array incurs an $\Oh(\Delta_r)$ overhead to the  $\Oh_r(\log^{r-1}(n) \Delta_1 \Delta_2 \ldots \Delta_r)$ total time of processing all necessary updates to all intermediate structures for one edge change in $G$.
+	\end{claimproof}
+	
+	We  shall now prove that $D_r$ indeed contains the desired shortcuts.
+	
+	\begin{claim}\label{cl:shortcuts}
+		Let $P=(u_0, \ldots, u_{r'})$ be a path in $G$ of some length $r' \le r$. Then, $D_r$ contains a shortcut of path $P$. 
+	\end{claim}
+	\begin{proof}
+		We are going to generalize this statement in the following way. We prove that if $P$ is a path in $G_{r-i+1}$ with at most $i$ edges and of total length (i.e. sum of edge lengths) at most $r$, then $D_r$ contains a shortcut of $P$. We are going to prove it inductively on $i$. Our original claim is the inductive claim for $i=r$. 
+		
+		The base of the induction $i=1$ is straightforward, so assuming that the inductive claim holds for some~$i$, let us prove the inductive claim for $i+1$. Let $P = (u_0, \ldots, u_c)$ be a path in $G_{r-i}$ with $c \le i+1$ edges and total length at most $r$. Let $Q$ be the same path, but in $D_i$ rather than in $G_i$ (so $Q$ is an orientation of $P$). The key observation is that either $Q$ already is a shortcut of $P$ --- in which case the inductive claim is vacuously true as $D_i$ is a subgraph of $D_r$ --- or $Q$ contains three consecutive vertices $u_{j-1},u_j,u_{j+1}$ so that the edges between them are oriented as $(u_j, u_{j-1})$ and $(u_j, u_{j+1})$. In this case we are guaranteed that $(u_{j-1}, u_{j+1}) \in G_{r-i+1}$ and $P'=(u_0, \ldots, u_{j-1}, u_{j+1}, \ldots, u_c)$ is a path in $G_{r-i+1}$ with $c-1\le i$ edges and total length at most $r$ as well. By the inductive hypothesis for $i$, we know that $D_r$ contains a shortcut of $P'$, and it is clear that any shortcut for $P'$ is also a shortcut of $P$.
+	\end{proof}
+	
+	\cref{cl:shortcuts} proves that $D_r$ is a faithful $(\Lambda,r)$-augmentation of $G$, which by \cref{cl:maintain} can be maintained within the claimed complexity bounds. This concludes the proof.
+\end{proof}
+
+
+\subsection{Detecting far vertices}
+
+We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data structure. Our implementation is encapsulated in the following statement.
+
+\begin{theorem}\label{thm:FarVertex-new}
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$. Then there exists a randomized data structure $\farVertexDS{G}{r,k,\eps}$ that provides access to the following query:
+	\begin{itemize}
+		\item $\far{S,\rho}$: For a given set of vertices $S\subseteq V(G)$ with $|S|\leq k$ and a function $\rho\colon S\to [0,r]$, return a vertex $v$ such that $\dist_G(u,S)>\rho(s)$ for all $s\in S$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{theorem}
+
+The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
+
+\begin{lemma}\label{lem:dyn-rooted-homs}
+	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $r\in \N$, and a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,r)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
+	\[\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|\]
+	with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,r}(1)} n$. The data structure can be initialized for an edgeless $D$ in time $\Oh_{\Cc,H,\Lambda,r}(n)$ and uses $\Oh_{\Cc,H,\Lambda,r}(n)$ space at all times.
+\end{lemma}
+\begin{proof}
+	Follows immediately from \cref{thm:homcounts-relational} applied to the rooted $(\Lambda,r)$-oriented graph $\rt{H}{x}$ (understood as a relational structure in the obvious way) and the weight function $\wei'\colon V(H)\times V(D)$ defined as follows: for $(z,v)\in V(H)\times V(D)$,
+	\[\wei'(z,v)\coloneqq \begin{cases}\wei(v) &\textrm{if }z=x,\\ 1 & \textrm{otherwise.}\end{cases}\qedhere\]
+\end{proof}
+
+The next lemma is the combinatorial core of our approach. We show that using the Inclusion--Exclusion Principle, we may express a weighted sum over vertices $u$ that are \emph{far} from a fixed vertex $v$ as a linear combination of weighted sums over vertices that are \emph{close}.
+
+\begin{lemma}\label{lem:IE}
+	Let $G$ be a graph, $\wei\colon V(G)\to \Z$ be a weight function on the vertices of $G$, $u$ be a vertex of~$G$, and $r\in \N$. Suppose $D$ is a faithful $(\Lambda,r)$-augmentation of $G$, for some finite set of labels $\Lambda$. Then there exists a set $\Mm$, depending only on $\Lambda$ and $r$, with the following properties:
+	\begin{itemize}
+		\item every element of $\Mm$ is a pair $(s, \rt{H}{x,y})$, where $s\in \{-1,+1\}$ and $\rt{H}{x,y}$ is a $(\Lambda,r)$-oriented graph with $\Oh_{\Lambda,r}(1)$ vertices and two roots $x,y$; and
+		\item we have
+		\[\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>r}} \wei(v) =\sum_{(s,\rt{H}{x,y})\in \Mm}\ s\cdot \sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|.\]
+	\end{itemize}
+\end{lemma}
+\begin{proof}
+	Let a \emph{pattern} be a pair of finite sequences $\sigma,\tau$, each with entries in $\Lambda\times [r]$ such that the total sum of the second coordinates of the entries of $\sigma$ and $\tau$ is at most $r$. Note that this in particular means that $|\sigma|+|\tau|\leq r$. Let $\Pi$ be the set of all possible patterns; note that $|\Pi|\leq \Oh_{\Lambda,r}(1)$.
+	
+	For a pattern $\pi=(\sigma,\tau)\in \Pi$ and a vertex $v$ of $G$, we say that $\pi$ is \emph{realized} in $\rt{D}{u,v}$ if in $D$ there exists oriented walks $P_\sigma=(a_0,a_1,\ldots,a_{|\sigma|})$ and $P_\tau=(b_0,b_1,\ldots,b_{|\tau|})$ such that
+	\begin{itemize}
+		\item for each $i\in [|\sigma|]$, the pair $(\lab_D((a_{i-1},a_i)),\length_D((a_{i-1},a_i)))$ is equal to the $i$th entry of $\sigma$;
+		\item for each $j\in [|\sigma|]$, the pair $(\lab_D((b_{j-1},b_j)),\length_D((b_{j-1},b_j)))$ is equal to the $j$th entry of $\tau$; and
+		\item $a_0=u$, $b_0=v$, and $a_{|\sigma|}=b_{|\tau|}$. %, and except for sharing $a_{|\sigma|}=b_{|\tau|}$ the paths $P_\sigma,P_\tau$ are vertex-disjoint.
+	\end{itemize}
+	The subgraph of $\rt{D}{u,v}$ consisting of the union of the walks $P_\sigma$ and $P_\tau$ will be called the \emph{realization} of $\pi$ in $\rt{D}{u,v}$. Note that since $D$ is unambigious, the realization of $\pi$ in $\rt{D}{u,v}$, if existent, is unique.
+	
+	We note the following.
+	
+	\begin{claim}\label{cl:dist-pattern}
+		For every vertex $v$ of $G$, we have the following:
+		\[\dist_G(u,v)\leq r \qquad\textrm{if and only if}\qquad \textrm{there exists }\pi\in \Pi\textrm{ that is realized in }\rt{D}{u,v}.\]
+	\end{claim}
+	\begin{claimproof}
+		Suppose first that $\dist_G(u,v)\leq r$ and let $Q$ be a $u$-$v$ path of length at most $r$. Since $D$ is a faithful $(\Lambda,r)$-augmentation of $G$, by \ref{c:center} there is a shortcut of $Q$, and this shortcut witnesses that some pattern $\pi\in \Pi$ is realized in $\rt{D}{u,v}$.
+		
+		Suppose next that some pattern $\pi\in \Pi$ is realized in $\rt{D}{u,v}$, hence it has some realization. Since the total sum of lengths of the edges in this realization is at most $r$, we can repeatedly use \ref{c:short} with triangle inequality to infer that $\dist_G(u,v)\leq r$.
+	\end{claimproof}
+	
+	Next,
+	call a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$ \emph{anchored} if every vertex of $H$ is reachable from $x$ or $y$ in $H$. Consider any vertex $v$ of $G$. We note the following.
+	
+	\begin{claim}\label{cl:unambigious}
+		For any anchored $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$, we have \[|\Hom(\rt{H}{x,y},\rt{D}{u,v})|\in \{0,1\}.\]
+	\end{claim}
+	\begin{claimproof}
+		Consider any $\varphi\in \Hom(\rt{H}{x,y},\rt{G}{u,v})$. Observe that for any edge $(s,t)\in E(H)$, if $\varphi(s)=w$, then $\varphi(t)$ must be an out-neighbor of $w$ in $D$ such that the edge $(w,\varphi(t))$ has label $\lab_H((s,t))$. By the unambiguity of $D$, such an outneighbor, if existent, is unique. Since we require that $\varphi(x)=u$ and $\varphi(y)=v$, the assumption that $\rt{H}{x,y}$ is anchored implies that all the images of all the vertices of $H$ under $\varphi$ are determined, or no such $\varphi$ exists.
+	\end{claimproof}
+	 
+	\begin{claim}\label{cl:testing-subset}
+		For any set of patterns $\Gamma\subseteq \Pi$ there exists an anchored $(\Lambda,r)$-oriented graph $\rt{H_\Gamma}{x,y}$ on at most $2+(r-1)|\Gamma|$ vertices such that we have:
+			\[\textrm{all the patterns of }\Gamma\textrm{ are realized in } \rt{D}{u,v}\qquad \textrm{if and only if}\qquad \Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})\neq \emptyset.\]
+	\end{claim}
+	\begin{claimproof}
+		For every pattern $\pi=(\sigma,\tau)\in \Gamma$, build a $(\Lambda,r)$-oriented graph $\rt{H_\pi}{x,y}$ as follows:
+		\begin{itemize} 
+			\item construct an oriented path $P_\sigma$ of length $|\sigma|$ that starts at $x$ and whose consecutive edges have lengths and labels equal to the consecutive terms of $\sigma$;
+			\item construct an oriented path $P_\tau$ analogously for $\tau$, where the start vertex of $P_\tau$ is $y$; and
+			\item identify the end vertex of $P_\sigma$ with the end vertex of $P_\tau$.
+		\end{itemize}
+		Note that $\rt{H_\pi}{x,y}$ is anchored and has at most $r-1$ vertices apart from $x$ and $y$. 
+		
+		Now, $\rt{H_\Gamma}{x,y}$ can be obtained by taking the disjoint union of graphs $\rt{H_\pi}{x,y}$ for all $\pi\in \Gamma$ and identifying all their vertices $x$ into a single vertex $x$, and similarly for $y$. It is straightforward to see that $\rt{H_\Gamma}{x,y}$ constructed in this way has the desired properties.
+	\end{claimproof}
+	
+	For $\Gamma\subseteq \Pi$, let $V_\Gamma$ be the set of those vertices $v$ of $G$ for which every pattern of $\Gamma$ is realized in $\rt{D}{u,v}$. Also, let $V_\mathsf{far}$ be the set of vertices $v\in V(G)$ satisfying $\dist_G(u,v)>r$. By \cref{cl:dist-pattern}, $V_\mathsf{far}$ can be equivalently defined the set of those vertices $v$ for which none of the patterns of $\Pi$ is realized in $\rt{D}{u,v}$. Therefore, by the Inclusion--Exclusion Principle,
+	\begin{equation}\label{eq:bobr}
+		\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>r}} \wei(v)=\sum_{v\in V_\mathsf{far}} \wei(v) = \sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\sum_{v\in V_\Gamma} \wei(v).
+	\end{equation}
+	Next, by \cref{cl:unambigious,cl:testing-subset}, for every $\Gamma\subseteq \Pi$ and $v\in V(G)$ we have
+	\begin{equation}\label{eq:wydra}
+		|\Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})|=\begin{cases}1 & \textrm{if }v\in V_\Gamma,\\ 0 & \textrm{otherwise.}\end{cases}
+	\end{equation}
+	By combining \eqref{eq:bobr} and \eqref{eq:wydra} we conclude that
+	\begin{equation*}
+		\sum_{\substack{v\in V(G)\\ \dist_G(u,v)>r}} \wei(v)= \sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H_\Gamma}{x,y},\rt{D}{u,v})|.
+	\end{equation*}	
+	Hence, we may take
+	\[\Mm\coloneqq \left\{\,((-1)^{|\Gamma|},\rt{H_\Gamma}{x,y})\colon \Gamma\subseteq \Pi\,\right\}.\qedhere\]
+\end{proof}
+
+By combining \cref{lem:dyn-augmentation,lem:dyn-rooted-homs,lem:IE}, we easily obtain the following.
+
+\begin{lemma}\label{lem:wei-sums-far}
+	Fix a graph class $\Cc$ of bounded expansion and $r\in \N$.
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$, and let $u$ be a fixed vertex of $G$ (which does not change over time). Then there exists a data structure that maintains the value
+	\[\sum_{\substack{v\in V(G)\\ \dist_{G}(u,v)>r}} \wei(v)\]
+	with amortized update time $\log^{\Oh_{\Cc,r}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r}(n)$ and uses $\Oh_{\Cc,r}(n)$ space at all times.
+\end{lemma}
+\begin{proof}
+	Let $\Lambda$ be the label set provided for $\Cc$ and $r$ by \cref{lem:dyn-augmentation}; note that $|\Lambda|\leq \Oh_{\Cc,r}(1)$. Further, let $\Mm$ be the set provided by \cref{lem:IE} for $\Lambda$ and $r$.
+	By \cref{lem:dyn-augmentation}, we may maintain a faithful $(\Lambda,r)$-augmentation $D$ of $G$ so that every update to $G$ triggers an amortized number of $\log^{\Oh_{\Cc,r}(1)} n$ updates to $D$. Therefore, by \cref{lem:dyn-rooted-homs}, for every $(s,\rt{H}{x,y})\in \Mm$ we may construct a data structure that maintains the value $\sum_{v\in V(G)} \wei(v)\cdot |\Hom(\rt{H}{x,y},\rt{D}{u,v})|$ with amortized update time $\log^{\Oh_{\Cc,H,\Lambda,r}(1)} n$ (per update in $D$). Since $|\Mm|\leq \Oh_{\Lambda,r}(1)\leq \Oh_{\Cc,r}(1)$ and each graph $\rt{H}{x,y}$ featured in $\Mm$ has $\Oh_{\Lambda,r}(1)\leq \Oh_{\Cc,r}(1)$ vertices, we conclude that updating all those data structures takes amortized time $\log^{\Oh_{\Cc,r}(1)} n$ per update in $D$, so also amortized time $\log^{\Oh_{\Cc,r}(1)} n$ per update in $G$. Finally, the value $\sum_{\substack{v\in V(G)~\mid~ \dist_{G}(u,v)>r}} \wei(v)$ can be recomputed in time $\Oh_{\Cc,r}(1)$ upon every update using the formula provided by \cref{lem:IE}. The claimed bounds on the initialization time and the space usage follow directly from the bounds provided by \cref{lem:dyn-augmentation,lem:dyn-rooted-homs}.
+\end{proof}
+
+With all the tools prepared, we may prove \cref{thm:FarVertex-new} and thereby provide a suitable data structure $\farVertexDS{G}{r,k}$ by combining \cref{lem:wei-sums-far,lem:restore-by-sampling}.
+
+\begin{proof}[Proof of \cref{thm:FarVertex-new}]
+	We first argue that without loss of generality we may assume that in every query $\far{S,\rho}$, we have $S=\{u\}$ for a fixed vertex $u$ that does not change over time and $\rho(u)=r+1$. We do it as follows. Instead of maintaining the original dynamic graph $G$, we maintain the dynamic graph $G'$ obtained from $G$ by $1+kr$ fresh vertices that remain isolated. Distinguish one of those vertices and call it $u$. Upon query $\far{S,\rho}$ in $G$, we temporarily use the additional isolated vertices to connect $u$ with each $s\in S$ by a path of length $(r+1)-\rho(s)$; this requires at most $k(r+1)$ edge additions. Once the paths are prepared, we ask the query $\far{\{u\},(u\mapsto r+1)}$ in $G'$. It is clear that this query in $G'$ is equivalent to the query $\far{S,\rho}$ in $G$ in terms of correct answers. Having obtained the answer to the query in $G'$, we may remove the temporary edges, thus making $u$ and all the other additional vertices again isolated. Note that we have $G'\in \Cc'$ where $\Cc'$ is the class of all subdivisions of graphs in which one vertex can be removed to obtain a graph from $\Cc$; this class also has bounded expansion, since we have $\nabla_d(\Cc')\leq \nabla_d(\Cc)+1$ for all $d\in \N$. So the result for $\Cc'$ with the assumption that $S=\{u\}$ and $\rho=(u\mapsto r+1)$ in all the queries implies the general result for $\Cc$.
+	
+	We proceed under the assumption that every query asks about $S=\{u\}$ and $\rho=(u\mapsto r+1)$, for a fixed vertex $u$.
+	For the purpose of applying \cref{lem:restore-by-sampling}, for a vertex $v$ of $G$ we define
+	\[f(G,v)\coloneqq \begin{cases} 1 &\textrm{if }\dist_G(u,v)>r+1,\\ 0 & \textrm{otherwise.}\end{cases}\]
+	A suitable data structure $\WeiSum_{f, \wei}[G]$ for any fixed weight function $\wei\colon V(G)\to \Z$ is provided by \cref{lem:wei-sums-far} (applied with parameter $r+1$ instead of $r$). The data structure for $\Ver_f[G]$ can be obtained by maintaining the data structures $\WeiMaps_{\Hom,\rt{H}{x,y},1}[G]$ provided by \cref{thm:homcounts-relational} for $\rt{H}{x,y}$ ranging over paths of length $0,1,2,\ldots,r+1$ with endpoints $x$ and $y$. Therefore, \cref{lem:restore-by-sampling} applies and the data structure $\mathsf{RetrieveVertex}_{f,\eps}[G]$ provided by it meets all the requirements for $\farVertexDS{G}{r,k,\eps}$.
+\end{proof}
+
+\subsection{Dynamic domination and independence in classes of bounded expansion}
+
+We may finish the proofs of our main two results, \cref{thm:main-domset-be,thm:main-indset-be}, which we recall for convenience.
+
+\mainDomBE*
+\begin{proof}
+	Follows immediately by plugging \cref{thm:NearVertex-new,thm:FarVertex-new} into \cref{lem:summary-dom} and using \cref{thm:sli-be} to infer the finiteness of $\sli_r(\Cc)$.
+\end{proof}
+
+\mainIndBE*
+\begin{proof}
+	Follows immediately by plugging \cref{thm:NearVertex-new,thm:FarVertex-new} into \cref{lem:summary-ind}.
+\end{proof}

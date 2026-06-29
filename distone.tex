@@ -10,7 +10,7 @@ A $d$-degenerate graph has arboricity at most $d$.
 
 We use the following result of Brodal and Fagerberg~\cite[Theorem~3]{BrodalF99}.
 
-\begin{theorem}[Brodal--Fagerberg]\label{thm:bf}
+\begin{theorem}[Brodal--Fagerberg]\label{thm:bf-bartek}
 There exists a deterministic data structure that maintains a graph of arboricity at most $\alpha$ under edge insertions and deletions.
 The data structure stores an orientation $\vec{G}$ of $G$ with maximum out-degree $4\alpha$, i.e., for every vertex $u$ we have $|N^+(u)| \le 4\alpha$.
 An edge insertion has amortized cost $\Oh(1)$, an edge deletion has amortized cost $\Oh(\alpha + \log n)$, and the amortized number of edges that change orientation in a single operation is $\Oh(\alpha + \log n)$.
@@ -166,29 +166,29 @@ If $v\in U_2(S)$, Claim~\ref{lem:distone-U2-bucket} yields either $|S|>\Delta$, 
 
 \subsection{Data structure for \texorpdfstring{$\near{S}$}{near(S)}}\label{sec:distone-near}
 
-\paragraph{The data structure \texorpdfstring{$\nearVertexDS{1,n}$}{NearVertex[1,n]}.}
-The structure $\nearVertexDS{1,n}$ consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}; it stores no additional persistent fields.
+\paragraph{The data structure \texorpdfstring{$\nearVertexDS{G}{k,1}$}{NearVertex[1,n]}.}
+The structure $\nearVertexDS{G}{k,1}$ consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}; it stores no additional persistent fields.
 
-\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\nearVertexDS{1,n}$}{Init for NearVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\nearVertexDS{G}{k,1}$}{Init for NearVertex[1,n]}.}
 \begin{enumerate}
 \item Initialize one instance of the deterministic toolkit on the edgeless graph on $V$.
 \item For every edge $uv\in E(G)$, execute the insertion procedure of Lemma~\ref{lem:infra-update}.
 \end{enumerate}
 Because every intermediate graph is a subgraph of $G$, it is still $d$-degenerate, and because $G$ has at most $d(n-1)$ edges, this takes $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$ time.
 
-\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\nearVertexDS{1,n}$}{Add for NearVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\nearVertexDS{G}{k,1}$}{Add for NearVertex[1,n]}.}
 \begin{enumerate}
 \item Execute the insertion procedure of Lemma~\ref{lem:infra-update} in the unique toolkit instance.
 \end{enumerate}
 This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
 
-\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\nearVertexDS{1,n}$}{Remove for NearVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\nearVertexDS{G}{k,1}$}{Remove for NearVertex[1,n]}.}
 \begin{enumerate}
 \item Execute the deletion procedure of Lemma~\ref{lem:infra-update} in the unique toolkit instance.
 \end{enumerate}
 This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
 
-\paragraph{Procedure \texorpdfstring{$\near{S}$ for $\nearVertexDS{1,n}$}{nearVertex(S) for NearVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\near{S}$ for $\nearVertexDS{G}{k,1}$}{nearVertex(S) for NearVertex[1,n]}.}
 \begin{enumerate}
 \item If $S=\emptyset$, return vertex $1$.
 \item Scan the vertices of $S$ and test whether they belong to $V^+$.
@@ -203,7 +203,7 @@ Steps~2--3 take $\Oh(|S|)$ time, Step~4 takes $\Oh(|S|^2\log n)$ time, Steps~5--
 
 \begin{theorem*}[\ref{thm:distone-near}]
 Assume $n\ge 2$ and $d\ge 1$.
-There exists a data structure $\nearVertexDS{1,n}$ that maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
+There exists a data structure $\nearVertexDS{G}{k,1}$ that maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
 \item $\init{G}$ initializes the structure in time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$;
 \item $\add{uv}$ and $\remove{uv}$ update the structure in amortized time $\Oh(2^{4d}(d^3+\log^3 n))$;
@@ -308,7 +308,7 @@ f(\widehat G,u)=1
 u\in V^+\setminus N_G[P(\widehat G)].
 \]
 Thus, whenever $P(\widehat G)=S$, the positive vertices for $f$ are exactly the non-isolated vertices of $V\setminus N_G[S]$.
-Isolated vertices are intentionally excluded from $f$ and will be handled separately in the construction of $\farVertexDS{1,n}$.
+Isolated vertices are intentionally excluded from $f$ and will be handled separately in the construction of $\farVertexDS{G}{k,1}$.
 
 \paragraph{The data structure \texorpdfstring{$\mathsf{WeightedSum}_{f,w}(\widehat G)$}{WeightedSum}.}
 For a fixed weight function $w\colon V\cup\{x\}\to\Z$, assume that every value $w(u)$ and every maintained counter fits in $\Oh(1)$ machine words.
@@ -442,7 +442,7 @@ Hence all additional weighted counter fields together use $\Oh(n\cdot 2^\Delta)=
 Since $d\ge 1$, the marker-set storage is absorbed, and the whole structure uses $\Oh(nd\cdot 2^{4d})$ words.
 \end{proof}
 
-\paragraph{The data structure \texorpdfstring{$\farVertexDS{1,n}$}{FarVertex[1,n]}.}
+\paragraph{The data structure \texorpdfstring{$\farVertexDS{G}{k,1}$}{FarVertex[1,n]}.}
 The structure consists of:
 \begin{itemize}
 \item one auxiliary marker vertex $x\notin V$, kept isolated outside the execution of a query;
@@ -450,7 +450,7 @@ The structure consists of:
 \item one randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ obtained from Lemma~\ref{lem:restore-by-sampling} applied black-box to the full structure $\mathsf{WeightedSum}_{f,w}(\widehat G)$.
 \end{itemize}
 
-\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\farVertexDS{1,n}$}{Init for FarVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\init{G}$ for $\farVertexDS{G}{k,1}$}{Init for FarVertex[1,n]}.}
 \begin{enumerate}
 \item Initialize one private instance of the deterministic toolkit on the edgeless graph on $V$.
 \item For every edge $uv\in E(G)$, execute the insertion procedure of Lemma~\ref{lem:infra-update} in this toolkit instance.
@@ -458,17 +458,17 @@ The structure consists of:
 \item Initialize $\mathsf{RetrieveVertex}_{f}(\widehat G)$ on $\widehat G$.
 \end{enumerate}
 
-\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\farVertexDS{1,n}$}{Add for FarVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\farVertexDS{G}{k,1}$}{Add for FarVertex[1,n]}.}
 \begin{enumerate}
 \item Relay the insertion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 \end{enumerate}
 
-\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\farVertexDS{1,n}$}{Remove for FarVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\remove{uv}$ for $\farVertexDS{G}{k,1}$}{Remove for FarVertex[1,n]}.}
 \begin{enumerate}
 \item Relay the deletion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 \end{enumerate}
 
-\paragraph{Procedure \texorpdfstring{$\far{S}$ for $\farVertexDS{1,n}$}{farVertex(S) for FarVertex[1,n]}.}
+\paragraph{Procedure \texorpdfstring{$\far{S}$ for $\farVertexDS{G}{k,1}$}{farVertex(S) for FarVertex[1,n]}.}
 \begin{enumerate}
 \item Canonicalize $S$ as a set and build a temporary membership dictionary for it.
 \item Query the interval dictionary of the private toolkit for the smallest isolated vertex $z$.
@@ -486,7 +486,7 @@ The adversary is oblivious to these choices with respect to the entire operation
 
 \begin{theorem*}[\ref{thm:distone-far}]
 Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
-There exists a randomized data structure $\farVertexDS{1,n}$ that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
+There exists a randomized data structure $\farVertexDS{G}{k,1}$ that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
 \item $\init{G}$ initializes the structure in time
 $\Oh\!\left(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps}\right)$;
@@ -507,7 +507,7 @@ The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ 
 
 \begin{proof}
 The predicate $f$ was defined above so that, after temporarily adding the marker edges $xs$ for all $s\in S$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[S]$.
-Thus the only witnesses not represented by $f$ are isolated vertices, and these are handled by the private toolkit stored directly in $\farVertexDS{1,n}$.
+Thus the only witnesses not represented by $f$ are isolated vertices, and these are handled by the private toolkit stored directly in $\farVertexDS{G}{k,1}$.
 An isolated vertex $z$ is a valid witness for $\far{S}$ exactly when $z\notin S$.
 
 By Lemma~\ref{lem:distone-weighted-sum}, one full instance of $\mathsf{WeightedSum}_{f,w}(\widehat G)$ has initialization time
@@ -521,7 +521,7 @@ $S_R=\Oh(nd\cdot 2^{4d})$.
 Because $f$ is binary, we apply Lemma~\ref{lem:restore-by-sampling} in the case \cref{it:binary-f}, hence $I_V=T_V=Q_V=S_V=0$.
 Since $|\widehat G|=n+1=\Oh(n)$, $d\ge 1$, and $\eps\in(0,1/2)$, this yields a randomized data structure $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with initialization time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized update time $\Oh(2^{4d}(d^3+\log^3 n)\log n \log \frac{1}{\eps})$, amortized query time $\Oh(Q_R(s)\log n \log \frac{1}{\eps})$ when the current marker set has size at most $s$, and space $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 
-We now construct $\farVertexDS{1,n}$ from one private toolkit instance together with $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
+We now construct $\farVertexDS{G}{k,1}$ from one private toolkit instance together with $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 By the randomness paragraph above, the oblivious-adversary guarantee applies to the entire operation sequence seen by $\mathsf{RetrieveVertex}_{f}(\widehat G)$, including the temporary marker updates inside a call to $\far{S}$.
 In $\init{G}$, Steps~1--2 initialize the private toolkit on the input graph in time $\Oh(nd\cdot 2^{4d}(d^3+\log^3 n))$ by Lemma~\ref{lem:infra-update}.
 Step~3 is constant time and starts with $P(\widehat G)=\emptyset$, and Step~4 initializes $\mathsf{RetrieveVertex}_{f}(\widehat G)$ with the bound stated above.
@@ -558,7 +558,7 @@ When $V\setminus N_G[S]=\emptyset$, the isolated-vertex stage cannot find a vali
 When $V\setminus N_G[S]\neq\emptyset$, the isolated-vertex stage finds a witness whenever an isolated witness exists; otherwise the witness set is exactly the set of positive vertices of $f$ after Step~5, so Lemma~\ref{lem:restore-by-sampling} guarantees that Step~6 returns some witness with probability at least $1-\eps$.
 This proves the one-sided error model stated in the lemma.
 
-Finally, the space of $\farVertexDS{1,n}$ is the sum of the space of one private toolkit instance, namely $\Oh(nd\cdot 2^{4d})$, and the space of $\mathsf{RetrieveVertex}_{f}(\widehat G)$, namely $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
+Finally, the space of $\farVertexDS{G}{k,1}$ is the sum of the space of one private toolkit instance, namely $\Oh(nd\cdot 2^{4d})$, and the space of $\mathsf{RetrieveVertex}_{f}(\widehat G)$, namely $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 The marker set $P$ inside the weighted structures contributes only $\Oh(n)$ words per instance and is absorbed in the same bound because $d\ge 1$.
 Hence the total space is $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 \end{proof}

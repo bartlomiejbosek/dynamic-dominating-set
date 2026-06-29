@@ -34,7 +34,7 @@
 \usepackage{nicefrac}
 \usepackage{wasysym}
 \usepackage{comment}
-\usepackage{bbold}
+%\usepackage{bbold}
 \linenumbers
 \usepackage[linesnumbered,ruled]{algorithm2e}
 \usepackage{textpos}
@@ -42,6 +42,9 @@
 \setlist[enumerate]{topsep=4pt,itemsep=3pt,parsep=0pt} 
  %\linenumbers
 
+
+
+\crefname{algocf}{Algorithm}{Algorithms}
 \crefname{claim}{Claim}{Claims}
 \crefname{figure}{Figure}{Figures}
 \renewcommand{\preceq}{\preccurlyeq}
@@ -80,20 +83,33 @@
 
 \DeclareRobustCommand{\stirling}{\genfrac\{\}{0pt}{}}
 
-\newcommand{\drds}[1]{{\sc Distance-}{#1} {Dominating Set}}
-\newcommand{\dris}[1]{{\sc Distance-}{#1} {Independent Set}}
-\newcommand{\notDominated}[1]{\mathtt{Witness(#1)}}
-\newcommand{\candidate}[1]{\mathtt{Candidate(#1)}}
-\newcommand{\add}[1]{\mathtt{Add(#1)}}
-\newcommand{\remove}[1]{\mathtt{Remove(#1)}}
-\newcommand{\near}[1]{\mathtt{nearVertex(#1)}}
-\newcommand{\far}[1]{\mathtt{farVertex(#1)}}
-\newcommand{\init}[1]{\mathtt{Init(#1)}}
-\newcommand{\farVertexDS}[1]{\mathsf{FarVertex[#1]}}
-\newcommand{\nearVertexDS}[1]{\mathsf{NearVertex[#1]}}
-\newcommand{\dominatingSetDS}[1]{\mathsf{DominatingSet[#1]}}
-\newcommand{\ds}[1]{\mathtt{DomSet(#1)}}
+\newcommand{\drds}[1]{\textsc{Distance-}$#1$ \textsc{Dominating Set}}
+\newcommand{\dris}[1]{\textsc{Distance-}$#1$ \textsc{Independent Set}}
+\newcommand{\notDominated}[1]{\mathtt{witnessDom}(#1)}
+\newcommand{\candidate}[1]{\mathtt{candidateDom}(#1)}
+\newcommand{\witnessInd}[1]{\mathtt{witnessInd}(#1)}
+\newcommand{\candidateInd}[1]{\mathtt{candidateInd}(#1)}
+\newcommand{\add}[1]{\mathtt{insert}(#1)}
+\newcommand{\remove}[1]{\mathtt{remove}(#1)}
+\newcommand{\near}[1]{\mathtt{nearVertex}(#1)}
+\newcommand{\far}[1]{\mathtt{farVertex}(#1)}
+\newcommand{\init}[1]{\mathtt{init}(#1)}
+\newcommand{\farVertexDS}[2]{\mathsf{FarVertex}_{#2}[#1]}
+\newcommand{\nearVertexDS}[2]{\mathsf{NearVertex}_{#2}[#1]}
+\newcommand{\dominatingSetDS}[2]{\mathsf{DominatingSet}_{#2}[#1]}
+\newcommand{\independentSetDS}[2]{\mathsf{IndependentSet}_{#2}[#1]}
+\newcommand{\ds}[1]{\mathtt{domSet}(#1)}
+\newcommand{\is}[1]{\mathtt{indSet}(#1)}
+\newcommand{\FO}{\mathsf{FO}}
 
+\newcommand{\avgdeg}{\mathsf{avgdeg}}
+
+\newcommand{\Minors}{\mathsf{Minors}}
+\newcommand{\Fra}{\mathsf{Fraternal}}
+
+\newcommand{\ar}{\mathsf{ar}}
+\newcommand{\Af}{\mathbb{A}}
+\newcommand{\Bf}{\mathbb{B}}
 
 \newcommand{\cc}{\mathsf{cc}}
 \newcommand{\bd}{\partial}
@@ -113,11 +129,15 @@
 \newcommand{\tup}[1]{{\bar{#1}}}
 
 \newcommand{\Prob}{\mathbb{P}}
+\renewcommand{\Pr}{\Prob}
 \newcommand{\Exp}{\mathbb{E}}
 
 
 \newcommand{\clos}{\mathrm{cl}}
 \newcommand{\bnd}{\partial}
+
+%\newcommand{\tup}{\bar}
+\newcommand{\rt}[2]{#1\langle #2\rangle}
 
 
 \def\phi{\varphi}
@@ -146,7 +166,7 @@
 \newcommand{\Ss}{\mathcal{S}}
 
 \newcommand{\F}{\mathcal{F}}
-\newcommand{\G}{\mathcal{G}}
+\newcommand{\G}{\Cc}
 \newcommand{\val}{\mathrm{val}}
 \newcommand{\col}{\mathrm{col}}
 
@@ -167,6 +187,8 @@
 
 \newcommand{\michal}[1]{\todo[color=pink!40]{Micha\l{}: #1}}
 \newcommand{\michalin}[1]{\todo[size=\normalsize,inline,color=pink!40]{Micha\l{}: #1}}
+
+\newcommand{\wn}[1]{\todo[color=green!501]{{\textbf{W:} #1}}}
 \newcommand{\wninline}[2][inline]{\todo[color=green!50,#1]{{\textbf{W:} #2}}}
 \newcommand{\bbinline}[2][inline]{\todo[color=blue!50,#1]{{\textbf{B:} #2}}}
 \newcommand{\azinline}[2][inline]{\todo[color=yellow!50,#1]{{\textbf{A:} #2}}}
@@ -187,6 +209,10 @@
 \newcommand{\aff}[1]{\normalsize\textcolor{black!60}{#1}}
 
 \usepackage{tikz}
+
+\SetKwBlock{Repeat}{repeat}{}
+\let\oldnl\nl% Store \nl in \oldnl
+\newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}
 
 \begin{document}
 
@@ -220,22 +246,23 @@
 \setcounter{page}{1}
 
 \input{intro}
+\input{overview}
 \input{prelims}
 \input{ladders}
 \input{dvorak}
 \input{oracles}
 \input{distone}
 \input{apx}
-\input{conclusions}
+%\input{conclusions}
 
-\wninline{Czemu referencja do Dvoraka z WADS wygląda tak biednie?}
+%\wninline{Czemu referencja do Dvoraka z WADS wygląda tak biednie?}
 \bibliographystyle{alpha}
 \bibliography{references}
 
 \clearpage
 \appendix
 \input{appendix-weighted}
-\input{appendix-relations}
-\input{appendix-restore-by-sampling-hash}
+%\input{appendix-relations}
+%\input{appendix-restore-by-sampling-hash}
 
 \end{document}

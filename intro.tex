@@ -1,7 +1,71 @@
 \section{Introduction}\label{sec:intro}
 
-\wninline{Wojtek}
-\azinline{Ania}
-\bbinline{Bartek}
-\michalin{Michał1}
-\mpinline{Michał2}
+\emph{Sparsity} is a research area in structural graph theory that studies the structure in graphs that exclude dense local obstructions, formalized through the notion of shallow minors. Precisely, we say that a graph $H$ is a \emph{depth-$r$ minor} of a graph $G$ if a supergraph of $H$ can be obtained from $G$ by contracting mutually disjoint connected subgraphs of radius at most $r$. The two main concepts are the following:
+\begin{itemize}
+	\item A graph class $\Cc$ has \emph{bounded expansion} if for every $r\in \N$ there is a finite upper bound $c_r\in \N$ on the average degree of depth-$r$ minors of graphs from $\Cc$.
+	\item A graph class $\Cc$ is \emph{nowhere dense} if for every $r\in \N$ there is a finite upper bound $t_r\in \N$ on the sizes of complete graphs that can be found as depth-$r$ minors of graphs from $\Cc$.
+\end{itemize}
+Clearly, if $\Cc$ has bounded expansion then $\Cc$ is nowhere dense as well, but the reverse implication does not hold in general. Many well-studied classes of sparse graphs, such as graphs with bounded maximum degree, graphs excluding a fixed (topological) minor (in particular planar graphs), or some natural classes of sparse geometric intersection graphs, do have bounded expansion. Therefore, any methods designed for bounded expansion classes will apply to them as well. We refer the reader to the monograph of Ne\v{s}et\r{v}il and Ossona de Mendez~\cite{} or to the lecture notes of Pilipczuk, Pilipczuk, and Siebertz~\cite{} for a broad introduction to the vast toolbox of techniques for classes of bounded expansion and nowhere dense classes.
+
+The methods of Sparsity are particularly useful in the context of parameterized algorithms, as witnessed by the award of the Nerode Prize 2025 to Ne\v{s}et\v{r}il and Ossona de Mendez for laying foundations of the field. Not surprisingly, these methods apply predominantly to parameterized problems of local nature, such as the following:
+\begin{itemize}
+	\item \textsc{$H$-(Induced)-Subgraph Isomorphism}: Decide whether the fixed graph $H$ is an (induced) subgraph of the given graph $G$.
+	\item \drds{r}: Decide whether the given graph $G$ has a \emph{distance-$r$ dominating set} of size $k$, that is, a set $D$ of $k$ vertices such that every vertex of $G$ is at distance at most $r$ from some vertex of $D$.
+	\item \dris{r}: Decide whether the given graph $G$ has a \emph{distance-$r$ independent set} of size $k$, that is, a set $I$ of $k$ vertices that are pairwise at distance more than $r$ from each other.
+\end{itemize}
+All these problems are $\mathsf{W}[1]$-hard on general graphs, but become fixed-parameter tractable on any nowhere dense class of graphs. This is a manifestation of a more general phenomenon. Namely, each of the problems above can be expressed by a sentence of first-order logic $\FO$, of length depending on the relevant parameter(s): $|H|$, or $r$ and $k$. As proved by Grohe, Kreutzer, and Siebertz~\cite{}, the \emph{model-checking problem} for~$\FO$ --- given a graph $G$ and an $\FO$ sentence $\varphi$, decide whether $\varphi$ holds in $G$ ---  can be solved in almost linear fixed-parameter time on any nowhere dense graph class $\Cc$; precisely in time $\Oh_{\Cc,\varphi,\eps}(|G|^{1+\eps})$, for any fixed~$\eps>0$. As proved earlier by Dvo\v{r}\'ak, Kral', and Thomas~\cite{}, on bounded expansion classes one can even obtain a linear fixed-parameter time of $\Oh_{\Cc,\varphi}(|G|)$. While fixed-parameter tractability of \textsc{$H$-(Induced)-Subgraph Isomorphism}, \drds{r}, \dris{r} on nowhere dense classes follows from these meta-theorems, dedicated algorithms for those problems were known already earlier~\cite{}. In fact, their development was vital in establishing the toolbox needed for~\cite{}.
+
+Since the fundamental work of Dvo\v{r}\'ak et al.~\cite{} and of Grohe et al.~\cite{}, the approach to model-checking on classes of sparse graphs has been thoroughly understood, particularly for classes of bounded expansion. The developed framework is robust and has been successfully extended to the settings of enumeration~\cite{}, counting and other aggregate queries~\cite{}, circuit complexity~\cite{}, approximation~\cite{}, and distributed computing~\cite{}. One setting that has so far resisted progress, despite efforts, is that of dynamic data structures. 
+
+Precisely, consider the following setting. Fix a class of bounded expansion $\Cc$ and an $\FO$ sentence $\varphi$. Let $G$ be a fully dynamic graph that is updated over time by edge insertions and edge deletions (the vertex set stays fixed), subject to a guarantee that $G\in \Cc$ at all times. The goal is to design a data structure that efficiently maintains whether $\varphi$ is satisfied in $G$.
+
+The question about the existence of such a data structure was asked in 2013 by Dvo\v{r}\'ak and T\r{u}ma~\cite{}, who showed that this is indeed possible for the \textsc{$H$-Induced-Subgraph Isomorphism} problem. Precisely, they gave a dynamic data structure that is able to maintain the number of induced copies of $H$ in $G$ (as well as the number of $H$-subgraphs in $G$ and the number of homomorphisms from $H$ to~$G$) with amortized update time $\Oh_{\Cc,h}(\log^{\binom{h}{2}-1} n)$, where $h$ and $n$ denote the vertex counts of $H$ and $G$, respectively. Somewhat curiously, their approach is based on the Inclusion-Exclusion Principle, so even though their data structure can count the number of solutions, it is not capable of actually providing an example solution.
+
+\textsc{$H$-Induced-Subgraph Isomorphism} is a quite specific example of an $\FO$-definable problem, because the sentence expressing it is purely existential: After quantifying the vertices of $H$   existientially, the adjacencies and nonadjacencies can be verified using a quantifier-free subformula. Consequently, algorithms for this problem on classes of sparse graphs are typically much simpler and do not exploit the full toolbox of Sparsity~\cite{}. Since the work of Dvo\v{r}\'ak and T\r{u}ma in 2012, no progress on their question has been reported, even for the more complicated $\exists\forall$ problems such as \drds{r} and \dris{r}.
+
+\paragraph*{Our contribution.} In this work we propose fully dynamic data structures for the \drds{r} and \dris{r} problems on classes of bounded expansion, with polylogarithmic amortized update time.
+
+\begin{restatable}{theorem}{mainDomBE}\label{thm:main-domset-be}
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to the guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\ds{}$: Return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize}
+	Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of an update or a query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{restatable}
+
+\vspace{-0.3cm}
+
+\begin{restatable}{theorem}{mainIndBE}\label{thm:main-indset-be}
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to the guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\is{}$: Decide whether in $G$ there exists a distance-$r$ independent set of size $k$. 
+	\end{itemize}
+	Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of an update or a query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{restatable}
+
+Note that the data structure of \cref{thm:main-domset-be} is capable of providing an example solution, while that of \cref{thm:main-indset-be} only reports the existence of a solution. Both data structures are randomized against an oblivious adversary, which means that the guarantees on the probability of correctness hold for a stream of updates and queries fixed upfront; in particular, the adversary cannot choose the next update/query based on the data structure's answers to the previous queries. We stress that the data structure's answers to the consecutive queries are \emph{not} independent random variables; they all depend on some common random bits fixed upon the initialization.
+
+At this point, the proofs of \cref{thm:main-domset-be,thm:main-indset-be} do not extend to $\FO$-definable problems beyond \drds{r} and \dris{r}. This is because our approach is based on dynamizing two dedicated algorithms for these problems due to Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{}, obtained via their framework of \emph{progressive exploration}. We believe that this might indicate that in order to resolve the question of Dvo\v{r}\'ak and T\r{u}ma, one has to design a new $\FO$-model-checking algorithm on classes of sparse graphs that would be more in the spirit of progressive exploration.
+
+\medskip
+
+Next, we observe that for the specific case $r=1$ (so the classic \textsc{Dominating Set} problem), the data structure of \cref{thm:main-domset-be} can be simplified and may work only under the assumption of bounded degeneracy (equivalently, of bounded arboricity or of bounded maximum average degree among subgraphs).
+
+\begin{restatable}{theorem}{mainDomDeg}\label{thm:main-domset-deg}
+	Fix $d,k\in \N$ and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to the guarantee that $G$ is $d$-degenerate at all times, supports the following query:
+	\begin{itemize}
+		\item $\ds{}$: Return a dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize}
+	Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of an update or a query is $2^{\Oh(k+d)}\cdot \log^4 n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $2^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ and occupies  $2^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ space at all times.
+\end{restatable}
+
+Finally, it is also known that on classes of bounded expansion, both the \drds{r} problem and the \dris{r} problem admit constant-factor approximation algorithms~\cite{}. We prove that for $r=1$, this can be lifted to the dynamic setting, even only under the assumption of bounded degeneracy.
+
+\begin{restatable}{theorem}{mainApx}\label{thm:apx-dynamic}
+		For every $d\in \N$ there is a randomized dynamic data structure that, against an oblivious adversary, maintains a fully dynamic $d$-degenerate graph $G$ on $n$ vertices together with a dominating set $D$ in $G$ satisfying $|D|\leq (4d+1)^2\cdot \mathsf{dom}_1(G)$, where $\mathsf{dom}_1(G)$ denotes the minimum size of a dominating set in $G$. The access to $D$ is provided by queries that report its size in time $\Oh(1)$ and enumerate all its vertices in time $\Oh(|D|)$. The data structure can be initialized on an edgeless graph in time $\Oh(n)$, uses $\Oh(dn)$ space at all times, and processes every edge insertion and deletion in expected amortized time $\Oh(d^2(d+\log n))$.
+\end{restatable}
+
+Whether \cref{thm:apx-dynamic} can be lifted to $r>1$ under the assumption that the maintained graph belongs to a fixed bounded-expansion class $\Cc$ at all times, remains an interesting open question. Note here that while the setting $r=1$ is trivial for the \dris{r} problem (an $n$-vertex $d$-degenerate graph contains an independent set of size $\frac{n}{d+1}$), it becomes again interesting for $r>1$. In fact, it is known~\cite{} that in bounded-expansion classes, there is a constant-factor multiplicative gap between the minimum size of a distance-$r$ dominating set and the maximum size of a distance-$(2r+1)$ independent set. So if only an approximate value of the optimum needs to be reported, the questions of dynamic approximation for \drds{r} and \dris{(2r+1)} in bounded expansion classes are~equivalent.
