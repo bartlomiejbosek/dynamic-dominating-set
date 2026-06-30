@@ -1,6 +1,9 @@
 \section{Distance-\texorpdfstring{$1$}{1} domination}\label{sec:distone}
 
-In this section we restate Theorem~\ref{thm:NearVertex} and Theorem~\ref{thm:FarVertex} after specializing them to distance $r=1$ and to dynamic $d$-degenerate graphs on a fixed vertex set $V=\{1,\ldots,n\}$, where $n \ge 2$ and $d\ge 1$.
+In this section we restate Theorem~\ref{thm:NearVertex-new} and Theorem~\ref{thm:FarVertex-new} after specializing them to distance $r=1$ and to dynamic $d$-degenerate graphs on a fixed vertex set $V=\{1,\ldots,n\}$, where $n \ge 2$ and $d\ge 1$.
+\bbinline{Obecne pierwsze zdanie jest mylące: nie jest to przeformułowanie konstrukcji dla bounded expansion, lecz nowa i prostsza konstrukcja dla odległości $1$ w grafach $d$-zdegenerowanych. Proponuję zastąpić pierwszy akapit tej sekcji następującym tekstem po angielsku:
+
+``In this section we give simpler data structures for the distance-$1$ case under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. We work on a fixed vertex set $V=\{1,\ldots,n\}$ and, within the constructions below, assume $n\ge 2$ and $d\ge 1$. The exceptional cases needed for \cref{thm:main-domset-deg} are handled explicitly in the proof of that theorem at the end of this section.''}
 We maintain an orientation $\vec{G}$ with maximum out-degree $\Delta := 4d$ using the Brodal--Fagerberg data structure~\cite{BrodalF99}.
 We write $N(v)$ for the open neighborhood of $v$, $N[v]:=\{v\}\cup N(v)$ for the closed neighborhood, and $N[S]:=\bigcup_{v\in S}N[v]$ for $S\subseteq V$.
 
@@ -30,6 +33,9 @@ Thus each reoriented edge contributes $\Oh(1)$ additional work and is recorded e
 \subsection{Deterministic toolkit}\label{sec:distone-infra}
 
 Throughout this section we assume $n\ge 2$ and $d\ge 1$.
+\bbinline{W tej sekcji zakładamy $n\ge 2$ i $d\ge 1$, natomiast \cref{thm:main-domset-deg} dopuszcza także przypadki $k=0$, $n\le 1$ i $d=0$. Proponuję wstawić poniższy akapit jako pierwszy akapit dowodu \cref{thm:main-domset-deg}:
+
+``We first dispose of the degenerate parameter cases. If $k=0$, return $\emptyset$ if and only if $V(G)=\emptyset$, and return $\bot$ otherwise. If $n\le 1$ or $d=0$, then $G$ is edgeless at all times; in this case return $V(G)$ if $|V(G)|\le k$, and return $\bot$ otherwise. Hence, for the remainder of the proof, we may assume that $n\ge 2$, $d\ge 1$, and $k\ge 1$.''}
 By the arboricity bound above, Theorem~\ref{thm:bf}, and Lemma~\ref{lem:bf-report}, the current $d$-degenerate graph admits a maintained orientation $\vec G$ of maximum out-degree $\Delta := 4d$.
 We write $N^+(u):=\{v\in V : (u,v)\in \vec E\}$.
 This subsection describes one deterministic toolkit for distance $1$ in dynamic $d$-degenerate graphs.
@@ -169,6 +175,16 @@ If $v\in U_2(S)$, Claim~\ref{lem:distone-U2-bucket} yields either $|S|>\Delta$, 
 \paragraph{The data structure \texorpdfstring{$\nearVertexDS{G}{k,1}$}{NearVertex[1,n]}.}
 The structure $\nearVertexDS{G}{k,1}$ consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}; it stores no additional persistent fields.
 
+\bbinline{Obecna notacja $\nearVertexDS{G}{k,1}$ i $\farVertexDS{G}{k,1}$ odwraca kolejność parametrów względem \cref{lem:summary-dom}; ponadto parametr $k$ nie ogranicza tu dopuszczalnego rozmiaru wejściowego zbioru. Proponuję w całej tej sekcji wykonać dosłowne zamiany
+\[
+ \nearVertexDS{G}{k,1}\quad\text{przez}\quad\nearVertexDS{G}{1},
+ \qquad
+ \farVertexDS{G}{k,1}\quad\text{przez}\quad\farVertexDS{G}{1}.
+\]
+Następnie proponuję wstawić po pierwszym akapicie wprowadzającym strukturę near-vertex następujący tekst po angielsku:
+
+``The subscript $1$ records the distance parameter only. Both data structures accept every set $S\subseteq V$; their query bounds are stated as functions of $|S|$. In the application to \cref{lem:summary-dom}, the near-vertex oracle is queried only on sets of size at most $\ell$, whereas the far-vertex oracle is queried only on sets of size at most $k$. Thus these distance-$1$ structures provide a strictly stronger interface than the one required by that lemma.''}
+
 \paragraph{Procedure \texorpdfstring{$\init{G}$ for $\nearVertexDS{G}{k,1}$}{Init for NearVertex[1,n]}.}
 \begin{enumerate}
 \item Initialize one instance of the deterministic toolkit on the edgeless graph on $V$.
@@ -201,7 +217,7 @@ This takes amortized time $\Oh(2^{4d}(d^3+\log^3 n))$.
 \end{enumerate}
 Steps~2--3 take $\Oh(|S|)$ time, Step~4 takes $\Oh(|S|^2\log n)$ time, Steps~5--6 take $\Oh(d|S|\log n+d|S|^2\log n)$ time, and Step~7 takes $\Oh(d)$ time.
 
-\begin{theorem*}[\ref{thm:distone-near}]
+\begin{theorem}\label{thm:distone-near}
 Assume $n\ge 2$ and $d\ge 1$.
 There exists a data structure $\nearVertexDS{G}{k,1}$ that maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
@@ -210,7 +226,7 @@ There exists a data structure $\nearVertexDS{G}{k,1}$ that maintains a dynamic $
 \item $\near{S}$ returns a vertex $v$ with $S\subseteq N[v]$ if such a vertex exists, and returns $\bot$ otherwise, in time $\Oh(|S| + d|S|^2\log n)$.
 \end{itemize}
 The structure uses $\Oh(nd\cdot 2^{4d})$ words of space.
-\end{theorem*}
+\end{theorem}
 
 \begin{proof}
 The data structure consists of one instance of the deterministic toolkit of Section~\ref{sec:distone-infra}, so the paragraphs above already define the full persistent state and all supported procedures.
@@ -458,6 +474,10 @@ The structure consists of:
 \item Initialize $\mathsf{RetrieveVertex}_{f}(\widehat G)$ on $\widehat G$.
 \end{enumerate}
 
+\bbinline{Analiza inicjalizacji struktury $\farVertexDS{G}{1}$ odtwarza krawędzie dowolnego grafu początkowego, podczas gdy \cref{thm:main-domset-deg} wymaga inicjalizacji na grafie pustym. Proponuję dopisać bezpośrednio po wyświetlonej procedurze inicjalizacji $\farVertexDS{G}{1}$ następujący akapit po angielsku:
+
+``When the initial graph is edgeless, Step~1 initializes the private toolkit in $\Oh(1)$ time and Step~2 performs no work. The weighted-sum structures used in Step~4 are likewise initialized on an edgeless graph. Consequently, \cref{lem:restore-by-sampling} yields initialization time $\Oh(n\log n\log(1/\eps))$ for one instance of $\mathsf{RetrieveVertex}_{f}(\widehat G)$. Hence one instance of $\farVertexDS{G}{1}$ can be initialized on the edgeless graph in $\Oh(n\log n\log(1/\eps))$ time. In the proof of \cref{thm:main-domset-deg}, this bound is multiplied by the number of independent far-vertex instances maintained there.''}
+
 \paragraph{Procedure \texorpdfstring{$\add{uv}$ for $\farVertexDS{G}{k,1}$}{Add for FarVertex[1,n]}.}
 \begin{enumerate}
 \item Relay the insertion independently to the private toolkit and to $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
@@ -484,7 +504,13 @@ The structure consists of:
 The random choices inside Lemma~\ref{lem:restore-by-sampling} are fixed during the initialization of $\mathsf{RetrieveVertex}_{f}(\widehat G)$.
 The adversary is oblivious to these choices with respect to the entire operation sequence seen by this randomized retrieval structure, including the temporary marker updates $\add{xs}$ and $\remove{xs}$ for all $s\in S$ performed inside a query $\far{S}$.
 
-\begin{theorem*}[\ref{thm:distone-far}]
+\bbinline{Bieżący argument losowy nie wystarcza w zastosowaniu przez semi-ladder algorithm: kolejne zapytania far-vertex są adaptacyjnie wyznaczane na podstawie wcześniejszych odpowiedzi. Proponuję zastąpić aktualny akapit rozpoczynający się od dosłownego nagłówka "Randomness model" pierwszym z poniższych tekstów po angielsku. Drugi tekst warto zachować jako regułę stosowania tej struktury w dowodzie \cref{thm:main-domset-deg}; precyzuje on niezależne instancje dla rund i argument dla całego czasu życia każdej instancji.
+
+``The random choices inside \cref{lem:restore-by-sampling} are fixed when $\mathsf{RetrieveVertex}_{f}(\widehat G)$ is initialized. Against an oblivious adversary, the guarantee applies to every fixed operation sequence seen by this retrieval structure, including every temporary marker-edge insertion $\add{xs}$ and deletion $\remove{xs}$ performed inside a call to $\far{S}$.''
+
+``When this primitive is used by the semi-ladder algorithm, do not reuse one randomized far-vertex instance in all rounds. Instead, maintain independent instances $\mathcal F_1,\ldots,\mathcal F_\ell$, where $\mathcal F_i$ is used only in round $i$. Fix the complete external edge-update sequence. For each $i$, condition on the random bits of $\mathcal F_1,\ldots,\mathcal F_{i-1}$. The complete operation sequence issued to $\mathcal F_i$ throughout the lifetime of the data structure is then determined by the external updates, the deterministic near-vertex oracle, and the earlier instances, and is independent of the random bits of $\mathcal F_i$. Therefore the oblivious-adversary guarantee applies to every round-$i$ far-vertex query. If every $\mathcal F_i$ has error parameter $\delta$, then a union bound over at most $\ell$ rounds gives error probability at most $\ell\delta$ for one semi-ladder execution.''}
+
+\begin{theorem}\label{thm:distone-far}
 Assume $n\ge 2$, $d\ge 1$, and let $\eps \in (0,1/2)$.
 There exists a randomized data structure $\farVertexDS{G}{k,1}$ that, against an oblivious adversary, maintains a dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\{1,\ldots,n\}$ and supports the following operations:
 \begin{itemize}
@@ -503,7 +529,7 @@ The amortized query time on input $S$, where $s:=\max(1,|S|)$, is
 \Oh\!\left((s+2^s d s^2\log n)\log n \log \frac{1}{\eps}\right).
 \]
 The structure uses $\Oh\!\left(nd\cdot 2^{4d}\log n \log \frac{1}{\eps}\right)$ words of space.
-\end{theorem*}
+\end{theorem}
 
 \begin{proof}
 The predicate $f$ was defined above so that, after temporarily adding the marker edges $xs$ for all $s\in S$, the condition $f(\widehat G,u)=1$ holds exactly for the non-isolated vertices $u\in V\setminus N_G[S]$.
@@ -562,3 +588,52 @@ Finally, the space of $\farVertexDS{G}{k,1}$ is the sum of the space of one priv
 The marker set $P$ inside the weighted structures contributes only $\Oh(n)$ words per instance and is absorbed in the same bound because $d\ge 1$.
 Hence the total space is $\Oh(nd\cdot 2^{4d}\log n \log \frac{1}{\eps})$.
 \end{proof}
+
+\bbinline{Obecne granice w \cref{thm:main-domset-deg} nie wynikają z \cref{lem:summary-dom}: koszt generowania kandydatów daje narzut $2^{k^{\Oh(d)}}$, a niezależne instancje far-vertex wprowadzają dodatkowy czynnik zależny od liczby rund. Proponuję zastąpić trzy końcowe zdania opisujące złożoność w \cref{thm:main-domset-deg} pierwszym z poniższych tekstów po angielsku. Następnie proponuję wstawić bezpośrednio w tym miejscu drugi tekst — pełny dowód twierdzenia. Tekst ten jawnie obsługuje $k=0$, $n\le1$, $d=0$ i $k=1$, dobiera poprawnie parametr błędu oraz korzysta tylko z deterministycznego rdzenia \cref{lem:summary-dom}.
+
+``Put $\bar\eps\coloneqq\min\{\eps,1/4\}$. Every answer to a query is correct with probability at least $1-\eps$ against an oblivious adversary. The amortized time complexity of an update or a query is
+\[
+ 2^{\Oh(d)+k^{\Oh(d)}}\log^4 n\left(\log\frac{1}{\bar\eps}+d\log(k+1)\right).
+\]
+The data structure can be initialized on an edgeless graph in time
+\[
+ (k+1)^{\Oh(d)}2^{\Oh(d)}n\log n\left(\log\frac{1}{\bar\eps}+d\log(k+1)\right)
+\]
+and occupies the same asymptotic amount of space at all times.''
+
+}
+
+\bbinline{``We first dispose of the degenerate parameter cases. If $k=0$, return $\emptyset$ if and only if $V(G)=\emptyset$, and return $\bot$ otherwise. If $n\le 1$ or $d=0$, then $G$ is edgeless at all times; in this case return $V(G)$ if $|V(G)|\le k$, and return $\bot$ otherwise. Hence assume that $n\ge 2$, $d\ge 1$, and $k\ge 1$.
+
+Let $\mathcal C_d$ be the class of all $d$-degenerate graphs. Every graph in $\mathcal C_d$ excludes $K_{d+1,d+1}$ as a subgraph, and therefore \cref{thm:sli-biclique} gives $\sli_1(\mathcal C_d)<3(d+1)$. Put
+\[
+ \ell\coloneqq\max\{3(d+1),k^{3(d+1)}\},\qquad
+ \bar\eps\coloneqq\min\{\eps,1/4\},\qquad
+ \delta\coloneqq\bar\eps/\ell.
+\]
+For $k\ge2$, \cref{thm:termination} implies that every semi-ladder execution has fewer than $k^{3(d+1)}$ rounds. For $k=1$, suppose that an execution has $q$ rounds. In its first $q-1$ rounds the algorithm receives witnesses $w_1,\ldots,w_{q-1}$, and the corresponding candidates are singletons $D_i=\{a_i\}$. The pairs $(a_i,w_i)$ form a distance-$1$ semi-ladder of order $q-1$. Hence $q\le\sli_1(\mathcal C_d)+1\le3(d+1)$. Thus every execution has at most $\ell$ rounds.
+
+}
+
+\bbinline{Use the deterministic near-vertex oracle from \cref{thm:distone-near}; although it accepts arbitrary sets, it is queried only on sets of size at most $\ell$. For the far-vertex oracle, maintain $\ell$ independent instances $\mathcal F_1,\ldots,\mathcal F_\ell$ of \cref{thm:distone-far}, each initialized with error parameter $\delta$, and relay every edge update to all of them. In round $i$ of every semi-ladder execution, answer $\notDominated{D_i,1}$ by querying $\mathcal F_i.\far{D_i}$; here $|D_i|\le k$.
+
+Fix the complete external edge-update sequence. For a fixed $i$, condition on all random bits of $\mathcal F_1,\ldots,\mathcal F_{i-1}$. Throughout the lifetime of the data structure, the complete operation sequence issued to $\mathcal F_i$, including all temporary marker-edge insertions and deletions, is determined by the external updates, the deterministic near-vertex oracle, and the earlier instances. In particular, it is independent of the random bits of $\mathcal F_i$. Therefore the oblivious-adversary guarantee of \cref{thm:distone-far} applies to every round-$i$ query, which fails with probability at most $\delta$. A union bound over the at most $\ell$ rounds of the current semi-ladder execution gives failure probability at most $\ell\delta=\bar\eps\le\eps$.
+
+Conditional on all far-oracle calls made in the current semi-ladder execution being correct, the deterministic argument in the proof of \cref{lem:summary-dom}, together with \cref{lem:candidate-to-near}, proves correctness of the returned answer. This uses only the deterministic core of \cref{lem:summary-dom}; its randomized `Moreover' paragraph is not invoked. The near-vertex oracle contributes no error.
+
+}
+
+\bbinline{The $\ell$ far-vertex instances multiply their update time, initialization time, and space by $\ell$, and
+\[
+ \log\frac1\delta=\log\frac1{\bar\eps}+\log\ell
+ =\log\frac1{\bar\eps}+\Oh(d\log(k+1)).
+\]
+Together with the $2^{k^{\Oh(d)}}$ candidate-query overhead from \cref{lem:summary-dom}, this yields update time
+\[
+ 2^{\Oh(d)+k^{\Oh(d)}}\log^4 n\left(\log\frac1{\bar\eps}+d\log(k+1)\right).
+\]
+The edgeless-graph initialization bound stated above for one far-vertex instance gives total initialization time and space
+\[
+ (k+1)^{\Oh(d)}2^{\Oh(d)}n\log n\left(\log\frac1{\bar\eps}+d\log(k+1)\right).
+\]
+This proves the theorem.''}
