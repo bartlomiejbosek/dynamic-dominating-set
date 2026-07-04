@@ -84,7 +84,7 @@ Now suppose that we are in the case \ref{it:general-f}.
 Then the algorithm returns a vertex only after first checking that the candidate $q$ is an integer in $[n]$, and then asking $\Ver_f[G]$, which confirms that the returned vertex $q$ indeed satisfies $f(G,q)>0$.
 Hence every returned vertex is correct.
 Note that such a returned vertex $q$ need not belong to the currently processed set $S_{i,j}$: when several positive vertices contribute, $q=\beta_{i,j}/\alpha_{i,j}$ is a weighted average of their labels and may accidentally equal the label of a vertex outside $S_{i,j}$.
-This is irrelevant, because the required output is any vertex with positive $f$-value and $\Ver_f(G)$ confirms $f(G,q)>0$ before returning~$q$.
+This is irrelevant, because the required output is any vertex with positive $f$-value and $\Ver_f[G]$ confirms $f(G,q)>0$ before returning~$q$.
 
 Therefore, the query algorithm returns no false positives in both cases.
 If the algorithm outputs $\bot$, then it makes no positive claim, so again no false positive occurs.
@@ -144,13 +144,13 @@ We conclude that a false negative can occur only if $|S_{i^\star,j}\cap X|\neq 1
 Therefore, for every fixed query asked at any fixed time step, the probability that the data structure outputs $\bot$ despite $X\neq\emptyset$ is at most $\eps$.
 This is exactly the false-negative guarantee claimed in the lemma statement.
 
-\paragraph*{Complexity.} Upon initialization of the data structure, we have to sample and store all the sets $S_{i,j}$ for $(i,j)\in [0,L]\times [\xi]$; this takes $\Oh(n\log n\log \tfrac{1}{\eps})$ time. Also, we have to initialize all the $2(L+1)\xi=\Oh(\log n\log \tfrac{1}{\eps})$ maintained instances of $\WeiSum$ and, in the case \cref{it:general-f}, also the maintained instance of $\Ver$; this takes $\Oh(I\log n\log \tfrac{1}{\eps})$ time.
+\paragraph*{Complexity.} Upon initialization of the data structure, we have to sample and store all the sets $S_{i,j}$ for $(i,j)\in [0,L]\times [\xi]$; this takes $\Oh(n\log n\log \tfrac{1}{\eps})$ time. Also, we have to initialize all the $2(L+1)\xi=\Oh(\log n\log \tfrac{1}{\eps})$ maintained instances of $\WeiSum$ and, in the case \ref{it:general-f}, also the maintained instance of $\Ver$; this takes $\Oh(I\log n\log \tfrac{1}{\eps})$ time.
 Therefore, the initialization time is $\Oh((n+I)\log n\log \tfrac{1}{\eps})$, as promised. Note also that the stored sets $S_{i,j}$ take $\Oh(n\log n\log \tfrac{1}{\eps})$ space, the maintained instances of $\WeiSum$ and $\Ver$ take $\Oh(M\log n\log \tfrac{1}{\eps})$ space, and no more space is used by the data structure throughout its lifetime. Therefore, the space complexity is $\Oh((M+n)\log n\log \tfrac{1}{\eps})$.
 
 We are left with analyzing the amortized update and query complexity.
 Note that every update to the maintained graph $G$ is relayed to all the $2(L+1)\xi=\Oh(\log n\log \tfrac{1}{\eps})$ maintained instances of $\WeiSum$ and, in the case \ref{it:general-f}, also to the single maintained instance of $\Ver$.
 Therefore, the amortized cost of executing an update to $G$ is $\Oh(T\log n\log \tfrac{1}{\eps})$.
-For every processed pair it performs two queries to maintained instances of $\WeiSum$ and, in the case \ref{it:general-f}, at most one query to $\Ver_f(G)$.
+For every processed pair it performs two queries to maintained instances of $\WeiSum$ and, in the case \ref{it:general-f}, at most one query to $\Ver_f[G]$.
 As for the amortized query complexity, the query algorithm inspects at most $(L+1)\xi=\Oh(\log n\log \tfrac{1}{\eps})$ pairs $(i,j)$, and for each inspected pair it issues two queries to the maintained instances of $\WeiSum$ and, in the case \ref{it:general-f}, at most one query to the maintained instance of $\Ver$.
 Besides these calls, the algorithms performs only basic control logic of the loop and the arithmetic tests based on $\alpha_{i,j}$ and $\beta_{i,j}$, which amount to $\Oh(1)$ time per processed pair. Therefore, the amortized query time is $\Oh(T\log n\log \tfrac{1}{\eps})$ as well.
 \end{proof}

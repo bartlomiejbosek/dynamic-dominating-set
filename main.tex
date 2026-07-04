@@ -43,6 +43,7 @@
  %\linenumbers
 
 
+\usetikzlibrary{decorations.markings}
 
 \crefname{algocf}{Algorithm}{Algorithms}
 \crefname{claim}{Claim}{Claims}
@@ -214,21 +215,27 @@
 \let\oldnl\nl% Store \nl in \oldnl
 \newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}
 
+
+\tikzstyle{vertex}=[circle,draw=black,fill=gray,minimum size=0.15cm,inner sep=0pt]
+
+\tikzstyle{svertex}=[circle,draw=black,fill=black,minimum size=0.11cm,inner sep=0pt]
+
 \begin{document}
 
 \newcommand{\funding}{All the authors were supported by the project BOBR that received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme, grant agreement No. 948057.}
 
 
 %\title{Minor Containment and Disjoint Paths in almost-linear time\thanks{\funding}}
-\title{Dynamic domination and independence in sparse graphs\footnote{\funding}}
+\title{Dynamic domination and independence in sparse graphs}%\footnote{\funding}}
 %\date{\today}
 \date{}
-	\author[1,2]{Bart\l{}omiej Bosek}
-	\author[1]{Wojciech Nadara}
-	\author[1]{Micha\l{} Pilipczuk}
-	\author[1]{Anna Zych-Pawlewicz}
-	\affil[1]{\aff{University of Warsaw, Poland}}
-	\affil[2]{\aff{Jagiellonian University, Cracow, Poland}}
+\author[1]{Anonymous authors}
+%	\author[1,2]{Bart\l{}omiej Bosek}
+%	\author[1]{Wojciech Nadara}
+%	\author[1]{Micha\l{} Pilipczuk}
+%	\author[1]{Anna Zych-Pawlewicz}
+%	\affil[1]{\aff{University of Warsaw, Poland}}
+%	\affil[2]{\aff{Jagiellonian University, Cracow, Poland}}
 \maketitle
 
 \input{abstract}
@@ -240,6 +247,7 @@
 % \includegraphics[width=40px]{logo-eu}%
 % \end{textblock}
 
+\thispagestyle{empty}
 \newpage
 
 \clearpage
@@ -253,7 +261,7 @@
 \input{oracles}
 \input{distone}
 \input{apx}
-%\input{conclusions}
+\input{conclusions}
 
 %\wninline{Czemu referencja do Dvoraka z WADS wygląda tak biednie?}
 \bibliographystyle{plain}

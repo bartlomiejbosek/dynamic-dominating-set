@@ -54,7 +54,7 @@ We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ oracle, whi
 	Since $|\Xi_{r}|\leq \Oh_{r,k}(1)$ and $|H|\leq \Oh_{r,k}(1)$ for all $\rt{H}{\tup z,y}\in \Xi_r$, the promised bounds on the amortized update and query time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
 \end{proof}
 
-\subsection{Maintaining augmentations}
+\subsection{Maintaining augmentations}\label{sec:augmentations}
 Before proceeding to the specific description of the $\farVertexDS{G}{r,k,\eps}$ data structure, we explain how we dynamically maintain an augmented version of our graph. This is a key technical ingredient in the approach, which was already exploited by Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} in a similar manner. Here we repeat their reasoning and adjust it to our setting.
 
 The approach is based on maintaining an iterated fraternal augmentation of $G$, which is still sparse thanks to \cref{lem:fraternal}. The edges of this augmentation are decorated by some information memorized during the augmentation process. Formally, we will adhere to the following definitions.

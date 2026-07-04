@@ -1,3 +1,310 @@
 \section{Overview}\label{sec:overview}
 
-In this section we provide a high-level exposition of the technical ideas standing behind our results.
+In this section we provide a high-level exposition of the technical ideas standing behind our finding, particularly the main results: \cref{thm:main-domset-be,thm:main-indset-be}.
+
+\subsection{Progressive exploration}
+
+The key idea is to develop dynamic counterparts of the \emph{progressive exploration} algorithms for \drds{r} and \dris{r} in sparse graphs, proposed by Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{FabianskiPST19}. For the sake of concreteness, let us focus our discussion on the \drds{r} problem.
+
+Suppose then that we are given a graph $G$ and positive integers $r$ and $k$, and we would like to find a distance-$r$ dominating set of size $k$ in $G$, or conclude that no such set exists. A progressive exploration algorithm for this problems --- called by Fabia\'nski et al. the \emph{semi-ladder algorithm} --- proceeds in rounds, and constructs a sequence of \emph{candidates} $D_1,D_2,D_3,\ldots$, which are $k$-tuples of vertices, and \emph{witnesses} $w_1,w_2,w_3,\ldots$ that witness that the consecutive candidates are not yet solutions. Precisely, with $D_1,\ldots,D_{i-1}$ and $w_1,\ldots,w_{i-1}$ having been constructed in rounds $1,2,\ldots,i-1$, the $i$th round proceeds as follows:
+\begin{description}
+	\item[Step 1:] Determine whether there exists a $k$-tuple of vertices $D_i$ that distance-$r$ dominates all the witnesses found so far, that is, $\{w_1,\ldots,w_{i-1}\}$. If not, then $G$ does not admit a distance-$r$ dominating set of size $k$ and we can terminate the algorithm.
+	\item[Step 2:] Verify whether $D_i$ distance-$r$ dominates the whole graph. If so, then $D_i$ is a valid solution that can be reported. Otherwise, there select any vertex $w_i$ that is not distance-$r$ dominated by $D_i$, and proceed with the new candidate $D_i$ and witness $w_i$ to the next round.
+\end{description}
+It is clear that when this algorithm reports an outcome, then this outcome is correct. However, a priori it is not at all clear that the algorithm will reach an outcome within a small number of rounds. This seems particularly problematic, because the task  in Step~1 --- finding a $k$-tuple of vertices that distance-$r$ dominating all the $i-1$ witnesses gathered so far --- gets more and more computationally costly with every round. (We have not discussed its implementation so far, we will do it shortly.)
+
+Somewhat surprisingly, Fabia\'nski et al. proved that on sparse graphs, more precisely on any nowhere dense class of graphs, the algorithm always terminates within a bounded number of rounds.
+
+\begin{theorem}[follows from~\cite{FabianskiPST19}]\label{thm:overview-semiladder}
+	For every $r\in \N$ and every nowhere dense class of graphs $\Cc$, there exists a constant $c$ such that the semi-ladder algorithm deployed on any graph $G\in \Cc$ with parameters $r$ and $k$, terminates after performing at most $k^c$ rounds.
+\end{theorem}
+
+See also \cref{thm:ladder-bound,thm:termination} for a more precise formulation, and recall that bounded expansion classes are in particular nowhere dense. We remark that the proof of \cref{thm:overview-semiladder} requires deep tools from the theory of Sparsity, in particular the equivalent characterization of nowhere denseness through the notion of \emph{flatness} (also known as \emph{uniform quasi-wideness}).
+
+\cref{thm:overview-semiladder} makes the semi-ladder algorithm perfect for lifting to the dynamic setting. Namely, since the number of rounds executed by the algorithm is bounded by a constant depending only on the class $\Cc$ and the parameters $r$ and $k$, we can just run the semi-ladder algorithm after every update to the graph, provided we are able to maintain data structures that allow efficient implementation of every~round.
+
+Consider then the $i$th round of the algorithm. The task in Step~2 boils down to a single application of the following query in $G$, with $S=D_i$ (so $|S|\leq k$):
+\begin{itemize}
+	\item $\far{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)\leq r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
+\end{itemize}
+On the other hand, Step~1 can be implemented using $k^i$ queries of the following kind, with $|S|<i$:
+\begin{itemize}
+	\item $\near{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)>r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
+\end{itemize}
+Indeed, we may iterate through all the partitions of the set of witnesses $\{w_1,\ldots,w_{i-1}\}$ into $k$ sets, and for each partition $\Pp$, invoke $\near{S,r}$ on each part $S$ of $\Pp$ to check whether $S$ can be distance-$r$ dominated by a single vertex $v_S$. Note that if for some partition $\Pp$ all these checks go through, then $D_i\coloneqq \{v_S\colon S\in \Pp\}$ is a set of at most $k$ vertices that distance-$r$ dominates $\{w_1,\ldots,w_{i-1}\}$; and otherwise, $\{w_1,\ldots,w_{i-1}\}$ cannot be distance-$r$ dominated by $k$ vertices. There are at most $k^{i-1}$ partitions to check, and checking each of them requires $k$ applications of the $\near{S,r}$ query.
+
+The discussion above combined with \cref{thm:overview-semiladder} amounts to the proof of following statement.
+
+\begin{proposition}\label{prop:overview-reduction}
+	Let $r,k\in \N$ and $\Cc$ be a nowhere dense class of graphs. Then the semi-ladder algorithm on any graph $G\in \Cc$ with parameters $r$ and $k$ can be implemented using $k^{\Oh_{\Cc,r}(1)}$ queries of the form $\near{S,r}$ with $|S|\leq k^{\Oh_{\Cc,r}(1)}$, and $k^{\Oh_{\Cc,r}(1)}$ queries of the form $\far{S,r}$ with $|S|\leq k$.
+\end{proposition}
+
+So from now on our task is to design data structures that can efficiently answer queries $\near{S,r}$ and $\far{S,r}$ with sets $S$ of bounded size and $r$ being a fixed constant. As we will see shortly, our data structure for $\near{S,r}$ is a non-trivial extension of the result of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} (which in particular answers one of their open questions), while the data structure for $\far{S,r}$ is more involved and requires new insights.
+
+We remark that our data structures for $\near{S,r}$ and $\far{S,r}$ queries heavily rely on the assumption that the fixed class $\Cc$, to which the graph $G$ is guaranteed to belong at all times, has bounded expansion, even though \cref{prop:overview-reduction} actually works in the larger generality of nowhere dense classes. In \cref{sec:conclusions}, we comment on the possibility of lifting our results to nowhere dense classes.
+
+\medskip
+
+Finally, let us discuss the case of \dris{r}. For this problem, Fabia\'nski et al. gave a different algorithm, called the \emph{ladder algorithm}, which is somewhat more complicated than the semi-ladder algorithm and whose proof of correctness requires more insight. However, the bottom line is that on any nowhere dense class $\Cc$ and for fixed parameters $r$ and $k$, the ladder algorithm again terminates within $\Oh_{\Cc,r,k}(1)$ rounds and each of those rounds can be implemented using $\Oh_{\Cc,r,k}(1)$ calls to (slight generalizations of) the queries $\near{S,r}$ and $\far{S,r}$ with $|S|\leq \Oh_{\Cc,r,k}(1)$. So designing efficient data structures implementing these queries suffices to obtain a data structure for the \dris{s} promised, as was promised in \cref{thm:main-indset-be}. We remark that in the case of a positive outcome, the ladder algorithm actually does not provide a distance-$r$ independent set of size $k$, but only a proof of its existence; this is why this feature is also present in \cref{thm:main-indset-be}.
+
+\subsection{Finding near vertices}
+
+We start by designing a data structure for the $\near{S,r}$ queries, which is the easier part of the argument. For this, we first recall the result of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}, which requires some terminology.
+
+For two graph $H$ and $G$, a \emph{homomorphism} from $H$ to $G$ is a mapping $\varphi\colon V(H)\to V(G)$ such that for any edge $uv$ of $H$, $\varphi(u)\varphi(v)$ is an edge in $G$. A \emph{subgraph isomorphism} is an injective homomorphism, and an \emph{induced subgraph isomorphism} is one where the implication above is an equivalence: $uv$ is an edge in $H$ if and only if $\varphi(u)\varphi(v)$ is an edge in $G$. We denote by $\Hom(H,G),\Sub(H,G),\ISub(H,G)$ the sets of homomorphisms, subgraph isomorphisms, and induced subgraph isomorphisms from $H$ to $G$, respectively. 
+
+With this terminology, the result of Dvo\v{r}\'ak and T\r{u}ma reads as follows.
+
+\begin{theorem}[\cite{DvorakT13}]\label{thm:overview-DT}
+	Fix a bounded expansion class $\Cc$, graph $H$, and $\Ff\in \{\Hom,\Sub,\ISub\}$. Then there is a data structure that for a dynamic graph $G$ on $n$ vertices, guaranteed to belong to $\Cc$ at all times, maintains the value $|\Ff(H,G)|$ with amortized update time $\Oh_{\Cc,H}(\log^{\binom{h}{2}-1} n)$, where $h$ is the vertex count of $H$. The data structure can be initialized on an edgeless $G$ in $\Oh_{\Cc,H}(n)$ time and uses $\Oh_{\Cc,H}(n)$ space at all~times.	
+\end{theorem}
+
+As already remarked in \cite{DvorakT13}, \cref{thm:overview-DT} is quite robust and can be easily extended to the setting of vertex- and edge-colored graphs, where vertices and edges bear colors (that can be updated), and these colors have to be preserved under homomorphisms and (induced) subgraph isomorphisms. Note that by placing unique colors on some vertices, we can extend \cref{thm:overview-DT} to the setting of \emph{rooted mappings}: we can query for the number of homomorphisms/(induced) subgraph isomorphisms that map the some fixed tuple $\tup u$ of vertices of $H$ to a given tuple $\tup v$ of vertices of $G$.
+
+Coming back to implementing query $\near{S,r}$, the following claim is straightforward and translates the query to the language of homomorphisms.
+
+\begin{claim}\label{cl:homs}
+	Let $r\in \N$, $G$ be a graph, and $S=\{s_1,\ldots,s_\ell\}$ be a set of vertices of $G$. Then the following conditions are equivalent:
+	\begin{itemize}
+		\item There is a vertex $v$ in $G$ such that $\dist(v,s_i)\leq r$ for all $i\in \{1,\ldots,\ell\}$.
+		\item There is a function $\rho\colon \{1,\ldots,\ell\}\to \{0,1,\ldots,r\}$ such that there is a homomorphism $\varphi$ from the graph $H_\rho$ in \cref{fig:homs} to $G$ such that $\varphi(z_i)=s_i$ for all $i\in \{1,\ldots,\ell\}$.
+	\end{itemize}
+\end{claim}
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		
+		\node[vertex] (x) at (5,2) {};
+		\node at (5,2.5) {$x$};
+		
+		\foreach \i/\j in {1/1,2/2,3/3,4/4,5/5,8/\ell-1,9/\ell} {
+			\node[vertex] (z\i) at (\i,0) {};
+			\node at (\i,-0.5) {$z_{\j}$};
+			\draw[
+			postaction={decorate, decoration={
+					markings,
+					mark=at position 0.25 with {\node[svertex] {};},
+					mark=at position 0.5 with {\node[svertex] {};},
+					mark=at position 0.75 with {\node[svertex] {};}
+			}}
+			] (x) -- (z\i);
+ 		}
+ 	
+ 		\draw[<->,dashed] (1-0.1,0+0.3) -- (5-0.22,2+0.22); 
+		\node at (6.5,0) {$\dots$};
+		\node at (3-0.5,1+0.5) {$\rho(1)$};
+		
+	\end{tikzpicture}
+	\caption{Graph $H_\rho$ in \cref{cl:homs}. It is constructed from  vertex $x$ and vertices $z_1,\ldots,z_\ell$ by connecting $x$ with $z_i$ by a path of length $\rho(i)$, for each $i\in \{1,\ldots,\ell\}$.}\label{fig:homs}
+\end{figure}
+
+Therefore, in order to obtain a data structure for just the existential query $\near{S,r}$ --- whether a suitable vertex $v$ exists --- it suffices to maintain the data structure of \cref{thm:overview-DT} for every possible graph $H_\rho$ (of which there are $(r+1)^\ell$ many, where $\ell$ is an upper bound on $|S|$), where the vertices $z_1,\ldots,z_\ell$ are marked with unique colors. Upon query $\near{S,r}$, we enumerate the vertices of $S$ as $s_1,\ldots,s_\ell$, mark them using the colors of $z_1,\ldots,z_\ell$, and determine whether any of the maintained data structures indicates that there exists at least one homomorphism from some $H_\rho$ to $G$ that maps each $z_i$ to the respective $s_i$. Once this is determined, vertices $s_i$ can be unmarked.
+
+However, this method only determines the \emph{existence} of a vertex $v$ that is close to all the vertices of $S$, and does not provide an \emph{example} of such a vertex. To implement the semi-ladder algorithm, we actually have to be able to retrieve a suitable vertex $v$, because it should serve as a witness for the next rounds. While we believe that this could be done for homomorphisms by a careful inspection of the arguments in~\cite{DvorakT13}, how to do this for (induced) subgraphs isomorphism is not clear at all, due to an application of the Inclusion--Exclusion Principle; see also the discussion in~\cite[Section~9]{DvorakT13}. 
+
+We now present a robust way to mitigate this caveat and turn a counting data structure into an example-reporting data structure with the help of randomization. While for the $\near{S,r}$ query this is probably not necessary, because the approach presented above relies only on homomorphisms, the method that we are going to introduce now will be reused in the implementation of $\far{S,r}$. More precisely, we will use an elegant fingerprinting technique that was recently used in the context of data structures for parameterized problems~\cite{Majewski24,Nadara22}; let us describe it now.
+
+The first observation is that \cref{thm:overview-DT} can be easily lifted to count \emph{weighted} mappings. Precisely, we assume that we additionally have a fixed weight function $\wei\colon V(H)\times V(G)\to \Z$, and the contribution of a mapping $\varphi$ to count is $\val_\wei(\varphi)\coloneqq \prod_{u\in V(H)} \wei(u,\varphi(u))$, instead of just $1$. Precisely, instead of $|\Ff(H,G)|$, the data structure maintains the value
+\[\val_\wei(\Ff(H,G))\coloneqq \sum_{\varphi\in \Ff(H,G)} \val_\wei(\varphi).\]
+Suppose now that we have a fixed vertex $x$ of $H$ and we would like to find, if existent, any vertex $v$ of $G$ such that there exists $\varphi\in \Ff(H,G)$ with $v=\varphi(x)$. Suppose further, for a moment, that there is at most one such vertex $v$. By assuming without loss of generality that the vertex set of $G$ consists of numbers $\{1,\ldots,n\}$, we consider two weight functions $\wei,\wei'\colon V(H)\times V(G)\to \Z$ defined as follows:
+\begin{align*}
+	\wei(y,w) &\coloneqq 1\qquad \textrm{for all }(y,w)\in V(H)\times V(G);\\
+	\wei'(y,w) &\coloneqq \begin{cases}w & \textrm{if }y=x,\\ 1 & \textrm{otherwise.}\end{cases}
+\end{align*}
+The key observation is the following: if indeed the sought vertex $v$ is unique, then it is equal to the ratio
+\[
+\frac{\val_{\wei'}(\Ff(H,G))}{\val_{\wei}(\Ff(H,G))}.
+\]
+Note that this ratio can be easily computed by maintaining the (weight-extended) data structures of Dvo\v{r}\'ak and T\r{u}ma for weight functions $\wei$ and $\wei'$. Observe also that if the denominator of this ratio --- $\val_\wei(\Ff(H,G))$ --- is equal to $0$, then this means that there is no $\Ff$-mapping from $H$ to $G$ and consequently no vertex $v$ with the required property.
+
+The remaining question is how to lift the assumption that there is only at most one vertex $v$ that can be the image of $x$ in a mapping $\varphi(H,G)$. We do this with the help of randomization. Let us fix a desired bound $\eps>0$ on the error probability. Upon initialization of the data structure, for each $i\in \{0,1,\ldots,\lceil \log n\rceil\}$ we sample $\xi=\Theta(\log \tfrac{1}{\eps})$ vertex subsets $S_{i,1},\ldots,S_{i,\xi}\subseteq V(G)$, where each set $S_{i,j}$ is constructed by including every vertex independently with probability $\frac{1}{2^{i+1}}$, so that the expected size of $S_{i,j}$ is $\tfrac{n}{2^{i+1}}$. It is not hard to see that if the set $X\coloneqq \{v\mid \textrm{there is }\varphi\in \Ff(H,G)\textrm{ such that }\varphi(x)=v\}$ is non-empty, then with probability at least $1-\eps$, at least one of the sets $S_{i,j}$ will have intersection of size exactly $1$ with $X$. Therefore, we may apply the same trick as in the previous paragraph, but for every set  $S_{i,j}$ simultaneously, where in the data structures constructed for $S_{i,j}$ we zero out all the weights of those pairs $(y,w)$ where $y=x$ and $w\notin S_{i,j}$. In this way, with probability at least $1-\eps$ at least one of the data structures points to an example vertex $v\in X$, whose feasibility can be verified using the data structure of \cref{thm:overview-DT}.
+
+\newcommand{\fr}{\mathsf{far}}
+
+\subsection{Finding far vertices}
+
+We now proceed to description of the data structure supporting the query $\far{S,r}$. For simplicity, we shall focus on a simpler task: We would like to be able to report the quantity $|V_\fr|$, where
+\[V_\fr\coloneqq \{v\in V(G)\mid \dist(v,s)>r\textrm{ for all }s\in S\}.\]
+Once we achieve this, a data structure that can actually report an example vertex $v\in V_\fr$ can be obtained using the fingerprinting technique described in the previous section, as follows:
+\begin{itemize}
+	\item First, we generalize the data structure so that it reports the quantity $\sum_{v\in V_\fr} \wei(v)$, for a weight function $\wei\colon V(G)\to \Z$ fixed upon initialization.
+	\item Then, we apply the fingerprinting technique so that by maintaining the data structures from the first point for $\Oh(\log n\log \tfrac{1}{\eps})$ different weight functions $\wei$ allows us to retrieve the index of an example vertex from $V_\fr$, provided $V_\fr\neq \emptyset$.
+\end{itemize}
+Furthermore, we will assume that in all the queries, $S$ consists of a single fixed vertex $s$, $S=\{s\}$. This can be achieved by adding a fresh isolated vertex $s$ to the graph that at the time of a query, is made adjacent to all the vertices of $S$. Then the original query $\far{S,r}$ is equivalent to the query $\far{\{s\},r+1}$ after the modification.
+
+At this point we reach the crucial novel part of this work. Namely, counting $|V_\fr|$ cannot be directly phrased as counting homomorphisms, because roughly speaking, $V_\fr$ is defined by the \emph{non-existence} of a homomorphism. Instead, we will compute $|V_\fr|$ using the Inclusion-Exclusion Principle, by adding and subtracting vertices that are, in various ways, close to $s$.
+
+To this end, we will use the same Sparsity tool as Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}: \emph{fraternal augmentations}. Let us introduce this concept.
+
+\paragraph*{Fraternal augmentations.}
+Let $G$ be a graph belonging to a fixed class of bounded expansion $\Cc$. That $G\in \Cc$ implies that for some constant $d_1=\Oh_\Cc(1)$, $G$ is \emph{$d_1$-degenerate}, which means that every subgraph of $G$ has a vertex of degree at most $d_1$. Therefore, by iteratively vertices of the smallest degree from $G$ and orienting incident edges outwards, we obtain an orientation $\vec G_1$ with maximum outdegree at most $d_1$.
+
+Now, we add \emph{fraternal augmentations} to $\vec G_1$: for every pair of (directed) edges $(u,v)$ and $(u,v')$ with a common tail $u$, we add an (undirected) edge $vv'$, unless it was already present. It turns out that the new graph $G_2$ --- consisting of the oriented edges of $G$ and of the added fraternal edges --- is still sparse: the underlying undirected graph belongs to some graph class $\Cc_2$, depending only on $\Cc$, that still has bounded expansion. Consequently, the new fraternal edges can be oriented so that we obtain an oriented supergraph $\vec G_2$ of $\vec G_1$ whose maximum outdegree is at most $d_1+d_2$, for some constant $d_2$ depending only on $\Cc_2$. By performing this operation $r$ times, we eventually obtain an orientation $\vec G_r$ of a supergraph of $G$ whose maximum outdegree is at most $d\coloneqq d_1+d_2+\ldots+d_r$. 
+
+With every edge of $\vec G_r$ we may naturally associate its \emph{length}: the original edges of $G$ have length $1$, and a fraternal edge added to edges of lengths $a$ and $b$ is assigned length $a+b$. Edges of length larger than $r$ will have no significance for us, so we may just not create them in the process.
+
+An important idea in the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} is that the sequence of fraternal augmentations described above can be maintained in the dynamic setting with amortized update time $\Oh_{\Cc,r}(\log^r n)$. The key component here is the classic data structure of Brodal and Fagerberg~\cite{BrodalF99}, which can be used to maintain the orientation at each level of the construction. In this ``tower'' of Brodal--Fagerberg data structures, every update to $G$ triggers $\Oh(\log n)$ updates to $\vec G_1$ in the amortized sense, which in turn triggers $\Oh(\log^2 n)$ updates to $\vec G_2$, and so on. 
+
+So from now on we assume that we maintain the augmentation $\vec G_r$ in our data structure, where every edge is supplied with its length. Moreover, since the outdegree of every vertex is at most $d$, we may additionally maintain a labelling of the edges of $\vec G_r$ with labels $\{1,\ldots,d\}$ so that the edges with the same tail are assigned pairwise different labels.
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		
+		\node[vertex] (z0) at (0,0) {};
+		\node[vertex] (z15) at (15,0) {};
+		\draw (z0) -- (z15);
+		
+		\foreach \i in {1,2,3,4,5,6,7,8,9,10,11,12,13,14} {
+			\node[svertex] (z\i) at (\i,0) {};
+		}
+		
+		\draw[->,very thick, red] (z0) edge[bend left] (z3);
+		\draw[->,very thick, red] (z3) edge[bend left] (z5);
+		
+		\draw[->, very thick, red] (z5) edge (z6);
+		\draw[->, very thick, red] (z6) edge[bend left] (z8);
+		
+		\draw[->, very thick, blue] (z15) edge[bend right] (z13);
+		\draw[->, very thick, blue] (z13) edge[bend right] (z10);
+		\draw[->, very thick, blue] (z10) edge[bend right] (z8);
+		
+		\node at (0,-0.5) {$s=w_{\alpha_0}$};
+		\node at (3,-0.5) {$w_{\alpha_1}$};
+		\node at (5,-0.5) {$w_{\alpha_2}$};
+		\node at (6,-0.5) {$w_{\alpha_3}$};
+		\node at (8,-0.5) {$w_{\alpha_4}=w_{\beta_3}$};
+		\node at (10,-0.5) {$w_{\beta_2}$};
+		\node at (13,-0.5) {$w_{\beta_1}$};
+		\node at (15,-0.5) {$w_{\beta_0}=u$};
+		
+	\end{tikzpicture}
+	\caption{An $s$-$u$-path with a shortcut. The directed paths $Q,R$ of the shortcut are resp. red and blue.}\label{fig:shortcut}
+\end{figure}
+
+
+\paragraph*{Shortcuts.}
+Suppose now that in $G$ we have two vertices $a$ and $b$ that can be connected by a path $P=(a=w_0,w_1,\ldots,w_{r'}=b)$ of some length $r'\leq r$. If we trace what happens with $P$ during the consecutive augmentations, then it is not hard to see that in $\vec G_r$, $P$ will have an oriented ``shortcut'' consisting of:
+\begin{itemize}
+	\item a directed path $Q$ of the form $w_{\alpha_0}\to w_{\alpha_1}\to \ldots \to w_{\alpha_p}$, where $0=\alpha_1<\alpha_2<\ldots<\alpha_p$, so that each edge $(w_{i_j},w_{i_{j+1}})$ has length at most $i_{j+1}-i_j$; and
+	\item a directed path $R$ of the form $w_{\beta_0}\to w_{\beta_1}\to \ldots \to w_{\beta_q}$, where $r'=\beta_1>\beta_2>\ldots>\beta_q=\alpha_p$, so that each edge $(w_{\beta_j},w_{\beta_{j+1}})$ has length at most $\beta_j-\beta_{j+1}$.
+\end{itemize}
+See \cref{fig:shortcut}. If we now record the lengths and the labels of the consecutive edges of the shortcut paths $Q$ and $R$, we obtain two sequences of pairs from $\{1,\ldots,d\}\times \{1,\ldots,r\}$ such that the sum of all the second coordinates is at most $r\leq r'$; we call such a pair of sequences the \emph{pattern} of a shortcut. At this point, two observations are crucial:
+\begin{enumerate}[label=(O\arabic*)]
+	\item\label{o:numpat} There are only at most $(dr)^{2r}=\Oh_{\Cc,r}(1)$ different patterns. Let $\Pi$ be their set.
+	\item\label{o:unique} For every pair of vertices $s,u\in V(G)$ and pattern $\pi=(\pi_Q,\pi_R)$, there is at most one shortcut of an $a$-$b$-path with pattern $\pi$. This is because in $\vec G_r$, the edges outgoing from a single vertex have pairwise different labels, so knowing $a$, $b$, and sequences $\pi_Q,\pi_R$, we can uniquely reconstruct the paths $Q$ and $R$. A shortcut is present if the reconstructed paths $Q$ and $R$ end at the same vertex.
+\end{enumerate}
+So from this whole discussion, the following is now clear.
+
+\begin{claim}\label{cl:shortcuts}
+	For any two vertices $a,b\in V(G)$, the following conditions are equivalent:
+	\begin{itemize}
+		\item $\dist(a,b)\leq r$.
+		\item In $\vec G^r$, there exists a shortcut between $a$ and $b$ with some pattern $\pi\in \Pi$.
+	\end{itemize}
+\end{claim}
+
+\paragraph*{Counting far vertices.} We may now come back to our initial goal of maintaining the cardinality of the set $V_\fr$, which consists of vertices $u$ with $\dist(s,u)>r$. For a vertex $u$ and a patter $\pi\in \Pi$, call $\pi$ \emph{realized} at $u$ if there is a shortcut between $s$ and $u$ with pattern $\pi$. By \cref{cl:shortcuts}, $V_\fr$ consists of those vertices $u$ at which no pattern of $\Pi$ is realized. Now, if for $\Gamma\subseteq \Pi$ we define $V_\Gamma$ as the set of those $u\in V(G)$ at which all the patterns of $\Gamma$ are realized, then by the Inclusion-Exclusion principle, we have
+\[|V_\fr|=\sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\cdot |V_\Gamma|.\]
+(Note here that $V_\emptyset=V(G)$.) Since $\Pi$ is of size $\Oh_{\Cc,r}(1)$ by \ref{o:numpat}, to compute $|V_\fr|$ it suffices to compute $|V_\Gamma|$ for each $\Gamma\subseteq \Pi$. However, it is easy to argue using \ref{o:unique} that $|V_\Gamma|$ is equal to the number of homomorphisms $\varphi$ from the oriented graph $H_\Gamma$ depicted in \cref{fig:HGamma} to $\vec G_r$ that satisfy $\phi(z)=s$. (Here, we consider both $H_\Gamma$ and $\vec G_r$ as directed graphs with edges decorated with lengths and labels, and the considered homomorphisms have to respect those decorations.) It now remains to note that this homomorphism count can be maintained using the data structure of \cref{thm:overview-DT}. So all in all, we maintain the data structures of \cref{thm:overview-DT} for all graphs $H_\Gamma$ for $\Gamma\subseteq \Pi$, and from the maintained homomorphism counts we piece together the value of $|V_\fr|$ using Inclusion-Exclusion. This concludes the description of the data structure supporting query $\far{S,r}$ in classes of bounded expansion.
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		
+		\node[vertex] (z) at (-4,0) {};
+		\node at (-4.5,0) {$z$};
+		
+		\node[vertex] (x) at (4,0) {};
+		\node at (4.5,0) {$x$};
+		
+		\foreach \i in {1,2,3,4,5} {
+			\node[vertex] (u\i) at (0,3-\i*1) {};
+		}
+	
+		\foreach \t in {1,2,3} {
+			\node[svertex] (z1\t) at (-\t,2-0.5*\t) {};
+		}
+		\draw[very thick, red,->] (z) -- (z13);
+		\draw[very thick, red,->] (z13) -- (z12);
+		\draw[very thick, red,->] (z12) -- (z11);
+		\draw[very thick, red,->] (z11) -- (u1);
+		
+		
+		\foreach \t in {1,2,3} {
+			\node[svertex] (z4\t) at (-\t,-1+0.25*\t) {};
+		}
+		\draw[very thick, red,->] (z) -- (z43);
+		\draw[very thick, red,->] (z43) -- (z42);
+		\draw[very thick, red,->] (z42) -- (z41);
+		\draw[very thick, red,->] (z41) -- (u4);
+		
+		\foreach \t in {2} {
+			\node[svertex] (z2\t) at (-\t,1-0.25*\t) {};
+		}
+		\draw[very thick, red,->] (z) -- (z22);
+		\draw[very thick, red,->] (z22) -- (u2);
+		
+		\foreach \t in {2} {
+			\node[svertex] (z5\t) at (-\t,-2+0.5*\t) {};
+		}
+		\draw[very thick, red,->] (z) -- (z52);
+		\draw[very thick, red,->] (z52) -- (u5);
+		
+		
+		\foreach \t in {1,2} {
+			\node[svertex] (z3\t) at (-\t*1.33,0) {};
+		}
+		\draw[very thick, red,->] (z) -- (z32);
+		\draw[very thick, red,->] (z32) -- (z31);
+		\draw[very thick, red,->] (z31) -- (u3);
+		
+		
+		\foreach \t in {1,2} {
+			\node[svertex] (x1\t) at (\t*1.33,2-0.66*\t) {};
+		}
+		\draw[very thick, blue,->] (x) -- (x12);
+		\draw[very thick, blue,->] (x12) -- (x11);
+		\draw[very thick, blue,->] (x11) -- (u1);
+		
+		
+		\foreach \t in {1,2} {
+			\node[svertex] (x2\t) at (\t*1.33,1-0.33*\t) {};
+		}
+		\draw[very thick, blue,->] (x) -- (x22);
+		\draw[very thick, blue,->] (x22) -- (x21);
+		\draw[very thick, blue,->] (x21) -- (u2);
+		
+		
+		\foreach \t in {1,2,3} {
+			\node[svertex] (x3\t) at (\t,0) {};
+		}
+		\draw[very thick, blue,->] (x) -- (x33);
+		\draw[very thick, blue,->] (x33) -- (x32);
+		\draw[very thick, blue,->] (x32) -- (x31);
+		\draw[very thick, blue,->] (x31) -- (u3);
+		
+		
+		\foreach \t in {1,2,3} {
+			\node[svertex] (x5\t) at (\t,-2+\t*0.5) {};
+		}
+		\draw[very thick, blue,->] (x) -- (x53);
+		\draw[very thick, blue,->] (x53) -- (x52);
+		\draw[very thick, blue,->] (x52) -- (x51);
+		\draw[very thick, blue,->] (x51) -- (u5);
+		
+		\foreach \t in {2} {
+			\node[svertex] (x4\t) at (\t,-1+\t*0.25) {};
+		}
+		\draw[very thick, blue,->] (x) -- (x42);
+		\draw[very thick, blue,->] (x42) -- (u4);
+		
+		
+	\end{tikzpicture}
+	\caption{Example graph $H_\Gamma$ constructed for a set $\Gamma\subseteq \Pi$ of size $5$. Every pair (red path, blue path) represents a shortcut with some pattern $\pi\in \Gamma$. Note that both the red paths and the blue paths are decorated with $\{1,\ldots,d\}\times \{1,\ldots,r\}$ (not depicted).}\label{fig:HGamma}
+\end{figure}
+
+\subsection{Other results}
