@@ -28,12 +28,13 @@ Consider then the $i$th round of the algorithm. The task in Step~2 boils down to
 	\item $\far{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)>r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
 On the other hand, Step~1 can be implemented using at most $k^i$ queries of the following kind, with $|S|<i$:
+\wninline{To $k^i$ jest trochę konfundujące. Może zmienić jednak na bardziej naturalne $2^i$? Podobnie w lemacie 4.4} 
 \begin{itemize}
 	\item $\near{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)\leq r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
 Indeed, we may iterate through all the partitions of the set of witnesses $\{w_1,\ldots,w_{i-1}\}$ into $k$ sets, and for each partition $\Pp$, invoke $\near{S,r}$ on each part $S$ of $\Pp$ to verify whether $S$ can be \mbox{distance-$r$} dominated by a single vertex $v_S$. Note that if for some partition $\Pp$ all these checks go through, then $D_i\coloneqq \{v_S\colon S\in \Pp\}$ is a set of at most $k$ vertices that distance-$r$ dominates $\{w_1,\ldots,w_{i-1}\}$; and otherwise, if the checks for all the partitions fail, then $\{w_1,\ldots,w_{i-1}\}$ cannot be distance-$r$ dominated by $k$ vertices. There are at most $k^{i-1}$ partitions to check, and checking each of them requires $k$ applications of the $\near{S,r}$ query.
 
-The discussion above combined with \cref{thm:overview-semiladder} amounts to the proof of following statement.
+The discussion above combined with \cref{thm:overview-semiladder} amounts to the proof of the following statement.
 
 \begin{proposition}\label{prop:overview-reduction}
 	Let $r,k\in \N$ and $\Cc$ be a nowhere dense class of graphs. Then the semi-ladder algorithm on any graph $G\in \Cc$ with parameters $r$ and $k$ can be implemented using $k^{\Oh_{\Cc,r}(1)}$ queries of the form $\near{S,r}$ with $|S|\leq k^{\Oh_{\Cc,r}(1)}$, and $k^{\Oh_{\Cc,r}(1)}$ queries of the form $\far{S,r}$ with $|S|\leq k$.
@@ -45,7 +46,8 @@ We remark that our data structures for $\near{S,r}$ and $\far{S,r}$ queries heav
 
 \medskip
 
-Finally, let us discuss the case of \dris{r}. For this problem, Fabia\'nski et al. gave a different algorithm, called the \emph{ladder algorithm}, which is somewhat more complicated than the semi-ladder algorithm and whose proof of correctness requires more insight. However, the bottom line is that on any nowhere dense class $\Cc$ and for fixed parameters $r$ and $k$, the ladder algorithm again terminates within $\Oh_{\Cc,r,k}(1)$ rounds and each of those rounds can be implemented using $\Oh_{\Cc,r,k}(1)$ calls to (slight generalizations of) the queries $\near{S,r}$ and $\far{S,r}$ with $|S|\leq \Oh_{\Cc,r,k}(1)$. So designing  data structures implementing these queries efficient is sufficient to obtain the data structure for the \dris{s} promised in \cref{thm:main-indset-be}. We remark that in the case of a positive outcome, the ladder algorithm actually does not provide a distance-$r$ independent set of size $k$, but only a proof of its existence; this is why this feature is also present in \cref{thm:main-indset-be}.
+Finally, let us discuss the case of \dris{r}. For this problem, Fabia\'nski et al. gave a different algorithm, called the \emph{ladder algorithm}, which is somewhat more complicated than the semi-ladder algorithm and whose proof of correctness requires more insight. However, the bottom line is that on any nowhere dense class $\Cc$ and for fixed parameters $r$ and $k$, the ladder algorithm again terminates within $\Oh_{\Cc,r,k}(1)$ rounds and each of those rounds can be implemented using $\Oh_{\Cc,r,k}(1)$ calls to (slight generalizations of) the queries $\near{S,r}$ and $\far{S,r}$ with $|S|\leq \Oh_{\Cc,r,k}(1)$. So designing  data structures implementing these queries efficiently is sufficient to obtain the data structure for the \dris{s} promised in \cref{thm:main-indset-be}. We remark that in the case of a positive outcome, the ladder algorithm actually does not provide a distance-$r$ independent set of size $k$, but only a proof of its existence; this is why this feature is also present in \cref{thm:main-indset-be}.
+\wninline{``feature'' -> ``restraint''? Feature wydaje mi się trochę pozytywnie nacechowane.}
 
 \subsection{Finding near vertices}
 
@@ -134,7 +136,7 @@ Once we achieve this, a data structure that can actually report an example verte
 
 Furthermore, we will assume that in all the queries, $S$ consists of a single fixed vertex $s$, $S=\{s\}$. This can be achieved by adding a fresh isolated vertex $s$ to the graph that at the time of a query, is made adjacent to all the vertices of $S$. Then the original query $\far{S,r}$ is equivalent to the query $\far{\{s\},r+1}$ after the modification.
 
-At this point we reach the crucial novel part of this work. Namely, counting $|V_\fr|$ cannot be directly formulated as counting homomorphisms, because roughly speaking, $V_\fr$ is defined by the \emph{non-existence} of a homomorphism. Instead, we will compute $|V_\fr|$ using the Inclusion-Exclusion Principle, by adding and subtracting vertices that are, in various ways, close to $s$.
+At this point we reach the crucial novel part of this work. Namely, counting $|V_\fr|$ cannot be directly formulated as counting homomorphisms, because roughly speaking, $V_\fr$ is defined by the \emph{non-existence} of a homomorphism. Instead, we will compute $|V_\fr|$ using the Inclusion-Exclusion Principle, by adding and subtracting vertices that are, in various ways, close to $s$. \wninline{Może jakieś zdanie wyjaśnienia czemu to nietrywialne? Np. ``As there may be an unbounded number of short paths connecting any pair of vertices, it is a priori unclear how to apply the Inclusion-Exclusion Principle over them, which is why we again exploit properties of bounded expansion graph classes.''?}
 
 To this end, we will use the same Sparsity tool as Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}: \emph{fraternal augmentations}. Let us introduce this concept.
 
@@ -145,7 +147,7 @@ Now, we add \emph{fraternal edges} to $\vec G_1$: for every pair of (directed) e
 
 With every edge of $\vec G_r$ we may naturally associate its \emph{length}: the original edges of $G$ have length $1$, and a fraternal edge added to edges of lengths $a$ and $b$ is assigned length $a+b$. Edges of length larger than $r$ will have no significance for us, so we may just not create them in the process.
 
-An important idea in the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} is that the sequence of fraternal augmentations described above can be maintained in the dynamic setting with amortized update time $\Oh_{\Cc,r}(\log^r n)$. The key component here is the classic data structure of Brodal and Fagerberg~\cite{BrodalF99}, which can be used to maintain the orientation at each level of the construction. In this ``tower'' of Brodal--Fagerberg data structures, every update to $G$ triggers $\Oh(\log n)$ updates to $\vec G_1$ in the amortized sense, which in turn triggers $\Oh(\log^2 n)$ updates to $\vec G_2$, and so on. 
+An important idea in the work of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} is that the sequence of fraternal augmentations described above can be maintained in the dynamic setting with amortized update time $\Oh_{\Cc,r}(\log^r n)$. The key component here is the classic data structure of Brodal and Fagerberg~\cite{BrodalF99}, which can be used to maintain the orientation at each level of the construction. In this ``tower'' of Brodal--Fagerberg data structures, every update to $G$ triggers $\Oh_{\Cc}(\log n)$ updates to $\vec G_1$ in the amortized sense, which in turn triggers $\Oh_{\Cc}(\log^2 n)$ updates to $\vec G_2$, and so on. 
 
 So from now on we assume that we maintain the augmentation $\vec G_r$ in our data structure, where every edge is decorated with its length. Moreover, since the outdegree of every vertex is at most $d$, we may additionally maintain a labelling of the edges of $\vec G_r$ with labels $\{1,\ldots,d\}$ so that the edges with the same tail are assigned pairwise different labels.
 
@@ -189,7 +191,7 @@ So from now on we assume that we maintain the augmentation $\vec G_r$ in our dat
 \paragraph*{Shortcuts.}
 Suppose now that in $G$ we have two vertices $a$ and $b$ that can be connected by a path $P=(a=w_0,w_1,\ldots,w_{r'}=b)$ of some length $r'\leq r$. If we trace what happens with $P$ during the consecutive augmentations, then it is not hard to see that in $\vec G_r$, $P$ will have an oriented ``shortcut'' consisting of:
 \begin{itemize}
-	\item a directed path $Q$ of the form $w_{\alpha_0}\to w_{\alpha_1}\to \ldots \to w_{\alpha_p}$, where $0=\alpha_1<\alpha_2<\ldots<\alpha_p$, so that each edge $(w_{i_j},w_{i_{j+1}})$ has length at most $i_{j+1}-i_j$; and
+	\item a directed path $Q$ of the form $w_{\alpha_0}\to w_{\alpha_1}\to \ldots \to w_{\alpha_p}$, where $0=\alpha_1<\alpha_2<\ldots<\alpha_p$, so that each edge $(w_{\alpha_j},w_{\alpha_{j+1}})$ has length at most $\alpha_{j+1}-\alpha_j$; and
 	\item a directed path $R$ of the form $w_{\beta_0}\to w_{\beta_1}\to \ldots \to w_{\beta_q}$, where $r'=\beta_1>\beta_2>\ldots>\beta_q=\alpha_p$, so that each edge $(w_{\beta_j},w_{\beta_{j+1}})$ has length at most $\beta_j-\beta_{j+1}$.
 \end{itemize}
 See \cref{fig:shortcut}. If we now record the lengths and the labels of the consecutive edges of the shortcut paths $Q$ and $R$, we obtain two sequences of pairs from $\{1,\ldots,d\}\times \{1,\ldots,r\}$ such that the sum of all the second coordinates is at most $r$; we call such a pair of sequences the \emph{pattern} of a shortcut. At this point, two observations are crucial:
