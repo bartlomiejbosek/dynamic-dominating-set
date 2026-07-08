@@ -171,15 +171,17 @@ In most of this work we will silently assume that every data structure for a dyn
 
 Some of our data structures are randomized \emph{against an oblivious adversary}. By this we mean that the data structure is run on some stream of updates and queries and the answer to every query is correct with probability lower bounded by a specified value (typically, $1-\eps$ for a parameter $\eps>0$ fixed in the context). In particular, the stream is fixed upfront and the consecutive updates/queries \emph{cannot} be altered depending on the data structure's answers. We remark that while the answer to every query is correct with probability at least, say, $1-\eps$, the answers to the queries are \emph{not} independent random variables. In fact, in all the randomized data structures proposed in this work, the answers to the queries depend on some common random bits fixed upon the initialization of the data structure.
 
-\wninline{Czy chcę go przeformułować aby koszt był na dodawaniu a nie usuwaniu krawędzi i usuwanie nic nie reorientowało?}
-We recall a classic result by Brodal and Fagerberg that we will use multiple times throughout:
-\begin{theorem}[Brodal--Fagerberg]\label{thm:bf}
-	There exists a deterministic data structure that maintains a graph of degeneracy at most $d$ under edge insertions and deletions.
+\paragraph*{Brodal--Fagerberg data structure.}
+We recall a classic result by Brodal and Fagerberg that we will use multiple times throughout.
+\begin{theorem}[Brodal--Fagerberg, \cite{BrodalF99}]\label{thm:bf}
+	There exists a deterministic data structure that maintains a dynamic graph of degeneracy at most $d$ under edge insertions and deletions.
 	The data structure stores an explicit $4d$-orientation $\vec{G}$ of $G$.
 	An edge insertion has amortized cost $\Oh(1)$, an edge deletion has amortized cost $\Oh(d + \log n)$, and the amortized number of edges that change orientation in a single operation is $\Oh(\log n)$. Moreover, the reorientations can be reported within the same time bounds.
 	The data structure uses $\Oh(n + m)$ memory, where $n$ and $m$ are the number of vertices of $G$ and the current number of edges of $G$, respectively. The data structure requires the knowledge of $d$.
 \end{theorem}
 
+
+\wninline{Czy chcę go przeformułować aby koszt był na dodawaniu a nie usuwaniu krawędzi i usuwanie nic nie reorientowało?}
 %\begin{theorem} \label{thm:maintaining-augmentation}
 %	Placeholder na stwierdzenie, że da się dynamicznie utrzymywać augmentacje. Zapewne chcemy zacytować Theorem 4 z \cite{DvorakTumaArxiv}.
 %\end{theorem}
