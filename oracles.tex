@@ -189,7 +189,7 @@ With that, let us state the main lemma of this section.
 \end{proof}
 
 
-\subsection{Detecting far vertices}
+\subsection{Detecting far vertices}\label{sec:far-be}
 
 We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data structure. Our implementation is encapsulated in the following statement.
 
@@ -294,7 +294,7 @@ By combining \cref{lem:dyn-augmentation,lem:dyn-rooted-homs,lem:IE}, we easily o
 
 \begin{lemma}\label{lem:wei-sums-far}
 	Fix a graph class $\Cc$ of bounded expansion and $r\in \N$.
-	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$, and let $u$ be a fixed vertex of $G$ (which does not change over time). Then there exists a data structure that maintains the value
+	Let $G$ be a dynamic graph on $n$ vertices that belongs at all times to $\Cc$, $\wei\colon V(G)\to \Z$ be a weight function fixed upon initialization, and $u$ be a fixed vertex of $G$ (which does not change over time). Then there exists a data structure that maintains the value
 	\[\sum_{\substack{v\in V(G)\\ \dist_{G}(u,v)>r}} \wei(v)\]
 	with amortized update time $\log^{\Oh_{\Cc,r}(1)} n$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r}(n)$ and uses $\Oh_{\Cc,r}(n)$ space at all times.
 \end{lemma}
