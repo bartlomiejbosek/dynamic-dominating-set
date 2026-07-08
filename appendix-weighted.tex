@@ -68,10 +68,13 @@ With the above statement, we are able to conclude the following lemma:
 
 \begin{proof}
 	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
+	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
 	
 	We note that if $H$ is not connected, then $\val_w(\Hom(H, G))$ is just equal to the product $\prod_{H' \in CC(H)} \val_w(\Hom(H', G))$ taken over the set $CC(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
 	
-	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $D$ is the bound from \cref{thm:maintaining-augmentation} on the in-degree of $G'$. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(D \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(D)$ such changes (amortized). All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_w(\Hom(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\Hom(H', G'))$.
+	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $D$ is the bound from \cref{thm:maintaining-augmentation} on the in-degree of $G'$. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(D \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(D)$ such changes (amortized).
+	\wninline{Upewnić się, że na pewno po prostu $D$, a nie jakoś więcej (aka nie jakiś iloczyn $d_1 \ldots d_h$)}
+	 All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_w(\Hom(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\Hom(H', G'))$.
 \end{proof}
 
 \subsection{Counting weighted subgraph isomorphisms}
