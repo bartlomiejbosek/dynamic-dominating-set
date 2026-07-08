@@ -1,12 +1,21 @@
 \section{Distance-\texorpdfstring{$1$}{1} domination}\label{sec:distone}
 
-In this section we restate Theorem~\ref{thm:NearVertex-new} and Theorem~\ref{thm:FarVertex-new} after specializing them to distance $r=1$ and to dynamic $d$-degenerate graphs on a fixed vertex set $V=\{1,\ldots,n\}$, where $n \ge 2$ and $d\ge 1$.
-\bbinline{Obecne pierwsze zdanie jest mylące: nie jest to przeformułowanie konstrukcji dla bounded expansion, lecz nowa i prostsza konstrukcja dla odległości $1$ w grafach $d$-zdegenerowanych. Proponuję zastąpić pierwszy akapit tej sekcji następującym tekstem po angielsku:
+In this section we give simpler data structures for the distance-$1$ case, that is, implementing queries $\near{S,1}$ and $\far{S,1}$ under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. 
 
-``In this section we give simpler data structures for the distance-$1$ case under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. We work on a fixed vertex set $V=\{1,\ldots,n\}$ and, within the constructions below, assume $n\ge 2$ and $d\ge 1$. The exceptional cases needed for \cref{thm:main-domset-deg} are handled explicitly in the proof of that theorem at the end of this section.''}
-We maintain an orientation $\vec{G}$ with maximum out-degree $\Delta := 4d$ using the Brodal--Fagerberg data structure~\cite{BrodalF99}.
-We write $N(v)$ for the open neighborhood of $v$, $N[v]:=\{v\}\cup N(v)$ for the closed neighborhood, and $N[S]:=\bigcup_{v\in S}N[v]$ for $S\subseteq V$.
+Throughout this section we assume that the maintained dynamic graph $G$ has a fixed vertex set $V=\{1,\ldots,n\}$ and is $d$-degenerate at all times, for a fixed parameter $d\in \N$. We also assume, without loss of generality, that $n\geq 2$ and $d\geq 1$.
 
+
+% and, within the constructions below, assume $n\ge 2$ and $d\ge 1$. The exceptional cases needed for \cref{thm:main-domset-deg} are handled explicitly in the proof of that theorem at the end of this section.
+
+%In this section we restate Theorem~\ref{thm:NearVertex-new} and Theorem~\ref{thm:FarVertex-new} after specializing them to distance $r=1$ and to dynamic $d$-degenerate graphs on a fixed vertex set $V=\{1,\ldots,n\}$, where $n \ge 2$ and $d\ge 1$.
+%\bbinline{Obecne pierwsze zdanie jest mylące: nie jest to przeformułowanie konstrukcji dla bounded expansion, lecz nowa i prostsza konstrukcja dla odległości $1$ w grafach $d$-zdegenerowanych. Proponuję zastąpić pierwszy akapit tej sekcji następującym tekstem po angielsku:
+
+%``In this section we give simpler data structures for the distance-$1$ case under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. We work on a fixed vertex set $V=\{1,\ldots,n\}$ and, within the constructions below, assume $n\ge 2$ and $d\ge 1$. The exceptional cases needed for \cref{thm:main-domset-deg} are handled explicitly in the proof of that theorem at the end of this section.''}
+
+Using the Brodal--Fagerberg data structure (\cref{thm:bf}), we may assume that we maintain an orientation $\vec{G}$ of $G$ with maximum outdegree $\Delta \coloneqq 4d$. 
+We write $N(v)$ for the open neighborhood of $v$ in $G$ (consisting of all the neighbors of $v$ in $G$), $N[v]\coloneqq \{v\}\cup N(v)$ for the closed neighborhood, and $N[X]\coloneqq \bigcup_{v\in X}N[v]$ for any $X\subseteq V$. We also write $N^+(v)\coloneqq \{w\in V : (v,w)\in E(\vec G)\}$ for the open outneighborhood of $v$ in $\vec G$.
+
+\begin{comment}
 \subsection{Arboricity and dynamic orientation}\label{sec:distone-arboricity}
 
 A $d$-degenerate graph has arboricity at most $d$.
@@ -29,38 +38,42 @@ We augment the update procedure as follows.
 Whenever the implementation changes the orientation of an edge, it appends this edge to a temporary list associated with the current update.
 Thus each reoriented edge contributes $\Oh(1)$ additional work and is recorded exactly once, so producing the whole list takes $\Oh(r)$ time.
 \end{proof}
+\end{comment}
 
-\subsection{Deterministic toolkit}\label{sec:distone-infra}
+\subsection{Toolkit}\label{sec:distone-infra}
 
-Throughout this section we assume $n\ge 2$ and $d\ge 1$.
-\bbinline{W tej sekcji zakładamy $n\ge 2$ i $d\ge 1$, natomiast \cref{thm:main-domset-deg} dopuszcza także przypadki $k=0$, $n\le 1$ i $d=0$. Proponuję wstawić poniższy akapit jako pierwszy akapit dowodu \cref{thm:main-domset-deg}:
+%Throughout this section we assume $n\ge 2$ and $d\ge 1$.
+%\bbinline{W tej sekcji zakładamy $n\ge 2$ i $d\ge 1$, natomiast \cref{thm:main-domset-deg} dopuszcza także przypadki $k=0$, $n\le 1$ i $d=0$. Proponuję wstawić poniższy akapit jako pierwszy akapit dowodu \cref{thm:main-domset-deg}:
 
-``We first dispose of the degenerate parameter cases. If $k=0$, return $\emptyset$ if and only if $V(G)=\emptyset$, and return $\bot$ otherwise. If $n\le 1$ or $d=0$, then $G$ is edgeless at all times; in this case return $V(G)$ if $|V(G)|\le k$, and return $\bot$ otherwise. Hence, for the remainder of the proof, we may assume that $n\ge 2$, $d\ge 1$, and $k\ge 1$.''}
-By the arboricity bound above, Theorem~\ref{thm:bf}, and Lemma~\ref{lem:bf-report}, the current $d$-degenerate graph admits a maintained orientation $\vec G$ of maximum out-degree $\Delta := 4d$.
-We write $N^+(u):=\{v\in V : (u,v)\in \vec E\}$.
-This subsection describes one deterministic toolkit for distance $1$ in dynamic $d$-degenerate graphs.
-Later data structures instantiate this toolkit independently; the description is common only at the level of exposition.
+%``We first dispose of the degenerate parameter cases. If $k=0$, return $\emptyset$ if and only if $V(G)=\emptyset$, and return $\bot$ otherwise. If $n\le 1$ or $d=0$, then $G$ is edgeless at all times; in this case return $V(G)$ if $|V(G)|\le k$, and return $\bot$ otherwise. Hence, for the remainder of the proof, we may assume that $n\ge 2$, $d\ge 1$, and $k\ge 1$.''}
+%By the arboricity bound above, Theorem~\ref{thm:bf}, and %Lemma~\ref{lem:bf-report}, the current $d$-degenerate graph admits a maintained orientation $\vec G$ of maximum out-degree $\Delta := 4d$.
+%We write .
 
-The toolkit architecture replaces graph search with bucket arithmetic plus inspection of a few short out-neighborhoods.
-The orientation guarantees that every set $N^+(u)$ has size at most $\Delta$.
-Buckets compress the statement ``$Z\subseteq N^+(u)$'' into one dictionary lookup: instead of scanning all vertices, we consult the single list $B(Z):=\{u\in V^+ : Z\subseteq N^+(u)\}$.
+We start with describing a helper data structure that we call \emph{toolkit}, which will be later used in the data structures for $\near{S,1}$ and $\far{S,1}$ queries. We stress that the toolkit is fully deterministic; randomization will enter the scene only later, through an application of \cref{thm:dvorak-tuma-examples}.
 
-We explicitly maintain the following objects at all times.
+%This subsection describes one deterministic toolkit for distance $1$ in dynamic $d$-degenerate graphs.
+%Later data structures instantiate this toolkit independently; the description is common only at the level of exposition.
+
+Let us first explain the intuition.
+The toolkit architecture replaces searching through neighborhoods in $G$ (which may be large) with certain bucket arithmetic plus inspection of a few outneighborhoods in~$\vec G$; these are small due to the bound on the maximum outdegree of $\vec G$.  %guarantees that every set $N^+(u)$ has size at most $\Delta$.
+Buckets reduce the query ``given $Z$, find $u$ such that $Z\subseteq N^+(u)$'' into a single dictionary lookup: instead of scanning through all the vertices of $V$, we consult the single list $B(Z)\coloneqq \{u\in V^+ \mid Z\subseteq N^+(u)\}$, maintained in the dictionary.
+
+In the toolkit, we explicitly maintain the following objects at all times.
 \begin{itemize}
-\item The set $V^+:=\{u\in V : \deg_G(u)>0\}$, represented by a Boolean array, an iterable list of its current elements, and its current cardinality.
-\item The set of isolated vertices $V\setminus V^+$ as a dictionary of disjoint maximal identifier intervals; this supports finding the smallest isolated vertex, or the next one after a given identifier, in $\Oh(\log n)$ time.
+\item The set $V^+\coloneqq \{u\in V \mid \deg_G(u)>0\}$, represented by a Boolean array indexed by $V$, an iterable list of its current elements, and its current cardinality.
+\item The set of isolated vertices $V\setminus V^+$ as a dictionary of disjoint maximal identifier intervals; this supports finding the smallest isolated vertex, or the next one after a given identifier, in $\Oh(\log n)$~time.
 \item The neighbor dictionaries $N(u)$ and $N^+(u)$ for every $u\in V^+$.
-\item The bucket family $B(Z):=\{u\in V^+ : Z\subseteq N^+(u)\}$ for sets $Z\subseteq V$ with $|Z|\le \Delta$, stored as linked lists inside a dictionary keyed by the sorted representation of $Z$.
+\item The bucket family $B(Z)\coloneqq \{u\in V^+ : Z\subseteq N^+(u)\}$ for all sets $Z\subseteq V$ with $B(Z)$ being nonempty (note that this implies $|Z|\leq \Delta$), stored as linked lists inside a dictionary keyed by the sorted representation of $Z$. Observe that every vertex $u\in V$ is on $2^{|N^+(u)|}\leq 2^\Delta$, hence the total sum of the lengths of the lists stored for the buckets $B(Z)$ is bounded by $2^\Delta\cdot n$. In particular, the dictionary stores at most this many entries.
 \item A registration list for every $u \in V^+$, tracking its $2^{|N^+(u)|} \le 2^\Delta$ bucket memberships.
 \end{itemize}
 For every $u\in V^+$, the dictionaries $N(u)$ and $N^+(u)$ are keyed by vertex identifiers.
 Hence for every $v\in V$, the membership tests $v\in N(u)$ and $v\in N^+(u)$ can be performed in $\Oh(\log n)$ time.
 
-Only nonempty buckets are materialized in the bucket dictionary.
-Every bucket key $Z$ is stored explicitly as the sorted list of its elements, so it occupies $\Oh(|Z|)\le \Oh(\Delta)=\Oh(d)$ machine words.
+As mentioned, only nonempty buckets are materialized in the bucket dictionary.
+Every bucket key $Z$ is stored explicitly as the sorted list of its elements, so it occupies $\Oh(|Z|)\le \Oh(\Delta)=\Oh(d)$ space.
 Every maintained bucket stores a pointer to its first element and its current cardinality.
-Consequently, one bucket lookup, insertion, or deletion by key costs $\Oh(d)$, while after the bucket is found, accessing the first element of a nonempty bucket costs $\Oh(1)$, checking whether a vertex belongs to $V^+$ costs $\Oh(1)$, and reading $|B(Z)|$ or $|V^+|$ costs $\Oh(1)$.
-The edgeless graph on $V$ is initialized in $\Oh(1)$ time by setting $V^+=\emptyset$, the isolated-vertex dictionary to the single interval $[1,n]$, and all neighbor and bucket dictionaries to be empty.
+Consequently, one bucket lookup, insertion, or deletion by key costs $\Oh(\log (2^\Delta n))=\Oh(\Delta+\log n)$, while after the bucket is found, accessing the first element of a nonempty bucket costs $\Oh(1)$, checking whether a vertex belongs to $V^+$ costs $\Oh(1)$, and reading $|B(Z)|$ or $|V^+|$ costs $\Oh(1)$.
+The edgeless graph on $V$ is initialized in $\Oh(1)$ time by setting $V^+=\emptyset$, the isolated-vertex dictionary to the single interval $[1,n]$, and all neighbor and bucket dictionaries to be~empty.
 
 For later use in weighted structures, every update of one toolkit instance additionally outputs a transient log consisting of:
 \begin{itemize}
@@ -71,12 +84,11 @@ For later use in weighted structures, every update of one toolkit instance addit
 \end{itemize}
 The proof below shows that these items are already traversed by the update routine, and in particular every logged registration event is emitted while the corresponding bucket object is already identified, so emitting the log does not change the asymptotic complexity.
 
-\begin{lemma}[Deterministic toolkit]\label{lem:infra-update}
-Assume $n \geq 2$ and $d\ge 1$.
-One instance of the deterministic toolkit of this subsection can be initialized on the edgeless graph on $V$ in $\Oh(1)$ time.
-It uses $\Oh(nd\cdot 2^{4d})$ words of space.
-An edge insertion or deletion updates the toolkit in $\Oh(2^{4d}\cdot(d^3+\log^3 n))$ amortized time and outputs the complete log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
-The total number of logged items is $\Oh(2^{4d}(d+\log n))$ in amortized time.
+\begin{lemma}[Toolkit]\label{lem:infra-update}
+One instance of the toolkit described in this subsection can be initialized on the edgeless graph on $V$ in $\Oh(1)$ time.
+It uses $\Oh(nd\cdot 2^{4d})$ space.
+An edge insertion or deletion updates the toolkit in $\Oh(2^{4d}\cdot d^2\cdot\log^2 n)$ amortized time and outputs the complete log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
+The total number of logged items is $\Oh(2^{4d}\cdot d\cdot \log n)$ in the amortized sense.
 \end{lemma}
 \begin{proof}
 Initialization is exactly the constant-time setup described above, so only updates require analysis.
@@ -87,29 +99,27 @@ Each endpoint can change its isolated/non-isolated status at most once during th
 Whenever an endpoint enters $V^+$ we append it to $L_{\mathrm{in}}^+$, and whenever an endpoint leaves $V^+$ we append it to $L_{\mathrm{out}}^+$.
 Thus the total size of these two lists is $\Oh(1)$.
 
-Second, we update the Brodal--Fagerberg orientation.
-By Theorem~\ref{thm:bf}, the amortized number of reoriented edges is $\Oh(d+\log n)$.
-By Lemma~\ref{lem:bf-report}, we obtain the whole list of those edges, hence also the set of vertices whose out-neighborhood changed.
+Second, we update the Brodal--Fagerberg orientation $\vec G$.
+By \cref{thm:bf}, this takes amortized time $\Oh(d+\log n)$, the amortized number of reoriented edges is $\Oh(\log n)$, and we obtain the whole list of those edges, hence also the set of vertices whose out-neighborhood changed.
 Each reoriented edge contributes at most its two endpoints.
 In addition, the updated edge contributes only its two endpoints, because only these endpoints can change their membership in $V^+$.
-Therefore the amortized number of vertices for which either the set $N^+(u)$ or the predicate $u\in V^+$ may change is $\Oh(d+\log n)$.
+Therefore the amortized number of vertices for which either the set $N^+(u)$ or the predicate $u\in V^+$ may change is $\Oh(\log n)$.
 
 Fix one such vertex $u$.
-Let $A_{\mathrm{old}}:=N^+_{\mathrm{old}}(u)$ and $A_{\mathrm{new}}:=N^+_{\mathrm{new}}(u)$.
-Because buckets are defined only for vertices in $V^+$, the old registrations of $u$ form the family $\mathcal{R}_{\mathrm{old}}(u):=\{Z\subseteq A_{\mathrm{old}} : u\in V^+_{\mathrm{old}}\}$, while the new registrations form $\mathcal{R}_{\mathrm{new}}(u):=\{Z\subseteq A_{\mathrm{new}} : u\in V^+_{\mathrm{new}}\}$.
-Equivalently, if $u\notin V^+_{\mathrm{old}}$, then $\mathcal{R}_{\mathrm{old}}(u)=\emptyset$, and if $u\notin V^+_{\mathrm{new}}$, then $\mathcal{R}_{\mathrm{new}}(u)=\emptyset$.
+Let $A_{\mathrm{old}}\coloneqq N^+_{\mathrm{old}}(u)$ and $A_{\mathrm{new}}\coloneqq N^+_{\mathrm{new}}(u)$, where we follow the convention that $\mathrm{old}$ and $\mathrm{new}$ signifies whether an object in $G$ refers to the state before or after the update.
+Because buckets are defined only for vertices in $V^+$, the old registrations of $u$ form the family $\mathcal{R}_{\mathrm{old}}(u)\coloneqq \{Z\mid Z\subseteq A_{\mathrm{old}}\}$ assuming $u\in V^+_{\mathrm{old}}$, while the new registrations form the family  $\mathcal{R}_{\mathrm{new}}(u)\coloneqq \{Z\mid Z\subseteq A_{\mathrm{new}}\}$ assuming $u\in V^+_{\mathrm{new}}$.
+And if $u\notin V^+_{\mathrm{old}}$, then $\mathcal{R}_{\mathrm{old}}(u)=\emptyset$, and if $u\notin V^+_{\mathrm{new}}$, then $\mathcal{R}_{\mathrm{new}}(u)=\emptyset$.
 In particular, if an endpoint becomes isolated after deleting its last incident edge, then it is inserted into no bucket after the update, not even into $B(\emptyset)$.
 Likewise, if a previously isolated endpoint becomes non-isolated, then it had no old registrations and acquires exactly the registrations indexed by subsets of $A_{\mathrm{new}}$.
 Since $|A_{\mathrm{old}}|,|A_{\mathrm{new}}|\le \Delta$, both families have size at most $2^\Delta$.
 We enumerate all sets in $\mathcal{R}_{\mathrm{old}}(u)$ and delete the corresponding registrations, then enumerate all sets in $\mathcal{R}_{\mathrm{new}}(u)$ and insert the new registrations.
-Producing one subset key and performing the corresponding bucket lookup, insertion, or deletion costs $\Oh(\Delta)=\Oh(d)$, because the key has size at most $\Delta$.
+Producing one subset key and performing the corresponding bucket lookup, insertion, or deletion costs $\Oh(\Delta+\log n)$, because the key has size at most $\Delta$.
 Whenever one old registration $(u,Z)$ is deleted, we append $(u,Z)$ to $\Lambda^-$, and whenever one new registration $(u,Z)$ is inserted, we append $(u,Z)$ to $\Lambda^+$.
-Recording these events costs $\Oh(1)$ per registration, so the whole work caused by the vertex $u$ is still $\Oh((|\mathcal{R}_{\mathrm{old}}(u)|+|\mathcal{R}_{\mathrm{new}}(u)|)\cdot \Delta)=\Oh(2^\Delta\cdot \Delta)$.
+Recording these events costs $\Oh(1)$ per registration, so the whole work caused by the vertex $u$ is $\Oh((|\mathcal{R}_{\mathrm{old}}(u)|+|\mathcal{R}_{\mathrm{new}}(u)|)\cdot (\Delta+\log n))=\Oh(2^\Delta\cdot (\Delta+\log n))$ and gives rise to $\Oh(2^\Delta\cdot \Delta)$ records in the log.
 
-Multiplying by the amortized number $\Oh(d+\log n)$ of changed vertices per graph update yields amortized update time $\Oh((d+\log n)\cdot 2^\Delta\cdot \Delta)$.
-Since $\Delta=4d$, this is $\Oh(2^{4d}\cdot d(d+\log n))$, which is subsumed by $\Oh(2^{4d}\cdot(d^3+\log^3 n))$.
-The factor $2^{4d}$ comes from enumerating all subsets of an out-neighborhood of size at most $\Delta=4d$.
-The same calculation shows that the combined size of $\Lambda^+$ and $\Lambda^-$ is $\Oh(2^\Delta(d+\log n))$ in amortized time.
+Multiplying by the amortized number $\Oh(\log n)$ of changed vertices per graph update yields amortized update time $\Oh(2^\Delta\cdot \Delta\cdot (\Delta+\log n)\cdot \log n)\leq \Oh(2^{4d}\cdot d^2\cdot \log^2 n)$, because $\Delta=4d$.
+Note here that the factor $2^{4d}$ comes from enumerating all subsets of an out-neighborhood of size at most $\Delta=4d$.
+The same calculation shows that the combined size of $\Lambda^+$ and $\Lambda^-$ is $\Oh(2^\Delta \cdot \Delta\cdot \log n)=\Oh(2^{4d}\cdot d\cdot \log n)$ in the amortized sense.
 Together with the two lists of vertices entering or leaving $V^+$, this proves the bound on the update log.
 
 For the persistent space bound, the orientation, the Boolean array for $V^+$, the iterable list of $V^+$, the neighbor dictionaries, and the interval dictionary use $\Oh(nd)$ words because every $d$-degenerate graph on $V$ has at most $d(n-1)$ edges.
@@ -117,58 +127,68 @@ For every $u\in V^+$, its registration list contains at most $2^{|N^+(u)|}\le 2^
 Each such entry is associated with a bucket key $Z\subseteq N^+(u)$, and if this key is stored as a sorted list of identifiers, then it uses $\Oh(|Z|)\le \Oh(\Delta)$ words.
 Hence all registrations and bucket incidences together use at most $\Oh\!\left(\sum_{u\in V^+} 2^{|N^+(u)|}\cdot \Delta\right)=\Oh(n\cdot 2^\Delta\cdot \Delta)$ words.
 The number of materialized buckets is at most the number of nonempty registrations plus one, so their headers, including the stored keys, satisfy the same bound.
-Since $\Delta=4d$ and $d\ge 1$, the whole toolkit uses $\Oh(nd\cdot 2^{4d})$ words.
+Since $\Delta=4d$, the whole toolkit uses $\Oh(nd\cdot 2^{4d})$ words of space
 \end{proof}
 
-\begin{claim}[Decomposition of $U(S)$]\label{lem:distone-U1-bound}
-Assume $n\ge 2$.
-Let $S\subseteq V$ be nonempty and define $U(S):=\{u\in V\setminus S : S\subseteq N(u)\}$.
-Let $U_2(S):=\{u\in U(S) : S\subseteq N^+(u)\}$ and $U_1(S):=U(S)\setminus U_2(S)$.
-Then $U(S)=U_1(S)\cup U_2(S)$ is a disjoint union and $U_1(S)\subseteq \bigcup_{s\in S}N^+(s)$.
-In particular, $|U_1(S)|\le \Delta\cdot |S|$.
-\end{claim}
-\begin{claimproof}[Proof.]
-The decomposition $U(S)=U_1(S)\cup U_2(S)$ is immediate from the definitions.
-Let $u\in U_1(S)$.
-Then $S\subseteq N(u)$ but $S\not\subseteq N^+(u)$, so there exists $s\in S$ with $s\notin N^+(u)$.
-Since $\{u,s\}\in E$ and the edge is not oriented out of $u$, it must be oriented as $(s,u)$.
-Hence $u\in N^+(s)$.
-\end{claimproof}
+In further preparation for the queries $\near(S,1)$ and $\far(S,1)$, we introduce the following defintions. Let $S\subseteq V(G)$. We define:
+\begin{align*}
+	U(S)&\coloneqq \{u\in V\setminus S\mid S\subseteq N(u)\};\\
+	U_2(S) & \coloneqq \{u\in V\setminus S\mid S\subseteq N^+(u)\};\\
+	U_1(S) & \coloneqq U(S)\setminus U_2(S)=\{u\in U(S)\mid u\in \textstyle\bigcup_{s\in S} N^+(s)\}.
+\end{align*}
+Note that $|U_1(S)|\leq \Delta|S|$, because $|N^+(s)|\leq \Delta$ for each $s\in S$.
+Observe also the following.
 
-\begin{claim}[Bucket characterization of $U_2(S)$]\label{lem:distone-U2-bucket}
-Assume $n\ge 2$.
-Let $S\subseteq V$ be nonempty.
+%\begin{claim}[Decomposition of $U(S)$]\label{lem:distone-U1-bound}
+%Assume $n\ge 2$.
+%Let $S\subseteq V$ be nonempty and define $U(S):=\{u\in V\setminus S : S\subseteq N(u)\}$.
+%Let $U_2(S):=\{u\in U(S) : S\subseteq N^+(u)\}$ and $U_1(S):=U(S)\setminus U_2(S)$.
+%Then $U(S)=U_1(S)\cup U_2(S)$ is a disjoint union %and $U_1(S)\subseteq \bigcup_{s\in S}N^+(s)$.
+%In particular, $|U_1(S)|\le \Delta\cdot |S|$.
+%\end{claim}
+%\begin{claimproof}[Proof.]
+%The decomposition $U(S)=U_1(S)\cup U_2(S)$ is immediate from the definitions.
+%Let $u\in U_1(S)$.
+%Then $S\subseteq N(u)$ but $S\not\subseteq N^+(u)$, so there exists $s\in S$ with $s\notin N^+(u)$.
+%Since $\{u,s\}\in E$ and the edge is not oriented out of $u$, it must be oriented as $(s,u)$.
+%Hence $u\in N^+(s)$.
+%\end{claimproof}
+
+\begin{lemma}[Bucket characterization of $U_2(S)$]\label{lem:distone-U2-bucket}
+Suppose $S\subseteq V$ is nonempty.
 If $|S|\le \Delta$, then $U_2(S)=B(S)$.
-If $|S|>\Delta$, then $U_2(S)=\emptyset$.
-\end{claim}
-\begin{claimproof}[Proof.]
-If $|S|>\Delta$, then $U_2(S)=\emptyset$ because every out-neighborhood has size at most $\Delta$.
-Assume now that $|S|\le \Delta$.
+And if $|S|>\Delta$, then $U_2(S)=\emptyset$.
+\end{lemma}
+\begin{proof}
+If $|S|>\Delta$, then $U_2(S)=\emptyset$ because every outneighborhood has size at most $\Delta$.
+Suppose then that $|S|\le \Delta$.
 Let $u\in U_2(S)$.
 Then $u\in U(S)$ and $S\subseteq N^+(u)$, so $u\in B(S)$.
 Conversely, let $u\in B(S)$.
 Then $u\in V^+$ and $S\subseteq N^+(u)\subseteq N(u)$.
 Since $S\subseteq N^+(u)$ and a vertex cannot be an out-neighbor of itself in a simple graph, we have $u\notin S$.
 Therefore $u\in U(S)$, and together with $S\subseteq N^+(u)$ this yields $u\in U_2(S)$.
-\end{claimproof}
+\end{proof}
 
-\begin{claim}[Explicit candidate set for $\near{S}$]\label{cl:distone-near-candidates}
-Assume $n\ge 2$, let $S\subseteq V$ be nonempty, and suppose every vertex of $S$ is non-isolated.
+\cref{lem:distone-U2-bucket} provides us with the following combinatorial characterization of vertices that are candidates for the output in the query $\near{S,1}$.
+
+\begin{lemma}\label{cl:distone-near-candidates}
+Let $S\subseteq V$ be nonempty, and suppose every vertex of $S$ is non-isolated in $G$.
 If a vertex $v$ satisfies $S\subseteq N[v]$, then one of the following holds:
 \begin{itemize}
-\item $v\in S$;
-\item $v\in \bigcup_{s\in S}N^+(s)$;
+\item $v\in S$; or
+\item $v\in \bigcup_{s\in S}N^+(s)$; or
 \item $|S|\le \Delta$ and $v\in B(S)$.
 \end{itemize}
-In particular, apart from the single bucket lookup for $B(S)$, there are at most $|S|+\Delta\cdot |S|=\Oh(d\cdot |S|)$ explicit candidates.
-\end{claim}
-\begin{claimproof}[Proof.]
+In particular, apart from the single bucket $B(S)$, there list above includes at most $|S|+\Delta\cdot |S|=\Oh(d|S|)$ candidates.
+\end{lemma}
+\begin{proof}
 If $v\in S$, we are in the first case.
 Assume therefore that $v\notin S$.
 Then $v\in U(S)$.
-If $v\in U_1(S)$, Claim~\ref{lem:distone-U1-bound} yields $v\in \bigcup_{s\in S}N^+(s)$.
-If $v\in U_2(S)$, Claim~\ref{lem:distone-U2-bucket} yields either $|S|>\Delta$, impossible, or $v\in B(S)$.
-\end{claimproof}
+If $v\in U_1(S)$, then $v\in \bigcup_{s\in S}N^+(s)$.
+And if $v\in U_2(S)$, then \cref{lem:distone-U2-bucket} yields that $|S|\leq \Delta$ and $v\in B(S)$.
+\end{proof}
 
 \subsection{Data structure for \texorpdfstring{$\near{S}$}{near(S)}}\label{sec:distone-near}
 

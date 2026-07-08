@@ -28,7 +28,8 @@ Consider then the $i$th round of the algorithm. The task in Step~2 boils down to
 	\item $\far{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)>r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
 On the other hand, Step~1 can be implemented using at most $k^i$ queries of the following kind, with $|S|<i$:
-\wninline{To $k^i$ jest trochę konfundujące. Może zmienić jednak na bardziej naturalne $2^i$? Podobnie w lemacie 4.4} 
+\wninline{To $k^i$ jest trochę konfundujące. Może zmienić jednak na bardziej naturalne $2^i$? Podobnie w lemacie 4.4}
+\michalin{Mh, słusznie :D. Zaimplementujesz?}
 \begin{itemize}
 	\item $\near{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)\leq r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
@@ -46,8 +47,8 @@ We remark that our data structures for $\near{S,r}$ and $\far{S,r}$ queries heav
 
 \medskip
 
-Finally, let us discuss the case of \dris{r}. For this problem, Fabia\'nski et al. gave a different algorithm, called the \emph{ladder algorithm}, which is somewhat more complicated than the semi-ladder algorithm and whose proof of correctness requires more insight. However, the bottom line is that on any nowhere dense class $\Cc$ and for fixed parameters $r$ and $k$, the ladder algorithm again terminates within $\Oh_{\Cc,r,k}(1)$ rounds and each of those rounds can be implemented using $\Oh_{\Cc,r,k}(1)$ calls to (slight generalizations of) the queries $\near{S,r}$ and $\far{S,r}$ with $|S|\leq \Oh_{\Cc,r,k}(1)$. So designing  data structures implementing these queries efficiently is sufficient to obtain the data structure for the \dris{s} promised in \cref{thm:main-indset-be}. We remark that in the case of a positive outcome, the ladder algorithm actually does not provide a distance-$r$ independent set of size $k$, but only a proof of its existence; this is why this feature is also present in \cref{thm:main-indset-be}.
-\wninline{``feature'' -> ``restraint''? Feature wydaje mi się trochę pozytywnie nacechowane.}
+Finally, let us discuss the case of \dris{r}. For this problem, Fabia\'nski et al. gave a different algorithm, called the \emph{ladder algorithm}, which is somewhat more complicated than the semi-ladder algorithm and whose proof of correctness requires more insight. However, the bottom line is that on any nowhere dense class $\Cc$ and for fixed parameters $r$ and $k$, the ladder algorithm again terminates within $\Oh_{\Cc,r,k}(1)$ rounds and each of those rounds can be implemented using $\Oh_{\Cc,r,k}(1)$ calls to (slight generalizations of) the queries $\near{S,r}$ and $\far{S,r}$ with $|S|\leq \Oh_{\Cc,r,k}(1)$. So designing  data structures implementing these queries efficiently is sufficient to obtain the data structure for the \dris{s} promised in \cref{thm:main-indset-be}. We remark that in the case of a positive outcome, the ladder algorithm actually does not provide a distance-$r$ independent set of size $k$, but only a proof of its existence; this is why this restraint is also present in \cref{thm:main-indset-be}.
+%\wninline{``feature'' -> ``restraint''? Feature wydaje mi się trochę pozytywnie nacechowane.}
 
 \subsection{Finding near vertices}
 
@@ -136,9 +137,13 @@ Once we achieve this, a data structure that can actually report an example verte
 
 Furthermore, we will assume that in all the queries, $S$ consists of a single fixed vertex $s$, $S=\{s\}$. This can be achieved by adding a fresh isolated vertex $s$ to the graph that at the time of a query, is made adjacent to all the vertices of $S$. Then the original query $\far{S,r}$ is equivalent to the query $\far{\{s\},r+1}$ after the modification.
 
-At this point we reach the crucial novel part of this work. Namely, counting $|V_\fr|$ cannot be directly formulated as counting homomorphisms, because roughly speaking, $V_\fr$ is defined by the \emph{non-existence} of a homomorphism. Instead, we will compute $|V_\fr|$ using the Inclusion-Exclusion Principle, by adding and subtracting vertices that are, in various ways, close to $s$. \wninline{Może jakieś zdanie wyjaśnienia czemu to nietrywialne? Np. ``As there may be an unbounded number of short paths connecting any pair of vertices, it is a priori unclear how to apply the Inclusion-Exclusion Principle over them, which is why we again exploit properties of bounded expansion graph classes.''?}
+At this point we reach the crucial novel part of this work. Namely, counting $|V_\fr|$ cannot be directly formulated as counting homomorphisms, because roughly speaking, $V_\fr$ is defined by the \emph{non-existence} of a homomorphism. Instead, we will compute $|V_\fr|$ using the Inclusion-Exclusion Principle, by adding and subtracting vertices that are, in various ways, close to $s$. As there may be an unbounded number of short paths connecting any pair of vertices, it is a priori unclear how to apply the Inclusion-Exclusion Principle over them. We overcome this issue by exploiting the  properties of bounded expansion graph classes again.
+Precisely, we use the same Sparsity tool as Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}: \emph{fraternal augmentations}.
 
-To this end, we will use the same Sparsity tool as Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13}: \emph{fraternal augmentations}. Let us introduce this concept.
+ \wninline{Może jakieś zdanie wyjaśnienia czemu to nietrywialne? Np. ``As there may be an unbounded number of short paths connecting any pair of vertices, it is a priori unclear how to apply the Inclusion-Exclusion Principle over them, which is why we again exploit properties of bounded expansion graph classes.''?}
+ \michalin{Dobry pomysł, zaimplementowałem i pozmieniałem lekko strukturę}
+
+%To this end, 
 
 \paragraph*{Fraternal augmentations.}
 Let $G$ be a graph belonging to a fixed bounded expansion class $\Cc$. That~$G\in \Cc$ implies that for some constant $d_1=\Oh_\Cc(1)$, $G$ is \emph{$d_1$-degenerate}, which means that every subgraph of $G$ has a vertex of degree at most $d_1$. Therefore, by iteratively deleting vertices of the smallest degree from $G$ and orienting incident edges outwards, we obtain an orientation $\vec G_1$ with maximum outdegree at most $d_1$.
