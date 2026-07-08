@@ -66,7 +66,8 @@ Whether \cref{thm:apx-dynamic} can be lifted to $r>1$ under the assumption that 
 Along the way to our main results we also developed a tool that may be found of independent interest. Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} showed that it is possible to maintain the count of induced copies of a fixed graph $H$ in a dynamic graph $G$ that always belongs to a fixed class of bounded expansion. However, they asked if it is possible to design a data structure that would provide an example of an induced copy of $H$ in $G$, if it exists, as their data structure did not easily allow for such an extension. We resolve that problem positively by proving the following theorem:
 \begin{theorem} \label{thm:dvorak-tuma-examples-intro-copy}
 	Let $\eps>0$, $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. 
-	Let $G$ be a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times.
+	Let $G$ be a dynamic %$k$-colored
+	graph on $n$ vertices that belongs to $\G$ at all times.
 	Then, there is a randomized data structure $\MapEx_{\F, H, k,\eps}[G]$
 	 which after every update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)$. The amortized update time is $\Oh_{\G, H, k}(\log^{\Oh_H(1)} n \log{\frac{1}{\eps}})$, the initialization time is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$, and the space complexity is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$.  The data structure never provides false positives, but may fail to provide an example mapping $\phi$ with probability at most $\eps$, against an oblivious adversary.
 \end{theorem}
