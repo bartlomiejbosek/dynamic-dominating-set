@@ -331,7 +331,7 @@ In this section we give a data structure for the $\far{S,1}$ queries. Similarly 
 \newcommand{\WeiFar}{\mathsf{WeightedFarSum}}
 \newcommand{\sumFar}{\mathtt{sumFar}}
 
-\begin{lemma}\label{lem:wei-sums-far}
+\begin{lemma}\label{lem:wei-sums-far-deg}
 	Fix $d\in \N$.
 	Let $G$ be a dynamic graph on vertex set $V=\{1,\ldots,n\}$ that is $d$-degenerate at all times, and let $\wei\colon V\to \Z$ be a weight function fixed upon initialization. Then there exists a data structure $\WeiFar[G]$ for $G$ that supports the following query:
 	\begin{itemize}
@@ -345,6 +345,51 @@ In this section we give a data structure for the $\far{S,1}$ queries. Similarly 
 	Therefore, if we maintain one instance of the $\nearVertexDS{G}{}$ data structure provided by \cref{thm:NearVertex-new-deg}, then the value $\sum_{v\in V\setminus N[S]} \wei(v)$ can be computed using the formula above from the answers to $2^{|S|}$ queries to $\nearVertexDS{G}{}$: one for each subset $S'\subseteq S$. The complexity guarantees follow directly from the guarantees provided by \cref{thm:NearVertex-new-deg}.
 \end{proof}
 
+We are now in position to implement the data structure for $\far{S,1}$ queries.
+
+\begin{theorem}\label{thm:FarVertex-new-deg}
+	Fix $d\in \N$ and $\eps>0$.
+	Let $G$ be a dynamic graph on vertex set $V=\{1,\ldots,n\}$ that is $d$-degenerate at all times. Then there exists a randomized data structure $\farVertexDS{G}{\eps}$ that provides access to the following query:
+	\begin{itemize}
+		\item $\far{S,1}$: For a given set of vertices $S\subseteq V$, return a vertex $v$ that belongs to $V-N[S]$, or $\bot$ if no such vertex exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	The amortized time complexity of updates and queries is $\Oh(2^{4d+|S|}\cdot d^2|S|^3\cdot \log^3 n \log \tfrac{1}{\eps})$. The data structure can be initialized for an edgeless $G$ in time $\Oh(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh(2^{4d}\cdot dn\log n\log \tfrac{1}{\eps})$ space at all times.
+\end{theorem}
+\begin{proof}
+	We first observe that the data structure of \cref{lem:restore-by-sampling} can be extended to handle graphs with a given set of vertices $S$, in the following sense:
+	\begin{itemize}
+		\item The vertex function $f$ takes three arguments: a graph $G$, a vertex subset $S\subseteq V(G)$, and a vertex $v$.
+		\item The data structure $\WeiSum_{f, \wei}[G]$ instead of reporting $\sum_{v\in V(G)}f(G,v)\cdot \wei(v)$ after every update, can be queried for $\sum_{v\in V(G)}f(G,S,v)\cdot \wei(v)$ for a set $S$ given as input to the query.
+		\item Similarly, the query of the data structure $\Ver_{f}[G]$ takes also $S$ on input and reports whether $f(G,S,v)>0$.
+		\item The query of the constructed data structure $\RetVer_{f,\eps}[G]$ also takes  $S$ on input and returns any vertex $v$ such that $f(G,S,v)>0$, or $\bot$ if there is no such vertex.
+		\item The promised guarantee $T$ on the update/query complexity of $\WeiSum_{f, \wei}[G]$ and $\Ver_{f}[G]$ may depend on $|S|$. The guarantee on the update/query complexity of $\RetVer_{f,\eps}[G]$ becomes $\Oh(T\cdot |S|\cdot \log \tfrac{1}{\eps})$.
+	\end{itemize}
+	To argue this, one may either readily verify that the presented proof goes through without any changes, or perform the following easy gadgeteering. Add to $G$ a fresh special vertex $v^\star$ with $\wei(v^\star)=0$ that will normally stay isolated; let $G^\star$ be $G$ with $v^\star$ added. We define a (standard) vertex function $f^\star$ as $f^\star(G^\star,v)\coloneqq f(G,N(v^\star),v)$ for $v\in V(G)$, and $f^\star(G^\star,v^\star)=0$; that is, we interpret $S$ to be the neighborhood of $v^\star$ and put value $0$ on the special vertex $v^\star$. To implement the extended data structure $\RetVer_{f,\eps}[G]$ of \cref{lem:restore-by-sampling}, we set up the data structure of \cref{lem:restore-by-sampling} without extension, but for $f^\star$ and $G^\star$; that is, $\RetVer_{f^\star,\eps}[G^\star]$. This requires suitable implementations of $\WeiSum_{f^\star, \wei}[G^\star]$ and $\Ver_{f^\star}[G^\star]$, which can be easily emulated using the assumed data structures $\WeiSum_{f, \wei}[G]$ and $\Ver_f[G]$ that take $S$ as input to the query. 
+	Upon query to $\RetVer_{f,\eps}[G]$ with a set $S\subseteq V(G)$, we temporarily add all the edges between $v^\star$ and all the vertices of $S$, query $\RetVer_{f^\star,\eps}[G^\star]$, and remove the added edges. We remark here that adding a single vertex $v^\star$ to the graph can increase its degeneracy by at most $1$.
+	
+	With \cref{lem:restore-by-sampling} extended, we may proceed to the proof. Towards an application of this lemma, we define a vertex function
+	\[f(G,S,v)\coloneqq \begin{cases}1 &\textrm{if } v\notin N[S],\\
+	0 &\textrm{otherwise.}\end{cases}\]
+	A suitable implementation of a data structure $\WeiSum_{f,\wei}[G]$, for any weight function $\wei\colon V\to \Z$ fixed upon initialization, is provided by \cref{lem:wei-sums-far-deg}.
+	Note that $f$ is binary, so there is no need to provide a data structure $\Ver_{f}[G]$.
+	
+	We may therefore apply the extended \cref{lem:restore-by-sampling} and obtain the data structure $\RetVer_{f,\eps}[G]$, which may serve as the output data structure $\farVertexDS{G}{\eps}$. The complexity guarantees follow directly from the extended \cref{lem:restore-by-sampling} combined with the guarantees provided by \cref{lem:wei-sums-far-deg}.
+\end{proof}
+
+
+\subsection{Dynamic domination in degenerate graphs}
+
+We may now conclude the proof of the main result of this section.
+
+\mainDomDeg*
+\begin{proof}
+	We may assume that $k\geq 2$, because for $k=1$ we may simply keep track of the degrees of vertices and report any vertex of degree $n-1$, if existent.
+	
+	Note that if $\Cc$ is the class of $d$-degenerate graphs, then every graph from $\Cc$ excludes the biclique $K_{d+1,d+1}$ as a subgraph. Hence by \cref{thm:sli-biclique} we get $\sli_1(\Cc)<3d+3$. Therefore, we may apply \cref{lem:summary-dom} with  \cref{thm:NearVertex-new-deg,thm:FarVertex-new-deg} plugged in. Note that in applications of \cref{thm:NearVertex-new-deg} we always have $|S|\leq k^{\sli_1(\Cc)}\leq k^{\Oh(d)}$ and in applications of \cref{thm:FarVertex-new-deg} we always have $|S|\leq k$, so thanks to the guarantees provided by guarantees provided by \cref{thm:NearVertex-new-deg,thm:FarVertex-new-deg}, the quantities $T,I,M$ mentioned in \cref{lem:summary-dom} can be set as $2^{\Oh(k)}\cdot k^{\Oh(d)}\cdot \log^3 n$, $2^{\Oh(d)}\cdot n\log n$, and $2^{\Oh(d)}\cdot n\log n$, respectively. The claimed complexity guarantees then follow directly from \cref{lem:summary-dom}.
+\end{proof}
+
+\begin{comment}
 \michalin{Tekst poniżej jest oryginalny.}
 
 The report procedure below will use inclusion-exclusion over closed neighborhoods.
@@ -721,3 +766,4 @@ The edgeless-graph initialization bound stated above for one far-vertex instance
  (k+1)^{\Oh(d)}2^{\Oh(d)}n\log n\left(\log\frac1{\bar\eps}+d\log(k+1)\right).
 \]
 This proves the theorem.''}
+\end{comment}

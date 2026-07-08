@@ -28,14 +28,21 @@ We remark that some previous works~\cite{DvorakKT13,Torunczyk20} considered the 
 \paragraph*{Our contribution.} In this work we propose fully dynamic data structures for the \drds{r} and \dris{r} problems on classes of bounded expansion, with polylogarithmic amortized update time.\footnote{For a tuple of parameters $\tup p$, the $\Oh_{\tup p}(\cdot)$ notation hides multiplicative factors that may depend on $\tup p$.} 
 
 \begin{restatable}{theorem}{mainDomBE}\label{thm:main-domset-be}
-	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that it always belongs to $\Cc$, upon query $\ds{}$ returns a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists. Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\ds{}$: return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize}
+	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
 	The amortized time complexity of an update or a query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{restatable}
 
 \vspace{-0.3cm}
 
 \begin{restatable}{theorem}{mainIndBE}\label{thm:main-indset-be}
-	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that it always belongs to $\Cc$, upon query $\is{}$ decides whether in $G$ there exists a distance-$r$ independent set of size $k$.
+	Fix a graph class $\Cc$ of bounded expansion, $r,k\in \N$, and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that it always belongs to $\Cc$, supports the following query:
+	\begin{itemize}
+		\item $\is{}$: decide whether in $G$ there exists a distance-$r$ independent set of size $k$.
+	\end{itemize}
 	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
 	The amortized time complexity of an update or a query is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ and occupies  $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{restatable}
@@ -49,9 +56,12 @@ At this point, the proofs of \cref{thm:main-domset-be,thm:main-indset-be} do not
 Next, we observe that for the specific case $r=1$ (so the classic \textsc{Dominating Set} problem), the data structure of \cref{thm:main-domset-be} can be simplified and works already under the assumption of bounded degeneracy (equivalently, of bounded arboricity or of bounded maximum average degree among subgraphs).
 
 \begin{restatable}{theorem}{mainDomDeg}\label{thm:main-domset-deg}
-	Fix $d,k\in \N$ and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that $G$ is $d$-degenerate at all times, upon query $\ds{}$ returns a dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	Fix $d,k\in \N$ and $\eps>0$. Then there is a randomized dynamic data structure that given a dynamic $n$-vertex graph $G$, updated by edge insertions and removals subject to guarantee that $G$ is $d$-degenerate at all times, supports the following query:
+	\begin{itemize}
+		\item $\ds{}$: return a dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
+	\end{itemize} 
 	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
-	The amortized time complexity of an update or a query is $2^{\Oh(k+d)}\cdot \log^4 n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $2^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ and occupies  $2^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ space at all times.
+	The amortized time complexity of an update or a query is $2^{\Oh(k)}\cdot k^{\Oh(d)}\cdot \log^3 n \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ and uses  $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ space at all times.
 \end{restatable}
 
 Finally, it is also known that on classes of bounded expansion, both the \drds{r} problem and the \dris{r} problem admit constant-factor approximation algorithms~\cite{Dvorak13}. We prove that for $r=1$, this can be lifted to the dynamic setting, even assuming only bounded degeneracy.
