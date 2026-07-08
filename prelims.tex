@@ -50,15 +50,16 @@ The definitions of homomorphisms and (induced) subgraphs isomorphisms can be nat
 
 Here are some examples of modelling (variations of) graphs as relational structures, which will be used in this paper.
 \begin{itemize}
-	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set, and $\Sigma$ consists of a single binary (arity-$2$) relation that is always irreflexive and symmetric. To model directed graphs, we drop the symmetricity requirement.
-	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graphs by having $|C|$ binary relations in the signature, where each relation selects edges of a different color. 
+	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set $U=V(G)$, and $\Sigma=\{ R \}$ consists of a single binary (arity-$2$) relation $R$ that is always irreflexive and symmetric. We let $(u,v),(v,u) \in R$ iff $\{u,v\} \in E(G)$.  To model directed graphs, we drop the symmetricity requirement.
+	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graph $G$ by letting the universe be the vertex set $U=V(G)$. Set $\Sigma$ consists of $|C|$ relational symbols $\Sigma = \{ R_c  \}_{c \in C}$.
+	 All these relations are binary, and each relation $R_c$ for $c \in C$ contains tuples $(u,v)$ and $(v,u)$ for each edge $\{ u,v \} \in E(G)$ with $\mathrm{col}(\{ u,v \})=c$.
 	 We may similarly define and model $C$-colored directed graphs.
 	 For $k\in \N$, we use a shorthand: a \emph{$k$-colored graph} is a $[k]$-colored graph, that is, a graph whose edges are colored with colors $\{1,\ldots,k\}$.
 \end{itemize}
 
 The \emph{Gaifman graph} of a $\Sigma$-structure $\Af$ is the graph on vertex set $U(\Af)$ where two distinct elements $u,v\in U(\Af)$ are adjacent if and only if they appear together in some tuple of some relation $R^\Af$, $R\in \Sigma$.
 
-Homomorphisms of relational structures are defined naturally: For two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well. 
+Homomorphisms of relational structures are defined naturally: for two $\Sigma$-structures $\Af$ and $\Bf$, a homomorphism from $\Af$ to $\Bf$ is a mapping $\varphi\colon U(\Af)\to U(\Bf)$ such that for every $R\in \Sigma$ and $\tup u\in U(\Af)^{\ar(R)}$, it holds that $\tup u\in R^{\Af}$ implies $\varphi(\tup u)\in R^{\Bf}$ (where $\varphi(\tup u)$ denotes coordinate-wise application). The notions of (induced) substructure isomorphisms then follow in the same way as for graphs, and so we may extend the $\Hom(\cdot,\cdot),\Sub(\cdot,\cdot),\ISub(\cdot,\cdot)$ notation to relational structures as well.
 
 Similarly to graphs, we may consider \emph{rooted relational structures} by equipping a structure $\Af$ with a tuple $\tup u$ of roots, which are (not necessarily distinct) elements of the universe; we denote it by $\rt{\Af}{\tup u}$. Homomorphisms and (induced) substructure isomorphisms can be again extended to rooted structures in the expected way. Thus, we may speak about homomorphisms of rooted, colored directed graphs etc.
 %\wninline{Dziwne to ostatnie zdanie, bo ma "thus", a to co po nim następuje jakoś nie chce być wnioskiem z tego co było przed nim}
@@ -101,32 +102,36 @@ For a graph $G$ and a vertex $v$ of $G$, the operation of \emph{adding a pendant
 	Towards \eqref{eq:zubr}, let $H'$ be a depth-$r$ minor of some $G'$, and let $\eta'$ be the witnessing model. We consider two cases. First, if $\eta'$ contains no branch set equal to $\{v'\}$, then it is easy to see that $\eta$ obtained by removing $v'$ from the branch set it is contained in (if any) is a depth-$r$ model of $H'$ in $G$. Hence $\avgdeg(H')\leq \nabla_r(G)$. Second, if there exists $x\in V(H')$ such that $\eta'(x)=\{v'\}$, then $x$ must have degree at most $1$ in $H'$ and $\eta$ obtained from $\eta'$ by removing the branch set $\{v'\}$ is a depth-$r$ model of $H\coloneqq H'-x$ in $G$. It is easy to see that adding a pendant to a graph does not increase its average degree unless it stays below $1$, hence $\avgdeg(H')\leq \max(1,\avgdeg(H))\leq \max(1,\nabla_r(\Cc))$. This proves \eqref{eq:zubr} 
 \end{proof}
 
-The next operation is taking congested shallow minors. For $c,d\in \N$, a \emph{congestion-$c$ depth-$d$ model} $\eta$ of a graph $H$ in a graph $G$ is defined similarly to a (standard) depth-$d$ model, except for the following amendments:
+The next operation is taking congested shallow minors. For $c,r\in \N$, a \emph{congestion-$c$ depth-$r$ model} $\eta$ of a graph $H$ in a graph $G$ is defined similarly to a (standard) depth-$r$ model, except for the following amendments:
 \begin{itemize}
 	\item In the first condition, we allow the branch sets $\{\eta(u)\colon u\in V(H)\}$ to intersect, but every vertex $v$ of $G$ may belong to at most $c$ of them.
 	\item In the second condition, we demand that whenever $uv$ is an edge of $H$, the branch sets $\eta(u)$ and $\eta(v)$ intersect or there is an edge connecting them in $G$.
 \end{itemize}
-Note that for $c=1$, these are just standard depth-$d$ models. 
+Note that for $c=1$, these are just standard depth-$r$ models.
 
-For a class of graphs $\Cc$, by $\Minors^{c,d}(\Cc)$ we denote the class of all congestion-$c$ depth-$d$ minors of graphs from $\Cc$. We will use the following standard statement.
+For a class of graphs $\Cc$, by $\Minors^{c,r}(\Cc)$ we denote the class of all congestion-$c$ depth-$r$ minors of graphs from $\Cc$. We will use the following standard statement.
 
 \begin{theorem}[see e.g.~{\cite[Proposition 4.6]{sparsity}} or {\cite[Chapter 1, Lemma 2.27]{sparsityNotes}}]\label{thm:cong-minors}
-	For every graph class $\Cc$ of bounded expansion and $c,d\in \N$, the class $\Minors^{c,d}(\Cc)$ also has bounded expansion.
+	For every graph class $\Cc$ of bounded expansion and $c,r\in \N$, the class $\Minors^{c,r}(\Cc)$ also has bounded expansion.
 \end{theorem}
 
 We use \cref{thm:cong-minors} to argue a classic result from Sparsity %\wn{Sparsity z wielkiej litery? że książka czy typo?}
-about classes of bounded expansion admitting \emph{fraternal augmentations} of bounded maximum outdegree. Let $G$ be a graph and $\vec G$ be an orientation of $G$. The \emph{fraternal augmentation} of $\vec G$ is the undirected graph $G'$ obtained from $\vec G$ as follows:
+about classes of bounded expansion admitting \emph{fraternal augmentations} of bounded maximum outdegree. Let $G$ be a graph and $\vec G$ be an orientation of $G$. The \emph{fraternal augmentation} of $\vec G$, denoted as $\fra(\vec G)$, is the undirected graph with vertex set $V(\fra(\vec G))=V(\vec G)=V(G)$, obtained from $\vec G$ as follows:
 \begin{itemize}
-	\item for every pair of edges $(w, u),(w, v)\in E(\vec G)$ with a common tail $w$ (such pairs will be said to form a \emph{fork}), add an undirected edge $uv$, if not already present; and
-	\item forget the orientation of all the edges of $\vec G$.
+    \item $E(\fra(\vec G))$ contains all edges $E(G)$, plus
+	\item for every pair of edges $(w, u),(w, v)\in E(\vec G)$ with a common tail $w$ (such pairs will be said to form a \emph{fork}), add an undirected edge $uv$, if not already present.% and
+	%\item forget the orientation of all the edges of $\vec G$.
 \end{itemize}
-Note that thus, $G'$ is a supergraph of $G$, obtained by adding all the \emph{fraternal} edges $uv$ as above. The following lemma is the key observation about the behavior of fraternal augmentations on classes of bounded expansion.
-
+Note that thus, $\fra(\vec G)$ is a supergraph of $G$, obtained by adding all the \emph{fraternal} edges $uv$ as above.
+Next, for an undirected graph $G$ and $d \in \N$ we define $\Fra(G,d)$
+to be the graph class constructed as follows: for every $d$-orientation $\vec G$ of $G$, include $\fra(\vec G)$ and all its subgraphs in $\Fra(G,d)$.
+Finally, for a class $\Cc$ of graphs, we let $\Fra(\Cc,d)=\bigcup_{G \in \Cc} \Fra(G,d)$.
+The following lemma is the key observation about the behavior of fraternal augmentations on classes of bounded expansion.
 \begin{lemma}\label{lem:fraternal}
-	Let $\Cc$ be a graph class of bounded expansion and $d\in \N$. Define $\Fra(\Cc,d)$ to be the graph class constructed as follows: for every $G\in \Cc$ and a $d$-orientation $\vec G$ of $G$, include in $\Fra(\Cc,d)$ the fraternal augmentation of $\vec G$ and all of its subgraphs. Then $\Fra(\Cc,d)$ also has bounded expansion.
+	Let $\Cc$ be a graph class of bounded expansion and $d\in \N$. Then $\Fra(\Cc,d)$ also has bounded expansion.
 \end{lemma}
 \begin{proof}
-	We observe that if $G'$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
+	We observe that if $G'=\fra(\vec G)$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
 	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(u, v)\in E(\vec G)\},\]
 	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
 \end{proof}
