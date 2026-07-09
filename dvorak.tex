@@ -209,16 +209,19 @@ Let us clarify the model. For a signature $\Sigma$, by a \emph{dynamic $\Sigma$-
 		$M_\Af\in \Cc'$.
 	\end{claim}
 	\begin{claimproof}
-		Let $G$ be the Gaifman graph of $\Af$. Since $G\in \Cc$, $G$ is $d$-degenerate where $d\coloneqq \nabla_0(\Cc)$, hence there exists an ordering $\preceq$ of the vertices of $G$ such that every vertex $u$ of $G$ has at most $d$ neighbors that are smaller in $\preceq$. (Such an ordering can be obtained by repeatedly removing from $G$ a vertex of the smallest degree and ordering the vertices by the reverse order of removal.) For any $R\in \Sigma$ and any tuple $\tup v\in R^{\Af}$, let $\mu(\tup v)$ be the $\preceq$-maximal vertex featured in $\tup v$. Note that for every $u\in V(G)$ we have $|\mu^{-1}(u)|\leq |\Sigma|\cdot (d+1)^q$, for every tuple $\tup v\in \mu^{-1}(u)$ is entirely contained in the set consisting $u$ and its $\preceq$-smaller neighbors --- which is of size at most $d+1$. Hence, it is easy to verify that the map $\eta$ defined~as
+		Let $G$ be the Gaifman graph of $\Af$. Since $G\in \Cc$, $G$ is $d$-degenerate where $d\coloneqq \nabla_0(\Cc)$, hence there exists an ordering $\preceq$ of the vertices of $G$ such that every vertex $u$ of $G$ has at most $d$ neighbors that are smaller in $\preceq$. (Such an ordering can be obtained by repeatedly removing from $G$ a vertex of the smallest degree and ordering the vertices by the reverse order of removal.) For any $R\in \Sigma$ and any tuple $\tup v\in R^{\Af}$, let $\mu(\tup v)$ be the $\preceq$-maximal vertex featured in $\tup v$. Note that for every $u\in V(G)$ we have $|\mu^{-1}(u)|\leq |\Sigma|\cdot (d+1)^q$,
+		for every tuple $\tup v\in \mu^{-1}(u)$ is entirely contained in the set consisting $u$ and its $\preceq$-smaller neighbors --- which is of size at most $d+1$.
+		Hence, it is easy to verify that the map $\eta$ defined~as
 		\begin{align*}
 			\eta(u)& \coloneqq \{u\} && \textrm{for }u\in U(\Af);\textrm{ and}\\
 			\eta(t^{R,1}_\tup v)\coloneqq \eta(t^{R,2}_\tup v)& \coloneqq \{\mu(\tup v)\} && \textrm{for }\tup v\in R^\Af, R\in \Sigma;
 		\end{align*} 
-		is a congestion-$(|\Sigma|\cdot (d+1)^q)$ depth-$0$ model of $M_\Af$ in $G$. It follows that $M_\Af\in \Minors^{|\Sigma|\cdot (d+1)^q,0}(\Cc)$, which is a class of bounded expansion by \cref{thm:cong-minors}.
+		is a congestion-$(2|\Sigma|\cdot (d+1)^q+1)$ depth-$0$ model of $M_\Af$ in $G$. It follows that $M_\Af\in \Minors^{2|\Sigma|\cdot (d+1)^q+1,0}(\Cc)$, which is a class of bounded expansion by \cref{thm:cong-minors}.
 		\wninline{A nie przypadkiem $(2|\Sigma|\cdot (d+1)^q+1)$-congestion? $\cdot 2$ bo dwa wierzchołki per krotka, $+1$ za samego siebie. Albo w ogóle jeszcze $d^{q-1}$, zamiast $(d+1)^q$, bo wiadomo, że $u$ zawsze jest :)}
+		\azinline{co do pierwszego zdania to tak- poprawiam. co do drugiego $u$ zawsze jest ale może byc wiele razy- zostawiam}
 	\end{claimproof}
 	
-	It is now straightforward to see that subgraph isomorphisms from $M_\Bf$ to $M_\Af$ are in one-to-one correspondence to substructure isomorphisms from $\Bf$ to $\Af$. We leave the easy verification of the following claim to the reader.
+	It is now straightforward to see that subgraph isomorphisms from $M_\Bf$ to $M_\Af$ are in one-to-one correspondence to substructure isomorphisms from $\Bf$ to $\Af$. %We leave the easy verification of the following claim to the reader.
 	
 	\begin{claim}\label{cl:subgraph-works}
 		Every substructure isomorphism $\varphi\in \Sub(\Bf,\Af)$ can be uniquely extended to a subgraph isomorphism $\varphi'\in \Sub(M_\Bf,M_\Af)$. Conversely, every subgraph isomorphism $\varphi'\in \Sub(M_\Bf,M_\Af)$ becomes a substructure isomorphism after restricting the domain to $U(\Bf)$.
