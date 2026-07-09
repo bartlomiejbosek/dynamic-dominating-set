@@ -190,14 +190,17 @@ Let us clarify the model. For a signature $\Sigma$, by a \emph{dynamic $\Sigma$-
 	%We are going to mainly follow the proof of \cite{DvorakTumaArxiv}, but apply a few required changes. We are going to (almost) reduce the problem to the cases of colored undirected graphs already covered by \ref{lem:weighted-dvorak} and \ref{thm:dvorak-tuma-examples}.
 	We first argue that we may focus on the case where there are no roots ($\tup x$ and $\tup u$ are empty tuples). Indeed, if $|\tup x|=k$, then we may add $k$ new unary relations $Q_1,\ldots,Q_k$ to the signature and mark the $i$th root $x_i$ of $\rt{\Bf}{\tup x}$ using $Q_i$. Upon query about a tuple $\tup u$ in $\Af$ (either in $\WeiMaps_{\F, \rt{\Bf}{\tup x},\wei}[\Af]$ or in $\MapEx_{\F, \rt{\Bf}{\tup x},\eps}[\Af]$), we may temporarily mark each $u_i$ using $Q_i$, answer the query for unrooted but $\{Q_1,\ldots,Q_k\}$-decorated $\Bf$ and $\Af$, and restore the original state of $\Af$ by unmarking back the elements~$u_i$. Thus, from now on we focus on the case where there are no roots.
 	
-	By adding a unary relation that hold on every element of $\Af$ and every element of $\Bf$ at all times, we may assume that every element of $\Bf$ is in some relation.
+	By adding a unary relation $R$, such that every element of $\Af$ is a singleton tuple
+	in $R$, and every element of $\Bf$ is a singleton tuple in $R$, we may assume that every element of $\Bf$ is in some relation.
 	
 	We first focus on designing the $\WeiMaps_{\F,\Bf,\wei}[\Af]$ data structure.
 	Let $C=\Sigma\uplus 2^{[q]}$, where $q\coloneqq \max_{R\in \Sigma} \ar(R)$.
+	Observe, that $q \in \Oh(\Cc)$ is a constant as $\Cc$ has bounded expansion and
+	every non-empty $q$-ary relation induces a $q$-clique in the Gaifman graph.
 	Let $M_\Bf$ be a $C$-colored undirected graph defined in the following way. First, we include the universe $U(\Bf)$ in the vertex set of $M_{\Bf}$. Then, for each $R\in \Sigma$ and $\tup v\in R^\Bf$, we create two new vertices $t^{R,1}_{\tup v}, t^{R,2}_{\tup v} \in V(M_\Bf)$ and add to $M_\Bf$ the following edges:
 	\begin{itemize}
 		\item edge $t^{R,1}_{\tup v}t^{R,2}_{\tup v}$ of color $R$; and
-		\item for each vertex $w\in U(\Bf)$ appearing in $\tup v$, an edge $wt^{R,1}_{\tup v}$ of color $\{j\in [k]\mid w=v_i\}$\footnote{In \cite[Section~4]{DvorakTumaArxiv} all edges of the form $wt^{R,1}_{\tup v}$ are of the same color. However, it is necessary to assign them different colors in order not lose information about the position(s) in the tuple $\tup v$ occupied by the vertex $w$.}.
+		\item for each vertex $w\in U(\Bf)$ appearing in $\tup v$, an edge $wt^{R,1}_{\tup v}$ of color $\{j\in [\ar(R)]\mid w=v_i\}$\footnote{In \cite[Section~4]{DvorakTumaArxiv} all edges of the form $wt^{R,1}_{\tup v}$ are of the same color. However, it is necessary to assign them different colors in order not lose information about the position(s) in the tuple $\tup v$ occupied by the vertex $w$.}.
 	\end{itemize}
 	We define the graph $M_\Af$ analogously. Note the following (an analogous statement is also proved in~\cite{DvorakTumaArxiv}).
 	
