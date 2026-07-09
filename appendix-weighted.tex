@@ -60,23 +60,24 @@ Dvo\v{r}\'ak and T\r{u}ma prove the following:
 
 They show this equality by showing a natural bijection $\Phi$ between $\Hom(H, G)$ and pairs $(H', \phi')$, where $H' \in \mathcal{H}^e$ and $\phi' \in \Hom(H', G')$. As each $H' \in \mathcal{H}^e$ can be shown to be elder (\cite[Lemma 12]{DvorakTumaArxiv}), a clear consequence of the original unweighted variant of \cref{lem:weighted-dvorak}, \cref{lem:unweighted-hom-proj} and \cref{thm:maintaining-augmentation} was that there exists a data structure that efficiently maintains the number of homomorphisms for a dynamic graph $G$ of bounded expansion. Our goal now will be to adjust \cref{lem:unweighted-hom-proj} to the weighted setting.
 
-Let $\wei\colon V(H) \times V(G) \to \Z$ be a fixed weight function and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $\wei_{H'} \colon V(H') \times V(G') \to \Z$ by the following formula: $\wei_{H'}(p, u) = \prod_{v \in p} \wei(v, u)$. Let $\phi' \in \Hom(H', G')$ and let $\phi \in \Hom(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
-Therefore, we have that $\val_\wei(\phi) = \prod_{v \in V(H)} \wei(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi'(p)) = \prod_{p \in V(H')} \wei_{H'}(p, \phi'(p)) = \val_{\wei_{H'}}(\phi')$. As a consequence we observe the following:
+Let $\wei\colon V(H) \times V(G) \to \Z$ be a fixed weight function and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $\wei_{H'} \colon V(H') \times V(G') \to \Z$ by the following formula: $\wei_{H'}(p, u) \coloneqq \prod_{v \in p} \wei(v, u)$. Let $\phi' \in \Hom(H', G')$ and let $\phi \in \Hom(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that for all $v\in V(H)$ we have $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
+Therefore, we have that \begin{align*}\val_\wei(\phi) & = \prod_{v \in V(H)} \wei(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi(v))\\ &= \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi'(p)) = \prod_{p \in V(H')} \wei_{H'}(p, \phi'(p)) = \val_{\wei_{H'}}(\phi').
+	\end{align*} As a consequence we observe the following:
 
 \begin{lemma} \label{lem:weighted-hom-proj}
-	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, let $h = {|H| \choose 2} - 2$ and let $\wei \colon V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-th augmentation of $G$, then $\val_\wei(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{\wei_{H'}}(\Hom(H', G'))$.
+	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, $h = {|H| \choose 2} - 2$, and $\wei \colon V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-th augmentation of $G$, then \[\val_\wei(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{\wei_{H'}}(\Hom(H', G')).\]
 \end{lemma}
 
 With the above statement, we are able to conclude the following lemma:
 
 \begin{lemma} \label{lem:weighted-hom}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w \colon V(H) \times V(G) \to \Z$ be a weight function. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$, which is able to determine $\val_w(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
-	Then, the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$ that is able to determine $\val_\wei(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\michal{init?}
 	%If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
 \begin{proof}
-	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
+	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as the analogous unweighted data structure from \cite{DvorakTumaArxiv}.
 %	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
 	
 	We note that if $H$ is not connected, then $\val_\wei(\Hom(H, G))$ is just equal to the product \[\prod_{H' \in \mathsf{CC}(H)} \val_\wei(\Hom(H', G))\] taken over the set $\mathsf{CC}(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
@@ -88,64 +89,64 @@ With the above statement, we are able to conclude the following lemma:
 
 \subsection{Counting weighted subgraph isomorphisms}
 
-Next, we are going to proceed to analyzing $\val_w(\Sub(H, G))$.  Firstly, we are going to recall the definition of \textit{projections} from \cite{DvorakTumaArxiv}:
+Next, we proceed to analyzing $\val_\wei(\Sub(H, G))$.  First, we  recall the definition of \textit{projections} from \cite{DvorakTumaArxiv}:
 \begin{definition} \label{def:projections}
 	Consider a graph $H$ with colored edges, and let $P$ be a partition of $V(H)$ such that
 	\begin{itemize}
 		\item each element of $P$ induces an independent set in $H$, and
-		\item for every $p_1, p_2 \in P, u, u' \in p_1$ and $v, v' \in p_2$, if both $uv$ and $u'v'$ are edges of $H$, then they have the same color.
+		\item for all $p_1, p_2 \in P, u, u' \in p_1$ and $v, v' \in p_2$, if both $uv$ and $u'v'$ are edges of $H$, then they have the same color.
 	\end{itemize}
 	Let $H'$ be the graph obtained from $H$ by identifying the vertices in each part of $P$ and suppressing the parallel edges. We say that $H'$ is a \textit{projection} of $H$. 
 \end{definition}
 Let $\mathcal{H}^p$ denote the set of all projections $H'$ of $H$.
 
-Dvo\v{r}\'ak and T\r{u}ma connect counting the number of subgraph isomorphisms with counting the homorphisms through the following statement:
+Dvo\v{r}\'ak and T\r{u}ma connect counting the number of subgraph isomorphisms with counting the number of homomorphisms through the following statement:
 
-\begin{lemma} \cite[Lemma 7]{DvorakTumaArxiv} \label{lem:unweighted-sub-to-homo}
+\begin{lemma}[{\cite[Lemma 7]{DvorakTumaArxiv}}] \label{lem:unweighted-sub-to-homo}
 	For every graph $H$ with colored edges, there exist integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges, $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Hom(H', G)|$.
 \end{lemma}
 
-For a projection $H' \in \mathcal{H}^p$ and a homomorphism $\phi' : V(H') \to V(G)$ we can define its uncontracted version $\Phi(\phi') = \phi$ by $\phi(v) \coloneqq \phi'(p_v)$, where $v \in p_v$. Similarly as in the case of $0$-contractions, we can define the projected weight function $w_{H'}(p, u) = \prod_{v \in p} w(v, u)$ and show that $\val_{w_{H'}}(\phi') = \val_w(\phi)$.
+For a projection $H' \in \mathcal{H}^p$ and a homomorphism $\phi' \colon V(H') \to V(G)$ we can define its \emph{uncontracted version} $\Phi(\phi') = \phi$ by $\phi(v) \coloneqq \phi'(p_v)$, where $v \in p_v$. Similarly as in the case of $0$-contractions, we can define the projected weight function $\wei_{H'}(p, u) = \prod_{v \in p} \wei(v, u)$ and show that $\val_{\wei_{H'}}(\phi') = \val_\wei(\phi)$.
 
 We generalize \cref{lem:unweighted-sub-to-homo} to the weighted setting in the following way:
 \begin{lemma} \label{lem:weighted-sub-to-homo}
-	For every graph $H$ with colored edges, there exist integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges and every weight function $w:V(H) \times V(G) \to \Z$,
-	$\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$.
+	For every graph $H$ with colored edges, there exist integer coefficients $\alpha_{H'}$ such that for every graph $G$ with colored edges and every weight function $\wei\colon V(H) \times V(G) \to \Z$,
+	$\val_\wei(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{\wei_{H'}}(\Hom(H', G))$.
 \end{lemma}
 
 \begin{proof}
-	The coefficients $\alpha_{H'}$ are unsurprisingly going to be the same as in \cref{lem:unweighted-sub-to-homo}. For these coefficients, the proof of this lemma basically says that if we reformulate the supposed equality $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Hom(H', G)|$ as $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Phi(\Hom(H', G))|$, then each $\phi \in \Hom(H, G)$ is counted on both sides of the equality the same number of times. From that, it easily follows that actually $\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_w(\Phi(\Hom(H', G))) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$.
+	The coefficients $\alpha_{H'}$ are unsurprisingly going to be the same as in \cref{lem:unweighted-sub-to-homo}. For these coefficients, the proof of this lemma basically says that if we reformulate the supposed equality $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Hom(H', G)|$ as $|\Sub(H, G)| = \sum_{H \in \mathcal{H}^p} \alpha_{H'} |\Phi(\Hom(H', G))|$, then each $\phi \in \Hom(H, G)$ is counted on both sides of the equality the same number of times. From that, it easily follows that actually $\val_\wei(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_\wei(\Phi(\Hom(H', G))) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{\wei_{H'}}(\Hom(H', G))$.
 \end{proof}
 
 Armed with this statement, we are able to prove the following:
 
 \begin{lemma}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedSub}_{H, k, w}(G)$, which is able to determine $\val_w(\Sub(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
-	Then, the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G\in \Cc$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedSub}_{H, k, \wei}(G)$, which is able to determine $\val_\wei(\Sub(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\todo{init?}
 %	If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
 \begin{proof}
 As based on \cref{lem:weighted-sub-to-homo} we have that
-$\val_w(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{w_{H'}}(\Hom(H', G))$,
-it suffices to maintain $\val_{w_{H'}}(\Hom(H', G))$ for each $H' \in \mathcal{H}^p$. However, the size of $\mathcal{H}^p$
-is bounded by a function of $|H|$, so we consider it to be a constant. For each such $H'$ we use one instance of $\mathsf{WeightedHom}_{H', k, w_{H'}}(G)$ to track that value.
+$\val_\wei(\Sub(H, G)) = \sum_{H \in \mathcal{H}^p} \alpha_{H'} \val_{\wei_{H'}}(\Hom(H', G))$,
+it suffices to maintain $\val_{\wei_{H'}}(\Hom(H', G))$ for each $H' \in \mathcal{H}^p$. However, the size of $\mathcal{H}^p$
+is bounded by a function of $|H|$, so we consider it to be a constant. For each such $H'$ we use one instance of $\mathsf{WeightedHom}_{H', k, \wei_{H'}}(G)$ to track that value.
 \end{proof}
 
 \subsection{Counting weighted induced subgraph isomorphisms}
-And finally, let us analyze $\val_w(\ISub(H, G))$. 
-A straightforward application of the inclusion-exclusion principle shows that $\val_w(\ISub(H, G)) = \sum_{i=0}^{{|H| \choose 2} - ||H||} (-1)^i \sum_{H' \in H(+, i, k)} \val_w(\Sub(H', G))$, where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from $\{1, \ldots, k\}$.
+And finally, let us analyze $\val_\wei(\ISub(H, G))$. 
+A direct application of the Inclusion-Exclusion principle shows that \[\val_\wei(\ISub(H, G)) = \sum_{i=0}^{{|H| \choose 2} - ||H||} (-1)^i \sum_{H' \in H(+, i, k)} \val_\wei(\Sub(H', G)),\] where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from~$\{1, \ldots, k\}$.
 
-Based on that, we are able to conclude the last required statement:
+Based on this, we are able to conclude the last required statement:
 
 \begin{lemma} \label{lem:weighted-isub-to-sub}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedIndSub}_{H, k, w}(G)$, which is able to determine $\val_w(\ISub(H, G))$ after each update.
+	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedIndSub}_{H, k, \wei}(G)$, which is able to determine $\val_\wei(\ISub(H, G))$ after each update.
 %	If $\G$ is a class of bounded expansion, then
-	Then, the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\todo{init}
 %	If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 \begin{proof}
-	Based on the mentioned equality, the problem of maintaining $\val_w(\ISub(H, G))$ easily reduces to the problem of maintaining $\val_w(\ISub(H', G))$ for all supergraphs $H'$ of $H$. As there is a constant number of them, the statement follows from \cref{lem:weighted-sub-to-homo}.
+	Based on the mentioned equality, the problem of maintaining $\val_\wei(\ISub(H, G))$ easily reduces to the problem of maintaining $\val_\wei(\ISub(H', G))$ for all supergraphs $H'$ of $H$. As there is a constant number of them, the statement follows from \cref{lem:weighted-sub-to-homo}.
 \end{proof}
 
 Now, the \cref{lem:weighted-dvorak} is just a combination of \cref{lem:weighted-hom}, \cref{lem:weighted-sub-to-homo} and \cref{lem:weighted-isub-to-sub}. 
