@@ -51,7 +51,7 @@ The definitions of homomorphisms and (induced) subgraphs isomorphisms can be nat
 Here are some examples of modelling (variations of) graphs as relational structures, which will be used in this paper.
 \begin{itemize}
 	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set $U=V(G)$, and $\Sigma=\{ R \}$ consists of a single binary (arity-$2$) relation $R$ that is always irreflexive and symmetric. We let $(u,v),(v,u) \in R$ iff $\{u,v\} \in E(G)$.  To model directed graphs, we drop the symmetricity requirement.
-	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graph $G$ by letting the universe be the vertex set $U=V(G)$. Set $\Sigma$ consists of $|C|$ relational symbols $\Sigma = \{ R_c  \}_{c \in C}$.
+	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graph $G$ by letting the universe be the vertex set, $U=V(G)$, and making $\Sigma$ consist of $|C|$ relational symbols, one for each color, $\Sigma = \{ R_c  \colon c \in C\}$.
 	 All these relations are binary, and each relation $R_c$ for $c \in C$ contains tuples $(u,v)$ and $(v,u)$ for each edge $\{ u,v \} \in E(G)$ with $\mathrm{col}(\{ u,v \})=c$.
 	 We may similarly define and model $C$-colored directed graphs.
 	 For $k\in \N$, we use a shorthand: a \emph{$k$-colored graph} is a $[k]$-colored graph, that is, a graph whose edges are colored with colors $\{1,\ldots,k\}$.
@@ -71,13 +71,14 @@ Similarly to graphs, we may consider \emph{rooted relational structures} by equi
 \end{itemize}
 The sets $\{\eta(u)\colon u\in V(H)\}$ are called \emph{branch sets} of the model. We say that $G$ contains $H$ as a \emph{depth-$r$ minor} if $G$ contains a depth-$r$ model of $H$.
 
-For a graph $G$ we define
+For a graph $G$ we define\footnote{Classic literature, e.g.~\cite{sparsity}, use the ratio $\frac{\|H\|}{|H|}$ instead of $\avgdeg(H)$, which is exactly twice smaller. This difference is immaterial for our results, as we are interested only in the boundedness of the $\nabla_r(\cdot)$ parameters.}
 \[\nabla_r(G)\coloneqq \max\{\,\avgdeg(H)~\colon~H\textrm{ is a depth-}r\textrm{ minor of }G\,\}.\]
 For a graph class $\Cc$, we define
 \[\nabla_r(\Cc)\coloneqq \sup_{G\in \Cc} \nabla_r(G).\]
 Note that $\nabla_r(\Cc)$ may be equal to $+\infty$; this happens if graphs $G\in \Cc$ attain arbitrarily large values of $\nabla_r(G)$. This finite/infinite distinction underlies the central definition considered in this work.
 
 \wninline{Widzę, że my definiujemy nablę poprzez avgdeg, a Dvorak poprzez $|E(G)|/|V(G)|$ aka nasze nable są dwa razy większe. Czy któreś z tych dwóch jest bardziej przyjęte? Jeżeli zmieniać na $|E(G)|/|V(G)|$ to trzeba by zmienić jakieś stwierdzenia, że $G$ jest $\nabla_0(G)$-zdegenerowany.}
+\michalin{Dałem footnote'a. To oni źle wybrali, $\avgdeg(G)$ pracuje lepiej w definicji.}
 
 \begin{definition}
 	A class of graphs $\Cc$ has \emph{bounded expansion} if $\nabla_r(\Cc)$ is finite for every $r\in \N$. 
@@ -137,12 +138,14 @@ The following lemma is the key observation about the behavior of fraternal augme
 	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(u, v)\in E(\vec G)\},\]
 	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
 \end{proof}
+
+\begin{comment}
 \begin{proof}
 	We observe that if $G'$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
 	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(u, v)\in E(\vec G)\},\]
 	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
 \end{proof}
-
+\end{comment}
 
 %	 Let $G\in \Cc$ be such that $G'$ is obtained from $G$ by repeatedly adding pendants. 
 
@@ -179,7 +182,7 @@ By a \emph{data structure} for a dynamic graph $G$ we mean a data structure that
 \end{itemize}
 These methods will be typically augmented by some further queries, specified in the description of the data structure. By the \emph{update time} of a data structure we mean the time complexity of methods $\add{uv}$ and $\remove{uv}$, and by the \emph{initialization time} we mean the time complexity of method $\init{n}$. While for simplicity we assume that the initialization works for an edgeless graph, note that one can initialize any graph by first initializing an edgeless graph and then adding the edges one by one.
 
-In this work, we deal with classes of graphs of bounded expansion, which are by definition $d$-degenerate for some constant $d$. Hence, in all our data structures, we use the data structure of Brodal and Fagerberg (see Theorem~\ref{thm:bf}) to answer adjacency queries. This introduces an additional factor of $d$ in the query times of our data structures, which is submerged within the constants that we use.
+In this work, we deal with classes of graphs of bounded expansion, which are by definition $d$-degenerate for some constant $d$. Hence, in all our data structures, we use the data structure of Brodal and Fagerberg (see \cref{thm:bf}) to answer adjacency queries. This introduces an additional factor of $d$ in the query times of our data structures, which is submerged within the asymptotic notation.
 
 Some of our data structures are randomized \emph{against an oblivious adversary}. By this we mean that the data structure is run on some stream of updates and queries and the answer to every query is correct with probability lower bounded by a specified value (typically, $1-\eps$ for a parameter $\eps>0$ fixed in the context). In particular, the stream is fixed upfront and the consecutive updates/queries \emph{cannot} be altered depending on the data structure's answers. We remark that while the answer to every query is correct with probability at least, say, $1-\eps$, the answers to the queries are \emph{not} independent random variables. In fact, in all the randomized data structures proposed in this work, the answers to the queries depend on some common random bits fixed upon the initialization of the data structure.
 
