@@ -42,6 +42,7 @@ For the algorithms in the following sections we will only need the case $\F = \H
 Let us first introduce a handy definition. A \emph{vertex function} is a function $f$ that takes a graph $G$ and its vertex $v$ and returns a nonnegative integer $f(G,v)$. If we always have $f(G,v)\in \{0,1\}$, we call the vertex function $f$ \emph{binary}. 
 
 The following lemma, which draws inspiration from the works of Majewski, Pilipczuk, and Zych-Pawlewicz~\cite{Majewski24} and of Nadara, Pilipczuk, and Smulewicz~\cite{Nadara22}, is our main tool for recovering examples while given access only to counting.
+\wninline{Może skoro kilkukrotnie wspominaliśmy nazwę fingerprint retrieval w overview to ją tutaj wspomnimy aby to ukonkretyzować?}
 \begin{lemma} \label{lem:restore-by-sampling}
 	Let $f$ be a vertex function and let $G$ be a dynamic graph on $n$ vertices.
 	Suppose that for any fixed weight function $\wei \colon V(G) \to \Z$, there is a data structure $\WeiSum_{f, \wei}[G]$ that reports the quantity $\sum_{v \in V(G)} f(G, v)\cdot \wei(v)$ after every update to $G$.
@@ -217,8 +218,8 @@ Let us clarify the model. For a signature $\Sigma$, by a \emph{dynamic $\Sigma$-
 			\eta(t^{R,1}_\tup v)\coloneqq \eta(t^{R,2}_\tup v)& \coloneqq \{\mu(\tup v)\} && \textrm{for }\tup v\in R^\Af, R\in \Sigma;
 		\end{align*} 
 		is a congestion-$(2|\Sigma|\cdot (d+1)^q+1)$ depth-$0$ model of $M_\Af$ in $G$. It follows that $M_\Af\in \Minors^{2|\Sigma|\cdot (d+1)^q+1,0}(\Cc)$, which is a class of bounded expansion by \cref{thm:cong-minors}.
-		\wninline{A nie przypadkiem $(2|\Sigma|\cdot (d+1)^q+1)$-congestion? $\cdot 2$ bo dwa wierzchołki per krotka, $+1$ za samego siebie. Albo w ogóle jeszcze $d^{q-1}$, zamiast $(d+1)^q$, bo wiadomo, że $u$ zawsze jest :)}
-		\azinline{co do pierwszego zdania to tak- poprawiam. co do drugiego $u$ zawsze jest ale może byc wiele razy- zostawiam}
+%		\wninline{A nie przypadkiem $(2|\Sigma|\cdot (d+1)^q+1)$-congestion? $\cdot 2$ bo dwa wierzchołki per krotka, $+1$ za samego siebie. Albo w ogóle jeszcze $d^{q-1}$, zamiast $(d+1)^q$, bo wiadomo, że $u$ zawsze jest :)}
+%		\azinline{co do pierwszego zdania to tak- poprawiam. co do drugiego $u$ zawsze jest ale może byc wiele razy- zostawiam}
 	\end{claimproof}
 	
 	It is now straightforward to see that subgraph isomorphisms from $M_\Bf$ to $M_\Af$ are in one-to-one correspondence to substructure isomorphisms from $\Bf$ to $\Af$. %We leave the easy verification of the following claim to the reader.

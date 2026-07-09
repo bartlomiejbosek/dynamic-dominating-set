@@ -13,7 +13,7 @@ For \drds{r}, Fabia\'nski et al. proposed a \emph{semi-ladder algorithm} that pr
 \begin{itemize}
 	\item $\notDominated{D,r}$:
 	Given a set $D$ of at most $k$ vertices, return a vertex $v$ that is not distance-$r$ dominated by~$D$, that is, such that $\dist_G(v,D)>r$. In case no such vertex $v$ exists, return $\bot$.
-	\wninline{Nie lubię nazwy $\mathrm{witnessDom}$, bo sugeruje jakby to był świadek \emph{dominacji}, a to świadek \emph{niedominacji}. Podobna uwaga co do $\mathrm{witnessInd}$}
+%	\wninline{Nie lubię nazwy $\mathrm{witnessDom}$, bo sugeruje jakby to był świadek \emph{dominacji}, a to świadek \emph{niedominacji}. Podobna uwaga co do $\mathrm{witnessInd}$}
 	\wninline{W sporą konfuzję mnie wprowadziła ta narracja i wording tutaj, że zakładamy istnienie ,,more basic query farVertex'' i zarysowywujemy, że będzie chcieli za jego pomocą jakoś zaimplementować zapewne bardziej skomplikowane ,,witnessDom'', które jest dokładnie tym samym. Rozumiem, że obie nazwy mają sens w swoich kontekstach, ale uważnemu czytelnikowi się zapala lampka, że pewnie czegoś nie zrozumiał.}
 	\item $\candidate{W,r,k}$: Given a vertex subset $W$, return a set $D$ of at most $k$ vertices that distance-$r$ dominates~$W$, that is, $\dist_G(w,D)\leq r$ for all $w\in W$. In case no such set $D$ exists, return $\bot$.
 \end{itemize}
