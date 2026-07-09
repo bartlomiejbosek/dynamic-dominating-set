@@ -77,6 +77,8 @@ For a graph class $\Cc$, we define
 \[\nabla_r(\Cc)\coloneqq \sup_{G\in \Cc} \nabla_r(G).\]
 Note that $\nabla_r(\Cc)$ may be equal to $+\infty$; this happens if graphs $G\in \Cc$ attain arbitrarily large values of $\nabla_r(G)$. This finite/infinite distinction underlies the central definition considered in this work.
 
+\wninline{Widzę, że my definiujemy nablę poprzez avgdeg, a Dvorak poprzez $|E(G)|/|V(G)|$ aka nasze nable są dwa razy większe. Czy któreś z tych dwóch jest bardziej przyjęte? Jeżeli zmieniać na $|E(G)|/|V(G)|$ to trzeba by zmienić jakieś stwierdzenia, że $G$ jest $\nabla_0(G)$-zdegenerowany.}
+
 \begin{definition}
 	A class of graphs $\Cc$ has \emph{bounded expansion} if $\nabla_r(\Cc)$ is finite for every $r\in \N$. 
 \end{definition}
@@ -132,6 +134,11 @@ The following lemma is the key observation about the behavior of fraternal augme
 \end{lemma}
 \begin{proof}
 	We observe that if $G'=\fra(\vec G)$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
+	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(u, v)\in E(\vec G)\},\]
+	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
+\end{proof}
+\begin{proof}
+	We observe that if $G'$ is the fraternal augmentation of an orientation $\vec G$ of $G$ of maximum outdegree~$d$, then $G'$ is a congestion-$(d+1)$ depth-$1$ minor of $G$. Indeed, if for $u\in V(G)$ we define
 	\[\eta(u)\coloneqq \{u\}\cup \{v~\mid~(u, v)\in E(\vec G)\},\]
 	then $\eta$ is a congestion-$(d+1)$ depth-$1$ model of $G'$ in $G$. It follows that $\Fra(\Cc,d)\subseteq \Minors^{d+1,1}(\Cc)$, so $\Fra(\Cc,d)$ has bounded expansion by \cref{thm:cong-minors}.
 \end{proof}

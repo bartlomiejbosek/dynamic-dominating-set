@@ -39,6 +39,16 @@ Before proceeding with the rest of the proof, we are going to recall an importan
 	Let $F''$ be the directed graph with edges colored by $\{0, 1, \ldots, k\}$, such that $V(F'') = P$ and $(p_1, p_2) \in E(F'')$ if and only if $(v_1, v_2) \in E(F')$ for some $v_1 \in p_1$ and $v_2 \in p_2$; and in this case, $(p_1, p_2)$ and $(v_1, v_2)$ have the same color. That is, $F''$ is obtained from $F'$ by identifying the vertices in each part of $P$ and suppressing the parallel edges and loops, and we also remember which vertices of $F'$ correspond to each vertex of $F''$. We say that $F''$ is a \textit{$0$-contraction} of $F'$.
 \end{definition}
 
+We also recall the rephrased version of maintaining iterated fraternal augmentations from the original work \cite{DvorakTumaArxiv}:
+\begin{theorem} \cite[Theorem 4]{DvorakTumaArxiv} \label{thm:maintaining-augmentation}
+	Let $\Cc$ be a graph class of bounded expansion and $h \in \N$. For a graph $G$, let its \emph{$h$-th augmentation} be any directed graph obtained by taking any orientation $\vec G$ of $G$ and iterating fraternal augmentation on it $h$ times. There exists $C \in \N$ dependent only on $\Cc$ and $k$ such that there is a data structure maintaining some $h$-th augmentation $\tilde{G}_h$ of a dynamic graph $G \in \Cc$ such that:
+	\begin{itemize}
+		\item the maximum out-degree of $\tilde{G}_h$ is at most $C$
+		\item an edge can be added to $G$ in $\Oh(C \log^{h+1} n)$ amortized time
+		\item an edge can be removed from $G$ in $\Oh(C)$ amortized time  
+	\end{itemize}
+\end{theorem}
+
 We say that a graph $G_2$ can be obtained from $G_1$ by recoloring zeros if and only if $V(G_1) = V(G_2)$, $E(G_1) = E(G_2)$, however for all edges $(u, v) \in E(G_1)$ such that their color in $G_1$ and $G_2$ is different, we have that its color in $G_1$ is $0$.
 
 Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from all possible $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.
@@ -68,12 +78,12 @@ With the above statement, we are able to conclude the following lemma:
 
 \begin{proof}
 	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
-	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
+%	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
 	
 	We note that if $H$ is not connected, then $\val_w(\Hom(H, G))$ is just equal to the product $\prod_{H' \in CC(H)} \val_w(\Hom(H', G))$ taken over the set $CC(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
 	
-	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $D$ is the bound from \cref{thm:maintaining-augmentation} on the in-degree of $G'$. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(D \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(D)$ such changes (amortized).
-	\wninline{Upewnić się, że na pewno po prostu $D$, a nie jakoś więcej (aka nie jakiś iloczyn $d_1 \ldots d_h$)}
+	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $C$ is the integer from \cref{thm:maintaining-augmentation}. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(C \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(C)$ such changes (amortized).
+%	\wninline{Upewnić się, że na pewno po prostu $D$, a nie jakoś więcej (aka nie jakiś iloczyn $d_1 \ldots d_h$)}
 	 All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_w(\Hom(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\Hom(H', G'))$.
 \end{proof}
 
