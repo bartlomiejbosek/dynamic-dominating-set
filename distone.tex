@@ -1,6 +1,6 @@
 \section{Distance-\texorpdfstring{$1$}{1} domination}\label{sec:distone}
 
-In this section we give simpler data structures for the distance-$1$ case, that is, implementing queries $\near{S,1}$ and $\far{S,1}$ under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. 
+In this section we give a simpler data structure for \textsc{Dominating Set} for the distance-$1$ case, that is, we prove \cref{thm:main-domset-deg}. For this purpose, we give a simpler and more efficient implementation of data structures supporting queries $\near{S,1}$ and $\far{S,1}$ under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. 
 
 Throughout this section we assume that the maintained dynamic graph $G$ has a fixed vertex set $V=\{1,\ldots,n\}$ and is $d$-degenerate at all times, for a fixed parameter $d\in \N$. We also assume, without loss of generality, that $n\geq 2$ and $d\geq 1$.
 
@@ -64,7 +64,7 @@ we shall assume that the maintained graph is equipped with a weight function $\w
 %\item The set $V^+\coloneqq \{u\in V \mid \deg_G(u)>0\}$, represented by a Boolean array indexed by $V$, an iterable list of its current elements, and its current cardinality.
 %\item The set of isolated vertices $V\setminus V^+$ as a dictionary of disjoint maximal identifier intervals; this supports finding the smallest isolated vertex, or the next one after a given identifier, in $\Oh(\log n)$~time.
 \item The neighbor dictionaries $N(u)$ and $N^+(u)$ for every vertex $u\in V$.
-\item The bucket family $B(Z)\coloneqq \{u\in V \mid Z\subseteq N^+(u)\}$ for all sets $Z\subseteq V$ with $B(Z)$ being nonempty (note that this implies $|Z|\leq \Delta$). Each bucket $B(Z)$ is stored as a linked list, while the whole bucket family is stored as a dictionary keyed by the sorted representation of $Z$. Observe that every vertex $u\in V$ is on $2^{|N^+(u)|}\leq 2^\Delta$, hence the total sum of the lengths of the lists stored for the buckets $B(Z)$ is bounded by $2^\Delta\cdot n$. In particular, the dictionary stores at most this many entries. Additionally, with every bucket $B(Z)$ we store its total weight $\wei(B(Z))\coloneqq \sum_{v\in V(Z)}\wei(v)$.
+\item The bucket family $B(Z)\coloneqq \{u\in V \mid Z\subseteq N^+(u)\}$ for all sets $Z\subseteq V$ with $B(Z)$ being nonempty (note that this implies $|Z|\leq \Delta$). Each bucket $B(Z)$ is stored as a linked list, while the whole bucket family is stored as a dictionary keyed by the sorted representation of $Z$. Observe that every vertex $u\in V$ is in $2^{|N^+(u)|}\leq 2^\Delta$ buckets, hence the total sum of the lengths of the lists stored for the buckets $B(Z)$ is bounded by $2^\Delta\cdot n$. In particular, the dictionary stores at most this many entries. Additionally, with every bucket $B(Z)$ we store its total weight $\wei(B(Z))\coloneqq \sum_{v\in V(Z)}\wei(v)$.
 \item A registration list for every vertex $u \in V$, tracking its $2^{|N^+(u)|} \le 2^\Delta$ bucket memberships (pointers to list elements on the bucket lists).
 \end{itemize}
 For every vertex $u$, the dictionaries $N(u)$ and $N^+(u)$ are keyed by vertex identifiers.
@@ -89,7 +89,7 @@ Consequently, one bucket lookup, insertion, or deletion by key costs $\Oh(\log (
 We now prove a lemma providing guarantees on the complexity of maintaining a toolkit.
 
 \begin{lemma}[Toolkit]\label{lem:infra-update}
-One instance of the toolkit described in this subsection can be initialized on the edgeless graph on $V$ provided with a weight function $\wei\colon V\to \Z$ in $\Oh(n)$ time.
+One instance of the toolkit described above can be initialized on the edgeless graph on $V$ provided with a weight function $\wei\colon V\to \Z$ in $\Oh(n)$ time.
 The toolkit uses $\Oh(2^{4d}\cdot dn)$ space at all times.
 Upon edge insertion or deletion, the toolkit can be updated in amortized time $\Oh(2^{4d}\cdot d^2\cdot\log^2 n)$. % and outputs the complete log $(L_{\mathrm{in}}^+,L_{\mathrm{out}}^+,\Lambda^+,\Lambda^-)$.
 %The total number of logged items is $\Oh(2^{4d}\cdot d\cdot \log n)$ in the amortized sense.
@@ -125,11 +125,11 @@ So the whole work caused by the vertex $u$ is bounded by \[\Oh((|\mathcal{R}_{\m
 %Recording these events costs $\Oh(1)$ per registration,  and gives rise to $\Oh(2^\Delta\cdot \Delta)$ records in the log.
 
 Multiplying by the amortized number $\Oh(\log n)$ of changed vertices per graph update yields amortized update time $\Oh(2^\Delta\cdot \Delta\cdot (\Delta+\log n)\cdot \log n)\leq \Oh(2^{4d}\cdot d^2\cdot \log^2 n)$, because $\Delta=4d$.
-Note here that the factor $2^{4d}$ comes from enumerating all subsets of an out-neighborhood of size at most $\Delta=4d$.
+Note here that the factor $2^{4d}$ comes from enumerating all subsets of an outneighborhood of size at most $\Delta=4d$.
 %The same calculation shows that the combined size of $\Lambda^+$ and $\Lambda^-$ is $\Oh(2^\Delta \cdot \Delta\cdot \log n)=\Oh(2^{4d}\cdot d\cdot \log n)$ in the amortized sense.
 %Together with the two lists of vertices entering or leaving $V^+$, this proves the bound on the update log.
 
-For the persistent space bound, the orientation $\vec G$ and the (out)neighbor dictionaries use $\Oh(nd)$ words because every $d$-degenerate graph on $V$ has at most $d(n-1)$ edges.
+For the persistent space bound, the orientation $\vec G$ and the (out)neighbor dictionaries use $\Oh(nd)$ space because every $d$-degenerate graph on $V$ has at most $d(n-1)$ edges.
 For every $u\in V$, its registration list contains at most $2^{|N^+(u)|}\le 2^\Delta$ entries.
 Each such entry is associated with a bucket key $Z\subseteq N^+(u)$, and if this key is stored as a sorted list of identifiers, then it uses $\Oh(|Z|)\le \Oh(\Delta)$ words.
 Hence all registrations and bucket incidences together use at most $\Oh\left(\sum_{u\in V} 2^{|N^+(u)|}\cdot \Delta\right)=\Oh(2^\Delta\cdot \Delta\cdot n)$ words, which also gives an upper bound on the total size of the lists stored for the buckets. 
@@ -166,7 +166,7 @@ Finally, observe the following.
 For any $S\subseteq V$, we have $U_2(S)=B(S)$.
 \end{lemma}
 \begin{proof}
-	Follows from the definitions and observation that $S\subseteq N^+(u)$ entails $u\notin S$, due the fact that $G$ is a simple graph.
+	Follows from the definitions and the observation that $S\subseteq N^+(u)$ entails $u\notin S$, due the fact that $G$ is a simple graph.
 \end{proof}
 %\begin{proof}
 %If $|S|>\Delta$, then $U_2(S)=\emptyset$ because every outneighborhood has size at most $\Delta$.
@@ -179,10 +179,10 @@ For any $S\subseteq V$, we have $U_2(S)=B(S)$.
 %Therefore $u\in U(S)$, and together with $S\subseteq N^+(u)$ this yields $u\in U_2(S)$.
 %\end{proof}
 
-\cref{lem:distone-U2-bucket} provides us with the following combinatorial characterization of vertices that are candidates for the output in the query $\near{S,1}$.
+\cref{lem:distone-U2-bucket} provides the following combinatorial characterization of vertices that are candidates for the output in the query $\near{S,1}$.
 
 \begin{lemma}\label{cl:distone-near-candidates}
-Let $S\subseteq V$ be nonempty, and suppose every vertex of $S$ is non-isolated in $G$.
+Let $S\subseteq V$.
 If a vertex $v$ satisfies $S\subseteq N[v]$, then one of the following holds:
 \begin{itemize}
 \item $v\in S$; or
@@ -206,9 +206,9 @@ In this subsection we provide the desired implementation of the $\near{S,1}$ que
 
 \begin{theorem}\label{thm:NearVertex-new-deg}
 	Fix $d\in \N$.
-	Let $G$ be a dynamic graph on vertex set $V=\{1,\ldots,n\}$ that is $d$-degenerate at all times, and let $\wei\colon V\to \Z$ be a weight function fixed upon initialization. Then there exists adata structure $\nearVertexDS{G}{}$ that provides access to the following query:
+	Let $G$ be a dynamic graph on vertex set $V=\{1,\ldots,n\}$ that is $d$-degenerate at all times, and let $\wei\colon V\to \Z$ be a weight function fixed upon initialization. Then there exists a data structure $\nearVertexDS{G}{}$ that provides access to the following query:
 	\begin{itemize}
-		\item $\near{S,1}$: For a given set of vertices $S\subseteq V(G)$, return a vertex $v$ such that $S\subseteq N[v]$, or $\bot$ if no such vertex exists, as well as the value $\sum_{v\colon S\subseteq N[v]} \wei(v)$.
+		\item $\near{S,1}$: For a given set of vertices $S\subseteq V(G)$, return a vertex $v$ such that $S\subseteq N[v]$, or $\bot$ if no such vertex exists. Also, return the value $\sum_{v\colon S\subseteq N[v]} \wei(v)$.
 	\end{itemize}
 	The amortized time of an update is $\Oh(2^{4d}\cdot d^2\cdot \log^2 n)$. The queries take worst-case time $\Oh(d|S|^2\cdot\log n)$. The data structure can be initialized for an edgeless $G$ in $\Oh(n)$ time and uses $\Oh(2^{4d}\cdot dn)$ space at all times.
 \end{theorem}
@@ -272,7 +272,7 @@ The structure uses $\Oh(nd\cdot 2^{4d})$ words of space.
 \end{comment}
 
 \begin{proof}
-The data structure consists of one instance of the toolkit of \cref{lem:infra-update} and auxiliary Boolean array indexed by $V$ used for temporary marking. Therefore, the guarantees on the update time, initialization time, and space usage follows directly from \cref{lem:infra-update}. We are left with implementing the query $\near{S,1}$.
+The data structure consists of one instance of the toolkit of \cref{lem:infra-update} and an auxiliary Boolean array indexed by $V$ used for temporary marking. Therefore, the guarantees on the update time, initialization time, and space usage follows directly from \cref{lem:infra-update}. We are left with implementing the query $\near{S,1}$.
 
 % so the paragraphs above already define the full persistent state and all supported procedures.
 %The bounds for $\init{G}$ and for the updates $\add{uv}$ and $\remove{uv}$ are exactly the ones stated after those procedures, and they follow directly from Lemma~\ref{lem:infra-update}.
@@ -281,15 +281,15 @@ The data structure consists of one instance of the toolkit of \cref{lem:infra-up
 Upon query $\near{S,1}$, we execute the following steps:
 \begin{enumerate}
 %	\item If $S=\emptyset$, return any vertex, say $1$.
-	\item Initialize $L$ to be an empty list. The intention is that on $L$ we shall gather the vertices $u\in S\cup \bigcup_{s\in S}N^+(S)$ satisfying $S\subseteq N[u]$.
-	\item For every $s\in S$, test whether $S\setminus\{s\}\subseteq N(s)$. If this is the case, add $s$ to $L$ and mark it in the auxiliary array as added.
-	\item For every $s\in S$ and every vertex $u\in N^+(s)$, test whether $S\subseteq N(u)$. If this is the case and $u$ is not marked as already added, add $u$ to $L$ and mark it as added.
-	\item Iterate through $L$ and remove all the markings from the auxiliary Boolean table. Thus it becomes empty (all-false) and $L$ contains no duplicates.
+	\item Initialize $L$ to be an empty list. The intention is that on $L$ we shall gather the vertices $v\in S\cup \bigcup_{s\in S}N^+(s)$ satisfying $S\subseteq N[v]$.
+	\item For every $s\in S$, test whether $S\setminus\{s\}\subseteq N(s)$. If this is the case, add $s$ to $L$ and mark it in the auxiliary Boolean array as added.
+	\item For every $s\in S$ and every vertex $v\in N^+(s)$, test whether $S\subseteq N[v]$. If this is the case and $v$ is not marked as already added, add $v$ to $L$ and mark it as added.
+	\item Iterate through $L$ and remove all the markings from the auxiliary Boolean array. Thus it becomes empty (all-false) again and $L$ contains no duplicates.
 	\item Initialize $\gamma\coloneqq 0$. Iterate through $L$ and for every vertex $u\in L$ that does not satisfy $S\subseteq N^+(u)$, increment $\gamma$ by $\wei(u)$. Thus, we obtain $\gamma=\sum_{u\in L, S\nsubseteq N^+(u)} \wei(u)$.
 	\item If $|S|\le \Delta$, find the bucket $B(S)$ in the dictionary of buckets, if existent.
 	\item If $L$ is nonempty or $B(S)$ exists, return the first vertex of $L$ or the first vertex of $B(S)$; otherwise return $\bot$. For $\sum_{v\colon S\subseteq N[v]} \wei(v)$, return $\wei(B(S))+\gamma$, where $\wei(B(S))$ is replaced by $0$ if $B(S)$ is not present in the dictionary of buckets.
 \end{enumerate}
-Steps takes constant time. Step~2 takes $\Oh(|S|^2\log n)$ time, because it boils down to $\Oh(|S|^2)$ lookups in the neighborhood dictionaries. Step~3 takes $\Oh(d|S|^2\log n)$ time, because there are at most $d|S|$ vertices $u$ to consider, and for each of them we test $|S|$ vertices of $S$ for membership in $N(u)$, each in $\Oh(\log n)$ time. Step~4 takes $\Oh(|L|)\leq \Oh(d|S|)$ time. Step~5 takes $\Oh(d|S|^2\log n)$ time analogously to Step~3. Step~6 takes $\Oh(d+\log n)$ time, because this is the complexity of retrieving the bucket $B(S)$ from the dictionary of buckets. Finally, Step~7 takes constant time, because retrieving the weight and the first element of a bucket takes constant time. Thus, executing the query takes $\Oh(d|S|^2\log n)$ time in the worst case.
+Step~1 takes constant time. Step~2 takes $\Oh(|S|^2\log n)$ time, because it boils down to $\Oh(|S|^2)$ lookups in the neighborhood dictionaries. Step~3 takes $\Oh(d|S|^2\log n)$ time, because there are at most $d|S|$ vertices $v$ to consider, and for each of them we test $|S|$ vertices of $S$ for membership in $N[v]$, each in $\Oh(\log n)$ time. Step~4 takes $\Oh(|L|)\leq \Oh(d|S|)$ time. Step~5 takes $\Oh(d|S|^2\log n)$ time analogously to Step~3. Step~6 takes $\Oh(d+\log n)$ time, because this is the complexity of retrieving the bucket $B(S)$ from the dictionary of buckets. Finally, Step~7 takes constant time, because retrieving the weight and the first element of a bucket takes constant time. Thus, executing the query takes $\Oh(d|S|^2\log n)$ time in the worst case.
 
 The correctness of the algorithm presented above follows immediately from \cref{cl:distone-near-candidates} and the observation that the contribution to the sum $\sum_{v\colon S\subseteq N[v]} \wei(v)$ of the vertices $v$ that do not satisfy $S\subseteq N^+(v)$ is exactly counted in the variable $\gamma$.
 \end{proof}
@@ -326,7 +326,7 @@ For the space bound, Lemma~\ref{lem:infra-update} gives $\Oh(nd\cdot 2^{4d})$ wo
 
 \subsection{Data structure for \texorpdfstring{$\far{S,1}$}{far(S,1)}}\label{sec:distone-far}
 
-In this section we give a data structure for the $\far{S,1}$ queries. Similarly to the reasoning presented in \cref{sec:far-be}, the idea is to first give a data structure that maintains weighted sums over vertices non-adjacent to $S$ (this part is entirely deterministic), and then lift it to an example-reporting data structure using \cref{lem:restore-by-sampling}. Therefore, our first goal is to prove the following.
+In this section we give a data structure for the $\far{S,1}$ queries. Similarly to the reasoning presented in \cref{sec:far-be}, the idea is to first give a data structure that maintains weighted sums over vertices outside of $N[S]$ (this part is entirely deterministic), and then lift it to an example-reporting data structure using \cref{lem:restore-by-sampling}. Therefore, our first goal is to prove the following.
 
 \newcommand{\WeiFar}{\mathsf{WeightedFarSum}}
 \newcommand{\sumFar}{\mathtt{sumFar}}
@@ -335,7 +335,7 @@ In this section we give a data structure for the $\far{S,1}$ queries. Similarly 
 	Fix $d\in \N$.
 	Let $G$ be a dynamic graph on vertex set $V=\{1,\ldots,n\}$ that is $d$-degenerate at all times, and let $\wei\colon V\to \Z$ be a weight function fixed upon initialization. Then there exists a data structure $\WeiFar[G]$ for $G$ that supports the following query:
 	\begin{itemize}
-		\item $\sumFar(S)$: given $S\subseteq V$, return $\sum_{v\in V\setminus N[S]} \wei(v)$.
+		\item $\sumFar(S)$: Given $S\subseteq V$, return $\sum_{v\in V\setminus N[S]} \wei(v)$.
 	\end{itemize}
 	The amortized update time is $\Oh(2^{4d}\cdot d^2\cdot \log^2 n)$, and every query is answered in worst-case time $\Oh(2^{|S|}\cdot d|S|^2\cdot \log n)$. The data structure can be initialized for an edgeless $G$ in time $\Oh(n)$ and uses $\Oh(2^{4d}\cdot dn)$ space at all times.
 \end{lemma}
@@ -354,7 +354,7 @@ We are now in position to implement the data structure for $\far{S,1}$ queries.
 		\item $\far{S,1}$: For a given set of vertices $S\subseteq V$, return a vertex $v$ that belongs to $V-N[S]$, or $\bot$ if no such vertex exists.
 	\end{itemize}
 	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
-	The amortized time complexity of updates and queries is $\Oh(2^{4d+|S|}\cdot d^2|S|^3\cdot \log^3 n \log \tfrac{1}{\eps})$. The data structure can be initialized for an edgeless $G$ in time $\Oh(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh(2^{4d}\cdot dn\log n\log \tfrac{1}{\eps})$ space at all times.
+	The amortized time complexity of updates and queries is $\Oh(2^{4d+|S|}\cdot d^2|S|^3\cdot \log^3 n \log \tfrac{1}{\eps})$. The data structure can be initialized for an edgeless $G$ in time $\Oh(n\log n\log \tfrac{1}{\eps})$, and uses $\Oh(2^{4d}\cdot dn\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{theorem}
 \begin{proof}
 	We first observe that the data structure of \cref{lem:restore-by-sampling} can be extended to handle graphs with a given set of vertices $S$, in the following sense:
