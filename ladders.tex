@@ -1,6 +1,6 @@
 \section{Progressive exploration}\label{sec:ladders}
 
-In this section we recall the framework of \emph{progressive exploration}, proposed by Fabia\'nski et al.~\cite{FabianskiPST19} for  designing parameterized algorithms for \drds{r} and \dris{r}, among other problems of similar kind. Our main focus here is to explain that the progressive exploration algorithms for \drds{r} and \dris{r} can be executed using a bounded number of calls to the following two basic queries, each working on a graph $G$ and stipulated by a distance parameter $r\in \N$:
+In this section we recall the framework of \emph{progressive exploration}, proposed by Fabia\'nski et al.~\cite{FabianskiPST19,Fabianski2018arxiv} for  designing parameterized algorithms for \drds{r} and \dris{r}, among other problems of similar kind. While \cite{FabianskiPST19} is the conference version, we refer to the arxiv version \cite{Fabianski2018arxiv} for all the proofs. Our main focus here is to explain that the progressive exploration algorithms for \drds{r} and \dris{r} can be executed using a bounded number of calls to the following two basic queries, each working on a graph $G$ and stipulated by a distance parameter $r\in \N$:
 \begin{itemize}
 	\item $\far{S,r}$: Given a set $S \subseteq V(G)$, return a vertex $v$ of $G$ such that $\dist_G(v,S)>r$; or $\bot$ if no such vertex exists.
 	\item $\near{S,r}$: Given a set $S \subseteq V(G)$, return a vertex $v$ of $G$ such that $\dist_G(v,s)\leq r$ for all $s\in S$; or $\bot$ if no such vertex exists.
@@ -25,7 +25,7 @@ The algorithm iteratively constructs two sequences:
 After the $(i-1)$st iteration, candidates $D_1,\ldots,D_{i-1}$ and witnesses $w_1,\ldots,w_{i-1}$ are already constructed. Then the $i$th iteration proceeds as follows:
 \begin{itemize}
 	\item First, we call $\candidate{W,r,k}$ where $W$ comprises of all the  witnesses gathered so far, that is, $W\coloneqq \{w_1,\ldots,w_{i-1}\}$. This either yields the next candidate $D_i$ that distance-$r$ dominates $W$, or a conclusion that no such $D_i$ exists. In the latter case, we may conclude that $G$ has no distance-$r$ dominating set of size at most $k$.
-	\item Second, we call $\notDominated{D_i,r}$ to verify whether $D_i$ already distance-$r$ dominates the whole graph. If so, then we have found a solution, and otherwise the call provides the next witness $w_i$, with which we may proceed to the next round of the iteration.  
+	\item Second, we call $\notDominated{D_i,r}$ to verify whether $D_i$ already distance-$r$ dominates the whole graph. If so, then we have found a solution, and otherwise the call provides the next witness $w_i$, with which we may proceed to the next iteration.
 \end{itemize}
 It is clear that when this algorithm returns an answer, then this answer is always correct. The main insight of Fabia\'nski et al. is that since every candidate $D_i$ distance-$r$ dominates all the witnesses $w_1,\ldots,w_{i-1}$ but not the witness $w_i$, the constructed candidates and witnesses form a pattern called a \emph{semi-ladder}. Since semi-ladders cannot be too long in classes of bounded expansion, this provides a bound on the number of iterations that the algorithm executes before breaking the loop and reporting an outcome.
 
@@ -64,21 +64,26 @@ To be more precise, a \emph{distance-$r$ semi-ladder} of order $\ell$ in a graph
 \end{itemize}
 The \emph{distance-$r$ semi-ladder index} of a graph $G$, denoted $\sli_r(G)$, is the largest order of a distance-$r$ semi-ladder that can be found in $G$. For a graph class $\Cc$, we define its distance-$r$ semi-ladder index as $\sli_r(\Cc)\coloneqq \sup_{G\in \Cc} \sli_r(G)$. Note that this value may be infinite if graphs from $\Cc$ contain distance-$r$ semi-ladders of arbitrarily large order. But as proved by Fabia\'nski et al., this does not happen in bounded expansion~classes.
 
-\begin{theorem}[{\cite[Lemma~29]{FabianskiPST19}}]\label{thm:sli-be}
+\begin{theorem}[{\cite[Lemma~29]{Fabianski2018arxiv}}]\label{thm:sli-be}
 	For every class $\Cc$ of bounded expansion and $r\in \N$, $\sli_r(\Cc)$ is finite.
 \end{theorem}
 
 We remark that \cref{thm:sli-be} holds even in a larger generality when $\Cc$ is nowhere dense, but we will not use this here. We also note that for $r=1$, excluding a biclique suffices to bound the semi-ladder index.
 
-\begin{theorem}[{\cite[Lemma~33]{FabianskiPST19}}]\label{thm:sli-biclique}
+\begin{theorem}[{\cite[Lemma~33]{Fabianski2018arxiv}}]\label{thm:sli-biclique}
 	For every graph $G$ that does not contain the biclique $K_{t,t}$ as a subgraph, for some $t\in \N$, we have $\sli_1(G)<3t$.
 \end{theorem}
 
 The following statement summarizes how a bound on the semi-ladder index influences the number of iterations executed by the semi-ladder algorithm.
 
-\begin{theorem}[consequence of {\cite[Lemma~5 and Lemma~24]{FabianskiPST19}}]\label{thm:termination}
+\begin{theorem}[consequence of {\cite[Lemma~5 and Lemma~24]{Fabianski2018arxiv}}]\label{thm:termination}
 	Let $\Cc$ be a graph class and $r\in \N$ be such that $\sli_r(\Cc)$ is finite. Then the semi-ladder algorithm (\cref{alg:1}) run on any graph from $\Cc$ terminates after executing less than $k^{\sli_r(\Cc)}$ iterations.
 \end{theorem}
+\begin{proof}
+The authors in~\cite{Fabianski2018arxiv} phrase this theorem in terms of bipartite graphs induced by logical formulas. For a graph $G$ and formula $\Phi$, they let $\Phi(G)$ be a bipartite graph $B=(L \cup R, E_B)$ with two copies $L$ and $R$ of vertices $V(G)$, where $uv \in E_B$ iff $\Phi(u,v)$ holds.
+For our purposes, the formula $\varphi(u,v)$ from Lemma~5 is logically equivalent to $u$ being at distance at most $r$ from $v$. A distance-$r$ semi-ladder in $G$ precisely corresponds to semi-ladder in $\varphi(G)$. The formula $\psi$ extends $\varphi$ to accept
+$k$-touples as the first argument, in a way that $\psi(\bar{u},v)$ is logically equivalent to $v$ being at distance at most $r$ in $G$ from some vertex of $\bar{u}$, i.e., $v$ being $r$-dominated by $\bar{u}$. The precise statement  of Lemma 5 is that if the semi-ladder index of $\varphi(G)$ (the maximum size of a semi-ladder contained in $\varphi(G)$) is at most $l$, then semi-ladder index of $\psi(G)$ is at most $k^{l-1}$. Then Lemma~24 claims that this is also the number of rounds of the semi-ladder algorithm.
+\end{proof}
 
 Note here that if the algorithm performs at most $\ell\coloneqq k^{\sli_r(\Cc)}$ iterations in total, then all the calls to the $\candidate{W,r,k}$ oracle are applied only to sets $W$ of size at most $\ell$.
 
@@ -99,9 +104,7 @@ We conclude this section by a statement summarizing the discussion and implying 
 
 \begin{lemma}\label{lem:summary-dom}
 	Let $\Cc$ be a class of graphs, $k,r\in \N$ be such that $\sli_r(\Cc)$ is finite, and $\ell\coloneqq k^{\sli_r(\Cc)}$. Let $G$ be a dynamic graph that belongs to $\Cc$ at all times. Suppose that there are data structures $\nearVertexDS{G}{r,\ell}$, supporting queries $\near{S,r}$ in $G$ with $|S|\leq \ell$, and $\farVertexDS{G}{r,k}$, supporting queries $\far{S,r}$ in $G$ with $|S|\leq k$, so that $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ have amortized update/query time $T$, initialization time $I$, and space complexity $M$. Then there is a data structure $\dominatingSetDS{G}{r,k}$ for $G$ that supports the~query
-	\begin{itemize}
-		\item $\ds{}$: Return a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
-	\end{itemize}
+	$\ds{}$, which returns a distance-$r$ dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
 	The amortized update time of $\dominatingSetDS{G}{r,k}$ is $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T$, the query time is $\Oh(k)$, the initialization time is $\Oh(I)$, and the space complexity is $\Oh(M)$.
 	
 	Moreover, we may allow that the data structures $\nearVertexDS{G}{r,\ell}$ and $\farVertexDS{G}{r,k}$ are randomized with error probability at most $\eps$, for any fixed parameter $\eps>0$ and against an oblivious adversary, with amortized update/query time, initialization time, and space complexity becoming $T\cdot \log \tfrac{1}{\eps}$, $I\cdot \log \tfrac{1}{\eps}$, and $M\cdot \log \tfrac{1}{\eps}$, respectively. In this case,  $\dominatingSetDS{G}{r,k}$ is also randomized with error probability at most $\eps$ against an oblivious adversary. The amortized update time becomes $2^{k^{\Oh(\sli_r(\Cc))}}\cdot T\cdot \log \tfrac{1}{\eps}$, the initialization time becomes $k^{\Oh(\sli_r(\Cc))}\cdot I\cdot \log \tfrac{1}{\eps}$, and the space complexity becomes  $k^{\Oh(\sli_r(\Cc))}\cdot M\cdot \log \tfrac{1}{\eps}$.
@@ -177,7 +180,7 @@ We conclude this section by a statement summarizing the discussion and implying 
 
 \subsection{Independence}
 
-For the \dris{r} problem, Fabia\'nski et al.~\cite{FabianskiPST19} proposed a different procedure, called the \emph{ladder algorithm}. Similarly to the semi-ladder algorithm, it is based on alternately finding candidates for the sought distance-$r$ independent set and witnesses that the current candidate is not yet a solution. The notion of witnessing is, however, more delicate. For the further discussion, we fix the distance parameter $r\in \N$.
+For the \dris{r} problem, Fabia\'nski et al.~\cite{FabianskiPST19,Fabianski2018arxiv} proposed a different procedure, called the \emph{ladder algorithm}. Similarly to the semi-ladder algorithm, it is based on alternately finding candidates for the sought distance-$r$ independent set and witnesses that the current candidate is not yet a solution. The notion of witnessing is, however, more delicate. For the further discussion, we fix the distance parameter $r\in \N$.
 
 \begin{definition}
 	Let $G$ be a graph  and $\tup a$ be a tuple of vertices $G$. We say that a vertex $w\in V(G)$ is a \emph{distance-$r$ dependence witness} for $\tup a$ if there are distinct $i,j\in [|\tup a|]$ such that $\dist_G(a_i,w)+\dist_G(a_j,w)\leq r$. More generally, a set $P\subseteq V(G)$ is a distance-$r$ dependence witness for $\tup a$ if $P$ contains some $w\in P$ that is a distance-$r$ dependence witness for $\tup a$.
@@ -228,9 +231,9 @@ The ladder algorithm for parameters $r,k,p$ proceeds iteratively in rounds as fo
 	\item First, we call $\candidateInd{W,r,k}$ with $W=P_1\cup P_2\cup \ldots \cup P_{i-1}$ consisting of the union of all the witnesses found so far. If this call returns $\bot$, then we can safely report that there is no distance-$r$ independent set of size $k$ in $G$. Otherwise, the output of the call becomes the next candidate $\tup a_i$.
 	\item Second, we call $\witnessInd{\cal L,r,p}$, where $\cal L\coloneqq \{\tup a_1,\ldots,\tup a_i\}$ is the set of all the candidates found so far. If this call returns $\bot$, we report that there exists a distance-$r$ independent set of size $k$ in $G$. Otherwise, the witness output by the call becomes the next witness $P_i$, with which we can proceed to the next iteration.
 \end{itemize}
-Note that the correctness of the algorithm is not obvious: When the algorithm reports in the second point that there exists a distance-$r$ independent set of size $k$, then a priori there is no reason to assume that this is correct. In particular, the algorithm only provides this conclusion without providing any actual independent set. However, Fabia\'nski et al.~\cite{FabianskiPST19} proved that in classes of bounded expansion, the algorithm always finishes within a bounded number of rounds and provides a correct answer, provided the parameter $p$ is set large enough.
+Note that the correctness of the algorithm is not obvious: When the algorithm reports in the second point that there exists a distance-$r$ independent set of size $k$, then a priori there is no reason to assume that this is correct. In particular, the algorithm only provides this conclusion without providing any actual independent set. However, Fabia\'nski et al.~\cite{FabianskiPST19,Fabianski2018arxiv} proved that in classes of bounded expansion, the algorithm always finishes within a bounded number of rounds and provides a correct answer, provided the parameter $p$ is set large enough.
 
-\begin{theorem}[consequence of {\cite[Theorems~5, Theorem~12, and Corollary~16]{FabianskiPST19}}]\label{thm:ladder-bound}
+\begin{theorem}[consequence of {\cite[Theorems~5, Theorem~12, and Corollary~16]{Fabianski2018arxiv}}]\label{thm:ladder-bound}
 	Let $\Cc$ be a graph class of bounded expansion and $r,k\in \N$. Then, there exist constants $p,\ell\in \Oh_{\Cc,r,k}(1)$ such that the ladder algorithm (\cref{alg:2}) run on any graph $G\in \Cc$ for parameters $r,k,p$, terminates within at most $\ell$ rounds and always outputs the correct answer. 
 \end{theorem}
 
