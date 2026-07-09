@@ -61,7 +61,7 @@ Next, we observe that for the specific case $r=1$ (so the classic \textsc{Domina
 		\item $\ds{}$: return a dominating set of size at most $k$ in $G$, or $\bot$ if no such set exists.
 	\end{itemize} 
 	Every answer to the query is correct with probability at least $1-\eps$ against an oblivious adversary.
-	The amortized time complexity of an update or a query is $2^{\Oh(k)}\cdot k^{\Oh(d)}\cdot \log^3 n \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ and uses  $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ space at all times.
+	The amortized time complexity of an update or a query is $2^{k^{\Oh(d)}}\cdot \log^3 n \log \tfrac{1}{\eps}$. The data structure can be initialized on an edgeless graph in time $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ and uses  $k^{\Oh(d)}\cdot n\log n\log \tfrac{1}{\eps}$ space at all times.
 \end{restatable}
 
 Finally, it is also known that on bounded expansion classes, both \drds{r} and \dris{r} admit constant-factor approximation algorithms~\cite{Dvorak13}. We prove that for $r=1$, this can be lifted to the dynamic setting, even assuming only bounded~degeneracy.
