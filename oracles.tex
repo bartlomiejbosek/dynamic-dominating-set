@@ -8,15 +8,17 @@
 \section{Implementation in classes of bounded expansion}\label{sec:implementation}
 
 Here we implement the $\near{S,r}$ and $\far{S,r}$ queries for an arbitrary distance parameter $r$ in classes of bounded expansion. 
-
+For that, we describe in this section the corresponding data structures $\nearVertexDS{G}{r,k,\eps}$
+and $\farVertexDS{G}{r,k,\eps}$, generalized appropriately to be used for progressive exploration
+algorithms for both $\drds{r }$ and $\dris{r }$.
 %\michalin{In the following I assume that we replaced all the $\tfrac{1}{\eps}$ terms in the probabilities with $\tfrac{1}{n}$.}
-
-
 
 
 \subsection{Detecting near vertices}
 
 We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ data structure, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
+As described in Section~\ref{sec:overview}, we will handle this by, upon every query,
+creating a collection of graphs as in Figure~\ref{fig:homs} and finding their homomorphic rooted images in $G$.
 
 \begin{theorem}\label{thm:NearVertex-new}
 	Fix a graph class $\Cc$ of bounded expansion, $k,r\in \N$, and $\eps>0$.
@@ -31,7 +33,7 @@ We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ data struct
 	Consider a query $\near{S,\rho}$. Enumerate all the vertices of $S$ as a $k$-tuple $\tup s$, possibly repeating some of them if necessary. Define $\rho'\colon [k]\to [0,r]$ by setting $\rho'(i)\coloneqq \rho(s_i)$, for all $i\in [k]$. 
 	
 	Let $\tup z$ be a tuple consisting of $k$ distinct vertices. 
-	Consider a family of $\Xi_{\rho'}$ of all the rooted graphs $\rt{H}{\tup z,y}$ that can be obtained as follows: 
+	Consider a family of $\Xi_{\rho'}$ of all the rooted graphs $\rt{H}{\tup z,y}$ that can be obtained as follows (see Figure~\ref{fig:homs}):
 	\begin{itemize}
 		\item for every $i\in [k]$, attach to $z_i$ a path of some length between $0$ and $\rho'(i)$, and
 		\item fuse all the other endpoints of those paths into a single vertex and call it $y$.
@@ -49,7 +51,9 @@ We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ data struct
 	\end{claim}
 
 	Let $\eps'\coloneqq \tfrac{\eps}{|\Xi_r|}\geq \tfrac{\eps}{\Oh_{r,k}(1)}$.
-	For every rooted graph $\rt{H}{\tup z,y}\in \Xi_{r}$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$; note that here, we remove $y$ from the roots. Upon query $\near{S,\rho}$, we let $\tup s$ be a $k$-tuple that enumerates $S$ (possibly with repetitions). Then, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, we ask the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ for an example homomorphism $\varphi_{\rt{H}{\tup z,y}}\in \Hom(\rt{H}{\tup z},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup z,y}}(y)$; so $v$ can be reported. And if no such homomorphism exists, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, then by \cref{cl:distExample} we may conclude that there is no vertex $v\in V(G)$ such that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$. By the union bound, the probability that any of the $|\Xi_{\rho}|\leq |\Xi_r|$ calls to  $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ returns an incorrect answer is upper bounded by $\eps'\cdot |\Xi_\rho|\leq \eps$; this bounds the error probability of the algorithm.
+	For every rooted graph $\rt{H}{\tup z,y}\in \Xi_{r}$ we may apply \cref{thm:homcounts-relational} to construct the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$; note that here, we remove $y$ from the roots.
+	%Upon query $\near{S,\rho}$, we let $\tup s$ be a $k$-tuple that enumerates $S$ (possibly with repetitions).
+	Then, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, we ask the data structure $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ for an example homomorphism $\varphi_{\rt{H}{\tup z,y}}\in \Hom(\rt{H}{\tup z},\rt{G}{\tup s})$. If any such homomorphism exists, then by \cref{cl:distExample} we have that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$, where $v\coloneqq \varphi_{\rt{H}{\tup z,y}}(y)$; so $v$ can be reported. And if no such homomorphism exists, for every $\rt{H}{\tup z,y}\in \Xi_{\rho'}$, then by \cref{cl:distExample} we may conclude that there is no vertex $v\in V(G)$ such that $\dist_G(s,v)\leq \rho(s)$ for all $s\in S$. By the union bound, the probability that any of the $|\Xi_{\rho}|\leq |\Xi_r|$ calls to  $\mathsf{MappingExample}_{\Hom, \rt{H}{\tup z},\eps'}[G]$ returns an incorrect answer is upper bounded by $\eps'\cdot |\Xi_\rho|\leq \eps$; this bounds the error probability of the algorithm.
 
 	Since $|\Xi_{r}|\leq \Oh_{r,k}(1)$ and $|H|\leq \Oh_{r,k}(1)$ for all $\rt{H}{\tup z,y}\in \Xi_r$, the promised bounds on the amortized update and query time, initialization time, and space complexity follow immediately from the guarantees provided by \cref{thm:homcounts-relational}. 
 \end{proof}
