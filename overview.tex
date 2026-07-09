@@ -123,6 +123,16 @@ Note that this ratio can be easily computed by maintaining the (weight-extended)
 
 The remaining question is how to lift the assumption that there is only at most one vertex $v$ that can be the image of $x$ in a mapping $\varphi\in \Ff(H,G)$. We do this with the help of randomization. Let us fix a desired bound $\eps>0$ on the error probability. Upon initialization of the data structure, for each $i\in \{0,1,\ldots,\lceil \log n\rceil\}$ we sample $\xi=\Theta(\log \tfrac{1}{\eps})$ vertex subsets $S_{i,1},\ldots,S_{i,\xi}\subseteq V(G)$, where each set $S_{i,j}$ is constructed by including every vertex independently with probability $\frac{1}{2^{i+1}}$, so that the expected size of $S_{i,j}$ is $\tfrac{n}{2^{i+1}}$. It is not hard to see that if the set $X\coloneqq \{v\mid \textrm{there is }\varphi\in \Ff(H,G)\textrm{ such that }\varphi(x)=v\}$ is non-empty, then with probability at least $1-\eps$ at least one of the sets $S_{i,j}$ will have intersection of size exactly $1$ with $X$. Therefore, we may apply the same trick as in the previous paragraph, but for every set  $S_{i,j}$ simultaneously, where in the data structures constructed for $S_{i,j}$ we nullify all the weights of the pairs $(y,w)$ with $y=x$ and $w\notin S_{i,j}$. Thus, with probability at least $1-\eps$ at least one of the data~structures points to an example vertex $v\in X$, whose feasibility can be verified using the data structure of~\cref{thm:overview-DT}.
 
+The fingerprinting retrieval technique presented above can be applied iteratively to retrieve example images of the vertices of $H$ under a homomorphism or an (induced) subgraph isomorphism one by one, until a full example mapping is retrieved. In this way, we answer the open question of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} about extending their data structure with a possibility to report example (induced) copies of a fixed graph $H$ in a dynamic graph $G$ that always belongs to a fixed class of bounded expansion. Precisely, we prove the following result. (A \emph{$k$-colored graph} is one where each edge is colored using one of $k$ colors.)
+
+\begin{restatable}{theorem}{reporting} \label{thm:dvorak-tuma-examples}
+	Let $\eps>0$, $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. 
+	Let $G$ be a dynamic $k$-colored
+	graph on $n$ vertices that belongs to $\G$ at all times.
+	Then, there is a randomized data structure $\MapEx_{\F, H, k,\eps}[G]$
+	which after every update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)$. The amortized update time is $\Oh_{\G, H, k}(\log^{\Oh_H(1)} n \log{\frac{1}{\eps}})$, the initialization time is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$, and the space complexity is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$.  The data structure never provides false positives, but may fail to provide an example mapping $\phi$ with probability at most $\eps$, against an oblivious adversary.
+\end{restatable}
+
 \newcommand{\fr}{\mathsf{far}}
 
 \subsection{Finding far vertices}

@@ -5,9 +5,9 @@
 
 \newcommand{\Mm}{\mathcal{M}}
 
-\section{Implementation of oracles in classes of bounded expansion}\label{sec:implementation}
+\section{Implementation in classes of bounded expansion}\label{sec:implementation}
 
-Here we implement the oracles for an arbitrary distance parameter $r$ in classes of bounded expansion. 
+Here we implement the $\near{S,r}$ and $\far{S,r}$ queries for an arbitrary distance parameter $r$ in classes of bounded expansion. 
 
 %\michalin{In the following I assume that we replaced all the $\tfrac{1}{\eps}$ terms in the probabilities with $\tfrac{1}{n}$.}
 
@@ -16,7 +16,7 @@ Here we implement the oracles for an arbitrary distance parameter $r$ in classes
 
 \subsection{Detecting near vertices}
 
-We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ oracle, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
+We start with the implementation of the $\nearVertexDS{G}{r,k,\eps}$ data structure, which will be an easy application of the toolbox presented in \cref{sec:dvorak}, particularly \cref{thm:homcounts-relational}.
 
 \begin{theorem}\label{thm:NearVertex-new}
 	Fix a graph class $\Cc$ of bounded expansion, $k,r\in \N$, and $\eps>0$.

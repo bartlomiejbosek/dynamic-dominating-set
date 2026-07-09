@@ -7,7 +7,7 @@
 %\wninline{Zdaje się, że zapomniałem pospecyfikować w paru miejscach, że złożoności czasowe są amortyzowane}
 
 In this section we first recall the main results of Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} about dynamic data structures for counting homomorphisms and (induced) subgraphs in classes of bounded expansion, and then we generalize them in various ways for the sake of using them in the next section.
-The main result Dvo\v{r}\'ak and T\r{u}ma can be expressed as follows.%\michal{Do Dvorak and Tuma have colors? It would be good to cite a specific theorem.} Here, by a \emph{$k$-colored graph} we mean a graph whose edges are colored with the set of colors $[k]$.
+The main result Dvo\v{r}\'ak and T\r{u}ma can be expressed as follows (this is a slightly more general formulation of \cref{thm:overview-DT}).%\michal{Do Dvorak and Tuma have colors? It would be good to cite a specific theorem.} Here, by a \emph{$k$-colored graph} we mean a graph whose edges are colored with the set of colors $[k]$.
 
 \begin{theorem}[\cite{DvorakT13}] \label{thm:dvorak-tuma}
 	Let $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. Suppose $G$ is a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times. Then, there is a~data structure $\UnMaps_{\F, H}[G]$ that is able to determine the quantity $|\F(H, G)|$ after every update. The amortized update time is $\Oh_{\G, H, k}(\log^h n)$, where $h = {|H| \choose 2} - 1$, the initialization time is $\Oh_{\G,H,k}(n)$, and the space complexity is $\Oh_{\G, H, k}(n)$. %If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh(|G|^{1 + \delta})$.
@@ -23,14 +23,19 @@ While the data structure of \cref{thm:dvorak-tuma} is able to \emph{count} the a
 %However, they concluded that even though they are able to count appearances of $H$ in $G$ as an induced subgraph (that is, determine $|\ISub(H, G)|$), it is not easy to restore any example of such mapping from their data structure as it involves inclusion-exclusion principle. Despite not written explicitly, it can be expected that the authors would have similar troubles restoring examples of subgraph isomorphisms (as the reduction from counting subgraph isomorphisms to counting homomorphisms requires subtractions as well), though they had likely known how to restore examples of homomorphisms, as that part of the algorithm does not require any subtractions and the restoration of an example can be done through tracing transitions with nonzero contributions in the designed dynamic programming. 
 
 In this section, we resolve all these open questions and prove that example mappings can be efficiently reported both for homomorphisms and for (induced) subgraphs, at the cost of making the data structure randomized.
-Formally, we prove the following variation of \cref{thm:dvorak-tuma}.
+Formally, we prove the following extension of \cref{thm:dvorak-tuma}, already announced in \cref{sec:overview}.
 
 %\wninline{Chyba dobrze by było dodać $\eps$ do parametrów struktury danych, i.e. $\MapEx_{\F, H, k, \eps}$}
+
+\reporting*
+
+\begin{comment}
 \begin{theorem} \label{thm:dvorak-tuma-examples}
 	Let $\eps>0$, $H$ be a fixed graph, $\G$ be a graph class of bounded expansion, $k\in \N$, and $\F$ be either $\Hom$, $\Sub$, or $\ISub$. 
 	Let $G$ be a dynamic $k$-colored graph on $n$ vertices that belongs to $\G$ at all times.
 	Then, there is a randomized data structure $\MapEx_{\F, H, k,\eps}[G]$ which after every update is able to report that either $\F(H, G)$ is empty, or provide some $\phi \in \F(H, G)$. The amortized update time is $\Oh_{\G, H, k}(\log^{\Oh_H(1)} n \log{\frac{1}{\eps}})$, the initialization time is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$, and the space complexity is $\Oh_{\G, H, k}(n \log n \log {\tfrac{1}{\eps}})$.  The data structure never provides false positives, but may fail to provide an example mapping $\phi$ with probability at most $\eps$, against an oblivious adversary.
 \end{theorem}
+\end{comment}
 
 %If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta \log{\frac{1}{\eps}})$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta} \log{\frac{1}{\eps}})$.
 
@@ -41,9 +46,9 @@ For the algorithms in the following sections we will only need the case $\F = \H
 
 Let us first introduce a handy definition. A \emph{vertex function} is a function $f$ that takes a graph $G$ and its vertex $v$ and returns a nonnegative integer $f(G,v)$. If we always have $f(G,v)\in \{0,1\}$, we call the vertex function $f$ \emph{binary}. 
 
-The following lemma, which draws inspiration from the works of Majewski, Pilipczuk, and Zych-Pawlewicz~\cite{Majewski24} and of Nadara, Pilipczuk, and Smulewicz~\cite{Nadara22}, is our main tool for recovering examples while given access only to counting.
-\wninline{Może skoro kilkukrotnie wspominaliśmy nazwę fingerprint retrieval w overview to ją tutaj wspomnimy aby to ukonkretyzować?}
-\begin{lemma} \label{lem:restore-by-sampling}
+The following lemma, which draws inspiration from the works of Majewski, Pilipczuk, and Zych-Pawlewicz~\cite{Majewski24} and of Nadara, Pilipczuk, and Smulewicz~\cite{Nadara22}, is our main tool for recovering examples while given access only to counting. We call this technique \emph{fingerprint retrieval}.
+%\wninline{Może skoro kilkukrotnie wspominaliśmy nazwę fingerprint retrieval w overview to ją tutaj wspomnimy aby to ukonkretyzować?}
+\begin{lemma}(Fingerprint Retrieval Lemma) \label{lem:restore-by-sampling}
 	Let $f$ be a vertex function and let $G$ be a dynamic graph on $n$ vertices.
 	Suppose that for any fixed weight function $\wei \colon V(G) \to \Z$, there is a data structure $\WeiSum_{f, \wei}[G]$ that reports the quantity $\sum_{v \in V(G)} f(G, v)\cdot \wei(v)$ after every update to $G$.
 	Also, suppose that
