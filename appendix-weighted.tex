@@ -32,7 +32,7 @@ Before proceeding with the rest of the proof, we are going to recall an importan
 \begin{definition}[\cite{DvorakTumaArxiv}]
 	Let $F'$ be a directed graph with edges colored by $\{0, 1, \ldots, k\}$. Let $P$ be a partition of vertices of $F'$ such that:
 	\begin{itemize}
-		\item for every $p \in P$, the subgraph of $F'$ induced by $p$ is connected and contains only edges colored by $0$; and;
+		\item for every $p \in P$, the subgraph of $F'$ induced by $p$ is connected and contains only edges colored $0$; and
 		\item if $p_1, p_2 \in P$ are distinct, $u, u' \in p_1, v, v' \in p_2$ and $(u, v)$ is an edge, then $(v', u')$ is not an edge, and if $(u', v')$ is an edge, then it has the same color as $(u, v)$.
 	\end{itemize}
 	Let $F''$ be the directed graph with edges colored by $\{0, 1, \ldots, k\}$, such that $V(F'') = P$ and $(p_1, p_2) \in E(F'')$ if and only if $(v_1, v_2) \in E(F')$ for some $v_1 \in p_1$ and $v_2 \in p_2$; and in this case, $(p_1, p_2)$ and $(v_1, v_2)$ have the same color. That is, $F''$ is obtained from $F'$ by identifying the vertices in each part of $P$ and suppressing the parallel edges and loops, and we also remember which vertices of $F'$ correspond to each vertex of $F''$. We say that $F''$ is a \textit{$0$-contraction} of $F'$.
@@ -42,15 +42,15 @@ We also recall the rephrased version of maintaining iterated fraternal augmentat
 \begin{theorem}[{\cite[Theorem 4]{DvorakTumaArxiv}}] \label{thm:maintaining-augmentation}
 	Let $\Cc$ be a graph class of bounded expansion and $h \in \N$. For a graph $G$, let its \emph{$h$-th augmentation} be any directed graph obtained by taking any orientation $\vec G$ of $G$ and iterating fraternal augmentation on it $h$ times. There exists $C \in \N$ dependent only on $\Cc$ and $k$ such that there is a data structure maintaining some $h$-th augmentation $\tilde{G}_h$ of a dynamic graph $G \in \Cc$ such that:
 	\begin{itemize}
-		\item the maximum out-degree of $\tilde{G}_h$ is at most $C$
-		\item an edge can be added to $G$ in $\Oh(C \log^{h+1} n)$ amortized time
-		\item an edge can be removed from $G$ in $\Oh(C)$ amortized time  
+		\item the maximum out-degree of $\tilde{G}_h$ is at most $C$;
+		\item an edge can be added to $G$ in $\Oh(C \log^{h+1} n)$ amortized time; and
+		\item an edge can be removed from $G$ in $\Oh(C)$ amortized time.
 	\end{itemize}
 \end{theorem}
 
-We say that a graph $G_2$ can be obtained from $G_1$ by recoloring zeros if and only if $V(G_1) = V(G_2)$, $E(G_1) = E(G_2)$, however for all edges $(u, v) \in E(G_1)$ such that their color in $G_1$ and $G_2$ is different, we have that its color in $G_1$ is $0$.
+We say that a graph $G_2$ can be obtained from $G_1$ by \emph{recoloring zeros} if and only if $V(G_1) = V(G_2)$, $E(G_1) = E(G_2)$, however for every edge $(u, v) \in E(G_1)$ such that its colors in $G_1$ and $G_2$ are different, we have that its color in $G_1$ is $0$.
 
-Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from all possible $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.
+Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from all possible $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.\michal{Jak są krawędzie pokolorowane w $h$-tej augmentacji?}
 
 Dvo\v{r}\'ak and T\r{u}ma prove the following:
 
@@ -58,19 +58,19 @@ Dvo\v{r}\'ak and T\r{u}ma prove the following:
 	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$ and let $h = {|H| \choose 2} - 2$. If $G'$ is an $h$-th augmentation of $G$, then $|\Hom(H, G)| = \sum_{H' \in \mathcal{H}^e} |\Hom(H', G')|$.
 \end{lemma}
 
-They show that equality by showing a natural bijection $\Phi$ between $\Hom(H, G)$ and pairs $(H', \phi')$, where $H' \in \mathcal{H}^e$ and $\phi' \in \Hom(H', G')$. As each $H' \in \mathcal{H}^e$ can be shown to be elder (\cite[Lemma 12]{DvorakTumaArxiv}), a clear consequence of the original unweighted variant of \cref{lem:weighted-dvorak}, \cref{lem:unweighted-hom-proj} and \cref{thm:maintaining-augmentation} was that there exists a data structure that efficiently maintains the number of homomorphisms for a dynamic graph $G$ of bounded expansion. Our goal now will be to adjust \cref{lem:unweighted-hom-proj} to the weighted setting.
+They show this equality by showing a natural bijection $\Phi$ between $\Hom(H, G)$ and pairs $(H', \phi')$, where $H' \in \mathcal{H}^e$ and $\phi' \in \Hom(H', G')$. As each $H' \in \mathcal{H}^e$ can be shown to be elder (\cite[Lemma 12]{DvorakTumaArxiv}), a clear consequence of the original unweighted variant of \cref{lem:weighted-dvorak}, \cref{lem:unweighted-hom-proj} and \cref{thm:maintaining-augmentation} was that there exists a data structure that efficiently maintains the number of homomorphisms for a dynamic graph $G$ of bounded expansion. Our goal now will be to adjust \cref{lem:unweighted-hom-proj} to the weighted setting.
 
-Let $w$ be a fixed weight function $V(H) \times V(G) \to \Z$ and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $w_{H'} : V(H') \times V(G') \to \Z$ by the following formula: $w_{H'}(p, u) = \prod_{v \in p} w(v, u)$. Let $\phi' \in \Hom(H', G')$ and let $\phi \in \Hom(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
-Therefore, we have that $\val_w(\phi) = \prod_{v \in V(H)} w(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} w(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} w(v, \phi'(p)) = \prod_{p \in V(H')} w_{H'}(p, \phi'(p)) = \val_{w_{H'}}(\phi')$. As a consequence we observe the following:
+Let $\wei\colon V(H) \times V(G) \to \Z$ be a fixed weight function and let $H' \in \mathcal{H}^e$. We recall that $V(H')$ is a partition of $V(H)$. Let us now define a weight function $\wei_{H'} \colon V(H') \times V(G') \to \Z$ by the following formula: $\wei_{H'}(p, u) = \prod_{v \in p} \wei(v, u)$. Let $\phi' \in \Hom(H', G')$ and let $\phi \in \Hom(H, G)$ be such that $\Phi(\phi) = (H', \phi')$. The bijection $\Phi$ satisfies that $\phi(v) = \phi'(p_v)$, where $p_v$ is the part of the partition $V(H')$ that contains $v$.
+Therefore, we have that $\val_\wei(\phi) = \prod_{v \in V(H)} \wei(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi(v)) = \prod_{p \in V(H')} \prod_{v \in p} \wei(v, \phi'(p)) = \prod_{p \in V(H')} \wei_{H'}(p, \phi'(p)) = \val_{\wei_{H'}}(\phi')$. As a consequence we observe the following:
 
 \begin{lemma} \label{lem:weighted-hom-proj}
-	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, let $h = {|H| \choose 2} - 2$ and let $w : V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-th augmentation of $G$, then $\val_w(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{w_{H'}}(\Hom(H', G'))$.
+	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$, let $h = {|H| \choose 2} - 2$ and let $\wei \colon V(H) \times V(G) \to \Z$ be a weight function. If $G'$ is an $h$-th augmentation of $G$, then $\val_\wei(\Hom(H, G)) = \sum_{H' \in \mathcal{H}^e} \val_{\wei_{H'}}(\Hom(H', G'))$.
 \end{lemma}
 
 With the above statement, we are able to conclude the following lemma:
 
 \begin{lemma} \label{lem:weighted-hom}
-	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w$ be a weighting function $w : V(H) \times V(G) \to \Z$. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, w}(G)$, which is able to determine $\val_w(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
+	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$ and $w \colon V(H) \times V(G) \to \Z$ be a weight function. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$, which is able to determine $\val_w(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
 	Then, the data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.
 	%If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
@@ -79,11 +79,11 @@ With the above statement, we are able to conclude the following lemma:
 	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
 %	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
 	
-	We note that if $H$ is not connected, then $\val_w(\Hom(H, G))$ is just equal to the product \[\prod_{H' \in \mathsf{CC}(H)} \val_w(\Hom(H', G))\] taken over the set $\mathsf{CC}(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
+	We note that if $H$ is not connected, then $\val_\wei(\Hom(H, G))$ is just equal to the product \[\prod_{H' \in \mathsf{CC}(H)} \val_\wei(\Hom(H', G))\] taken over the set $\mathsf{CC}(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
 	
-	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $C$ is the integer from \cref{thm:maintaining-augmentation}. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(C \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(C)$ such changes (amortized).
+	The data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, \wei}(G)$, where $C$ is the integer from \cref{thm:maintaining-augmentation}. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(C \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(C)$ such changes (amortized).
 %	\wninline{Upewnić się, że na pewno po prostu $D$, a nie jakoś więcej (aka nie jakiś iloczyn $d_1 \ldots d_h$)}
-	 All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_w(\Hom(H, G))$ is derived as the sum of all values $\val_{w_{H'}}(\Hom(H', G'))$.
+	 All changes in $G'$ are relayed to all $\mathsf{WeightedAHom}$ structures. The value $\val_\wei(\Hom(H, G))$ is derived as the sum of all values $\val_{\wei_{H'}}(\Hom(H', G'))$.
 \end{proof}
 
 \subsection{Counting weighted subgraph isomorphisms}
