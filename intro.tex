@@ -51,6 +51,8 @@ Note that the data structure of \cref{thm:main-domset-be} is capable of providin
 
 At this point, the proofs of \cref{thm:main-domset-be,thm:main-indset-be} do not extend to $\FO$-definable problems beyond \drds{r} and \dris{r}. This is because our approach is based on dynamizing two dedicated algorithms for these problems due to Fabia\'nski, Pilipczuk, Siebertz, and Toru\'nczyk~\cite{FabianskiPST19}, obtained via their framework of \emph{progressive exploration}. We believe that this might indicate that in order to resolve the question of Dvo\v{r}\'ak and T\r{u}ma, one has to design a new $\FO$-model-checking algorithm on classes of sparse graphs that would be more in the spirit of progressive exploration.
 
+We remark that on the way to \cref{thm:main-domset-be,thm:main-indset-be}, we resolve the question posed by Dvo\v{r}\'ak and T\r{u}ma~\cite{DvorakT13} by extending their data structure so that it can also report examples of relevant mappings. See \cref{thm:dvorak-tuma-examples} for a precise formulation.
+
 \medskip
 
 Next, we observe that for the specific case $r=1$ (so the classic \textsc{Dominating Set} problem), the data structure of \cref{thm:main-domset-be} can be simplified and works already under the assumption of bounded degeneracy (equivalently, of bounded arboricity or of bounded maximum average degree among subgraphs).
