@@ -93,7 +93,7 @@ In this notation, the quantity $\sli_r(\Cc)$ is equal to the semi-ladder index o
 %For our purposes, the formula $\phi(u,v)$ considered in \cite[Lemma~5]{Fabianski2018arxiv} is logically equivalent to $u$ being at distance at most $r$ from $v$. A distance-$r$ semi-ladder in $G$ precisely corresponds to semi-ladder in $\varphi(G)$. The formula $\psi$ extends $\varphi$ to accept
 %$k$-touples as the first argument, in a way that $\psi(\bar{u},v)$ is logically equivalent to $v$ being at distance at most $r$ in $G$ from some vertex of $\bar{u}$, i.e., $v$ being $r$-dominated by $\bar{u}$. The precise statement  of Lemma 5 is that if the semi-ladder index of $\varphi(G)$ (the maximum size of a semi-ladder contained in $\varphi(G)$) is at most $l$, then semi-ladder index of $\psi(G)$ is at most $k^{l-1}$. Then Lemma~24 claims that this is also the number of rounds of the semi-ladder algorithm.
 
-Note here that if the algorithm performs at most $\ell\coloneqq k^{\sli_r(\Cc)}$ iterations in total, then all the calls to the $\candidate{W,r,k}$ oracle are applied only to sets $W$ of size at most $\ell$.
+Note here that if the algorithm performs at most $\ell\coloneqq k^{\sli_r(\Cc)}$ iterations in total, then all the calls to the $\candidate{W,r,k}$ query are applied only to sets $W$ of size at most $\ell$.
 
 Our goal now is to reduce implementation of the $\notDominated{D,r}$ and $\candidate{W,r,k}$ queries to the more basic queries $\far{S,r}$ and $\near{S,r}$. For $\notDominated{D,r}$ this is trivial: queries $\notDominated{D,r}$ and $\far{D,r}$ are just equivalent. For $\candidate{W,r,k}$, this is a bit more complex.
 
