@@ -218,7 +218,7 @@ We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data str
 	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{theorem}
 
-The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
+The following statement follows from \cref{thm:homcounts-relational}.%\michal{Make sure this is true and proved.}
 
 \begin{lemma}\label{lem:dyn-rooted-homs}
 	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $r\in \N$, and a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,r)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
