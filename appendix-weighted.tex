@@ -24,13 +24,12 @@ We generalize their statement to the following weighted version:
 	The original proof expresses the difference of the sets $\Hom_{H, T}(C, v, w_1, \ldots, w_m, G)$ before and after an addition of an edge $e$ to $G$ as a disjoint sum of some sets, where each of them results from a different guess of which edges of $H$ will be mapped to $e$. In each of these cases, a partial homomorphism $\phi$ is determined and the problem of extending it to a homomorphism of full $C^*$ decomposes to a few independent subproblems, hence the set of ways to extend the fixed partial homomorphisms resulting from that guess to a full homomorphisms of $C^*$ can be expressed as a cartesian product of sets of homomorphisms for these smaller instances. If $C_i$ and $g_1^i, \ldots, g_{m_i}^i$ are the clan and the ghosts of the $i$-th subproblem, then the number of ways to extend $\phi$ to a full homomorphisms of $C^*$ can be expressed as $\prod_{i=1}^{t} S(C_i, \phi(g_1^i), \ldots, \phi(g_{m_i}^i))$, whereas the incurred contribution to the value of all accounted homomorphisms will be $\val_w(\phi) \cdot \prod_{i=1}^{t}S_w(C_i, \phi(g_1^i), \ldots, \phi(g_{m_i}^i))$.
 	
 	We remark that the calculation above crucially relies on the properties of $\val_w$ that $\val_w(X \sqcup Y) = \val_w(X) + \val_w(Y)$ and $\val_w(P \times Q) = \val_w(P) \cdot \val_w(Q)$, where $P$ and $Q$ are acting on disjoint subsets $V_P$ and $V_Q$ of $V(H)$ and each element $\phi = (\phi_P, \phi_Q) \in P \times Q$ is understood as a unique mapping on $V_P \sqcup V_Q$ such that $\phi|_{V_P} = \phi_P$ and $\phi|_{V_Q} = \phi_Q$.  
-	
 \end{proof}
 
 \subsection{Counting weighted homomorphisms}
 Before proceeding with the rest of the proof, we are going to recall an important definition of a \textit{$0$-contraction} from \cite{DvorakTumaArxiv}.
 
-\begin{definition} {\cite{DvorakTumaArxiv}}
+\begin{definition}[\cite{DvorakTumaArxiv}]
 	Let $F'$ be a directed graph with edges colored by $\{0, 1, \ldots, k\}$. Let $P$ be a partition of vertices of $F'$ such that:
 	\begin{itemize}
 		\item for every $p \in P$, the subgraph of $F'$ induced by $p$ is connected and contains only edges colored by $0$; and;
@@ -40,7 +39,7 @@ Before proceeding with the rest of the proof, we are going to recall an importan
 \end{definition}
 
 We also recall the rephrased version of maintaining iterated fraternal augmentations from the original work \cite{DvorakTumaArxiv}:
-\begin{theorem} \cite[Theorem 4]{DvorakTumaArxiv} \label{thm:maintaining-augmentation}
+\begin{theorem}[{\cite[Theorem 4]{DvorakTumaArxiv}}] \label{thm:maintaining-augmentation}
 	Let $\Cc$ be a graph class of bounded expansion and $h \in \N$. For a graph $G$, let its \emph{$h$-th augmentation} be any directed graph obtained by taking any orientation $\vec G$ of $G$ and iterating fraternal augmentation on it $h$ times. There exists $C \in \N$ dependent only on $\Cc$ and $k$ such that there is a data structure maintaining some $h$-th augmentation $\tilde{G}_h$ of a dynamic graph $G \in \Cc$ such that:
 	\begin{itemize}
 		\item the maximum out-degree of $\tilde{G}_h$ is at most $C$
@@ -55,7 +54,7 @@ Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathca
 
 Dvo\v{r}\'ak and T\r{u}ma prove the following:
 
-\begin{lemma} \cite[Lemma 11]{DvorakTumaArxiv} \label{lem:unweighted-hom-proj}
+\begin{lemma}[{\cite[Lemma 11]{DvorakTumaArxiv}}] \label{lem:unweighted-hom-proj}
 	Let $H$ and $G$ be graphs with edges colored by $\{1, \ldots, k\}$ and let $h = {|H| \choose 2} - 2$. If $G'$ is an $h$-th augmentation of $G$, then $|\Hom(H, G)| = \sum_{H' \in \mathcal{H}^e} |\Hom(H', G')|$.
 \end{lemma}
 
@@ -80,7 +79,7 @@ With the above statement, we are able to conclude the following lemma:
 	This proof combines \cref{lem:weighted-hom-proj}, \cref{lem:weighted-ahom} and \cref{thm:maintaining-augmentation} in an identical way as an analogous unweighted data structure from \cite{DvorakTumaArxiv}.
 %	\wninline{Naprawić zepsutą referencję. Chyba do utrzymywania tych augmentacji lepiej będzie przywołać utrzymywanie augmentacji z oryginalnego Dvoraka, bo nasze jest dla r-tej augmentacji i gadamy o jakichs shortcutach i wrzucamy tylko krawedzie dlugosci $i$, a Dvorak tych wszystkich rzeczy nie potrzebuje, ale chce $h$-tą, a nie $r$-tą}
 	
-	We note that if $H$ is not connected, then $\val_w(\Hom(H, G))$ is just equal to the product $\prod_{H' \in CC(H)} \val_w(\Hom(H', G))$ taken over the set $CC(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
+	We note that if $H$ is not connected, then $\val_w(\Hom(H, G))$ is just equal to the product \[\prod_{H' \in \mathsf{CC}(H)} \val_w(\Hom(H', G))\] taken over the set $\mathsf{CC}(H)$ of connected components of $H$. Hence, we may assume that $H$ is connected.
 	
 	The data structure $\mathsf{WeightedHom}_{H, k, w}(G)$ maintains an $h$-th augmentation $G'$ of $G$, as described in \cref{thm:maintaining-augmentation} and for each $H' \in \mathcal{H}^e$ it additionally maintains a data structure $\mathsf{WeightedAHom}_{H', k, D, w}(G)$, where $C$ is the integer from \cref{thm:maintaining-augmentation}. As $|\mathcal{H}^e|$ is bounded by a function of $H$ and $k$ only, its size is constant. Each addition of an edge to $G$ results in $\Oh(C \log^{h+1}|G|)$ changes in $G'$, each removal results in $\Oh(C)$ such changes (amortized).
 %	\wninline{Upewnić się, że na pewno po prostu $D$, a nie jakoś więcej (aka nie jakiś iloczyn $d_1 \ldots d_h$)}
