@@ -128,7 +128,9 @@ We now propose a dynamic data structure that maintains an approximate domination
 Assadi and Solomon phrase their result in the language of maximal matchings in hypergraphs, which is equivalent to our terminology of maximal packings in set systems. 
 
 Throughout this subsection, we assume $n\ge 2$ and $d\ge 1$, and we consider a fully dynamic $d$-degenerate graph $G$ on the fixed vertex set $V=\set{1,\ldots,n}$.
-Hence, we may invoke the Brodal--Fagerberg orientation data structure (\cref{thm:bf}) on $G$, and thus maintain also an orientation $\vec{G}$ of $G$ with maximum out-degree at most $4d$. An additional advantage of applying that data structure is that we are able to perform any operations on dictionaries of adjacent edges in $\Oh(d)$ time complexity. That additional factor is negligible if we are aiming for $\Oh(\poly(d) \log n)$ time complexity per update. We follow the convention that $G_t$ is the graph $G$ at time step $t$, and consequently $\vec{G}_t$ is the maintained orientation of $G_t$.
+Hence, we may invoke the Brodal--Fagerberg orientation data structure (\cref{thm:bf}) on $G$, and thus maintain also an orientation $\vec{G}$ of $G$ with maximum out-degree at most $4d$.
+%An additional advantage of applying that data structure is that we are able to perform any operations on dictionaries of adjacent edges in $\Oh(d)$ time complexity. That additional factor is negligible if we are aiming for $\Oh(\poly(d) \log n)$ time complexity per update.
+We follow the convention that $G_t$ is the graph $G$ at time step $t$, and consequently $\vec{G}_t$ is the maintained orientation of $G_t$.
 For every vertex $v\in V$, we let $S_t(v)\coloneqq\set{v}\cup N^+_{\vec{G}_t}(v)$.
 
 \paragraph{Persistent state.}
