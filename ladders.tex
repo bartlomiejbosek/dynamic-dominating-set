@@ -9,14 +9,16 @@ For the \dris{r} problem, we will need a slight generalization of these.
 This will allow us to concentrate in subsequent sections on implementing those queries efficiently in the setting of dynamic data structures.
 
 \subsection{Domination}
-For \drds{r}, Fabia\'nski et al. proposed a \emph{semi-ladder algorithm} that proceeds as follows (see \cref{alg:1} for a pseudo-code). The algorithm is employed on a graph $G$ and searches for a distance-$r$ dominating set of size $k$, for given parameters $r,k\in \N$. It assumes access to the following two queries, which will eventually be implemented using the more basic queries $\far{S,r}$ and $\near{S,r}$:
+For \drds{r}, Fabia\'nski et al. proposed a \emph{semi-ladder algorithm} that proceeds as follows (see \cref{alg:1} for a pseudo-code). The algorithm is employed on a graph $G$ and searches for a distance-$r$ dominating set of size $k$, for given parameters $r,k\in \N$. It assumes access to two queries:
 \begin{itemize}
 	\item $\notDominated{D,r}$:
 	Given a set $D$ of at most $k$ vertices, return a vertex $v$ that is not distance-$r$ dominated by~$D$, that is, such that $\dist_G(v,D)>r$. In case no such vertex $v$ exists, return $\bot$.
 %	\wninline{Nie lubię nazwy $\mathrm{witnessDom}$, bo sugeruje jakby to był świadek \emph{dominacji}, a to świadek \emph{niedominacji}. Podobna uwaga co do $\mathrm{witnessInd}$}
-	\wninline{W sporą konfuzję mnie wprowadziła ta narracja i wording tutaj, że zakładamy istnienie ,,more basic query farVertex'' i zarysowywujemy, że będzie chcieli za jego pomocą jakoś zaimplementować zapewne bardziej skomplikowane ,,witnessDom'', które jest dokładnie tym samym. Rozumiem, że obie nazwy mają sens w swoich kontekstach, ale uważnemu czytelnikowi się zapala lampka, że pewnie czegoś nie zrozumiał.}
+%	\wninline{W sporą konfuzję mnie wprowadziła ta narracja i wording tutaj, że zakładamy istnienie ,,more basic query farVertex'' i zarysowywujemy, że będzie chcieli za jego pomocą jakoś zaimplementować zapewne bardziej skomplikowane ,,witnessDom'', które jest dokładnie tym samym. Rozumiem, że obie nazwy mają sens w swoich kontekstach, ale uważnemu czytelnikowi się zapala lampka, że pewnie czegoś nie zrozumiał.}
 	\item $\candidate{W,r,k}$: Given a vertex subset $W$, return a set $D$ of at most $k$ vertices that distance-$r$ dominates~$W$, that is, $\dist_G(w,D)\leq r$ for all $w\in W$. In case no such set $D$ exists, return $\bot$.
 \end{itemize}
+Note that the $\notDominated{D,r}$ query is just equivalent to the $\far{D,r}$ query. We later~show that also the $\candidate{W,r,k}$ query can be implemented using a bounded (in terms of $k$ and~$|W|$) number of $\near{S,r}$ queries with $S\subseteq W$.
+
 The algorithm iteratively constructs two sequences:
 \begin{itemize}
 	\item a sequence of \emph{candidates} $D_1,D_2,\ldots$, each being a set of at most $k$ vertices; and 
@@ -76,14 +78,20 @@ We remark that \cref{thm:sli-be} holds even in a larger generality when $\Cc$ is
 
 The following statement summarizes how a bound on the semi-ladder index influences the number of iterations executed by the semi-ladder algorithm.
 
-\begin{theorem}[consequence of {\cite[Lemma~5 and Lemma~24]{Fabianski2018arxiv}}]\label{thm:termination}
+\begin{theorem}[consequence of {\cite[Lemma~5 and Corollary~13]{Fabianski2018arxiv}}]\label{thm:termination}
 	Let $\Cc$ be a graph class and $r\in \N$ be such that $\sli_r(\Cc)$ is finite. Then the semi-ladder algorithm (\cref{alg:1}) run on any graph from $\Cc$ terminates after executing less than $k^{\sli_r(\Cc)}$ iterations.
 \end{theorem}
-\begin{proof}
-The authors in~\cite{Fabianski2018arxiv} phrase this theorem in terms of bipartite graphs induced by logical formulas. For a graph $G$ and formula $\Phi$, they let $\Phi(G)$ be a bipartite graph $B=(L \cup R, E_B)$ with two copies $L$ and $R$ of vertices $V(G)$, where $uv \in E_B$ iff $\Phi(u,v)$ holds.
-For our purposes, the formula $\varphi(u,v)$ from Lemma~5 is logically equivalent to $u$ being at distance at most $r$ from $v$. A distance-$r$ semi-ladder in $G$ precisely corresponds to semi-ladder in $\varphi(G)$. The formula $\psi$ extends $\varphi$ to accept
-$k$-touples as the first argument, in a way that $\psi(\bar{u},v)$ is logically equivalent to $v$ being at distance at most $r$ in $G$ from some vertex of $\bar{u}$, i.e., $v$ being $r$-dominated by $\bar{u}$. The precise statement  of Lemma 5 is that if the semi-ladder index of $\varphi(G)$ (the maximum size of a semi-ladder contained in $\varphi(G)$) is at most $l$, then semi-ladder index of $\psi(G)$ is at most $k^{l-1}$. Then Lemma~24 claims that this is also the number of rounds of the semi-ladder algorithm.
+\begin{proof}[Proof sketch]
+Let us briefly sketch how this result follows from the discussion in~\cite{Fabianski2018arxiv}.
+
+In~\cite{Fabianski2018arxiv}, Fabia\'nski et al. formulate the semi-ladder index of first-order formulas as follows. For a graph $G$ and a first-order formula $\phi(\tup x,\tup y)$, where $\tup x,\tup y$ are tuples of variables, they define $\phi(G)$ be a bipartite graph $(A \cup B, F)$ where $L=V(G)^{\tup x}$ (evaluations of variables of $\tup x$ in $V(G)$, $R=V(G)^{\tup y}$ (same for $\tup y$), and for $\tup a\in V(G)^{\tup x}$ and $\tup b\in V(G)^{\tup y}$, we put $\tup a\tup b \in F$ iff $\phi(\tup a,\tup b)$ holds in $G$.
+A \emph{semi-ladder} of order $\ell$ in $\varphi(G)$ is a pair of sequences $\tup a_1,\ldots,\tup a_\ell\in A$ and $\tup b_1,\ldots,\tup b_\ell\in B$ such that $a_ib_i\notin F$ for all $i\in [\ell]$ and $a_ib_j\in F$ for all $i,j\in [\ell]$ with $i<j$. The \emph{semi-ladder index} of $\phi(G)$ is the largest order of a semi-ladder in $\phi(G)$, and the \emph{semi-ladder index} of a formula $\phi(\tup x,\tup y)$ on a graph class $\Cc$ is defined as the supremum of the semi-ladder indices of graphs $\phi(G)$, for $G\in\Cc$.
+
+In this notation, the quantity $\sli_r(\Cc)$ is equal to the semi-ladder index on $\Cc$ of the formula $\delta_r(x,y)$ that verifies whether $x$ and $y$ are at distance at most $r$. \cite[Lemma~5]{Fabianski2018arxiv} then says that the semi-ladder index of the formula $\delta^k_r(\tup x,y)=\bigvee_{i=1}^k \delta_r(x_i,y)$, which checks whether the $k$-tuple of vertices $\tup x$ distance-$r$ dominates $y$, has semi-ladder index smaller than $k^\ell$, where $\ell$ is the semi-ladder index of $\delta_r(x,y)$. With this, \cite[Corollary~13]{Fabianski2018arxiv} asserts that $k^\ell-1$ is an upper bound on the number of iterations executed by the semi-ladder algorithm.
 \end{proof}
+
+%For our purposes, the formula $\phi(u,v)$ considered in \cite[Lemma~5]{Fabianski2018arxiv} is logically equivalent to $u$ being at distance at most $r$ from $v$. A distance-$r$ semi-ladder in $G$ precisely corresponds to semi-ladder in $\varphi(G)$. The formula $\psi$ extends $\varphi$ to accept
+%$k$-touples as the first argument, in a way that $\psi(\bar{u},v)$ is logically equivalent to $v$ being at distance at most $r$ in $G$ from some vertex of $\bar{u}$, i.e., $v$ being $r$-dominated by $\bar{u}$. The precise statement  of Lemma 5 is that if the semi-ladder index of $\varphi(G)$ (the maximum size of a semi-ladder contained in $\varphi(G)$) is at most $l$, then semi-ladder index of $\psi(G)$ is at most $k^{l-1}$. Then Lemma~24 claims that this is also the number of rounds of the semi-ladder algorithm.
 
 Note here that if the algorithm performs at most $\ell\coloneqq k^{\sli_r(\Cc)}$ iterations in total, then all the calls to the $\candidate{W,r,k}$ oracle are applied only to sets $W$ of size at most $\ell$.
 

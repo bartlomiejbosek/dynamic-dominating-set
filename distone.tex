@@ -1,4 +1,4 @@
-\section{Distance-\texorpdfstring{$1$}{1} domination}\label{sec:distone}
+\section{Distance-\texorpdfstring{$1$}{1} domination in degenerate graphs}\label{sec:distone}
 
 In this section we give a simpler data structure for \textsc{Dominating Set} for the distance-$1$ case, that is, we prove \cref{thm:main-domset-deg}. For this purpose, we give a simpler and more efficient implementation of data structures supporting queries $\near{S,1}$ and $\far{S,1}$ under the assumption that the maintained graph is $d$-degenerate. These data structures are new; they are not merely specializations of the bounded-expansion constructions from \cref{sec:implementation}. 
 
@@ -198,7 +198,7 @@ If $v\in U_1(S)$, then $v\in \bigcup_{s\in S}N^+(s)$.
 And if $v\in U_2(S)$, then $|S|\leq \Delta$ due to $S\subseteq N^+(v)$, and \cref{lem:distone-U2-bucket} yields $v\in B(S)$.
 \end{proof}
 
-\subsection{Data structure for \texorpdfstring{$\near{S,1}$}{near(S,1)}}\label{sec:distone-near}
+\subsection{Detecting near vertices}\label{sec:distone-near}
 
 %\paragraph{The data structure \texorpdfstring{$\nearVertexDS{G}{k,1}$}{NearVertex[1,n]}.}
 
@@ -324,7 +324,7 @@ The total query time is therefore $\Oh(|S| + |S|^2\log n + d|S|\log n + d|S|^2\l
 For the space bound, Lemma~\ref{lem:infra-update} gives $\Oh(nd\cdot 2^{4d})$ words for the unique toolkit instance, and the structure stores no additional persistent fields.
 \end{comment}
 
-\subsection{Data structure for \texorpdfstring{$\far{S,1}$}{far(S,1)}}\label{sec:distone-far}
+\subsection{Detecting far vertices}\label{sec:distone-far}
 
 In this section we give a data structure for the $\far{S,1}$ queries. Similarly to the reasoning presented in \cref{sec:far-be}, the idea is to first give a data structure that maintains weighted sums over vertices outside of $N[S]$ (this part is entirely deterministic), and then lift it to an example-reporting data structure using \cref{lem:restore-by-sampling}. Therefore, our first goal is to prove the following.
 
