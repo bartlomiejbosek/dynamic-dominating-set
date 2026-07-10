@@ -48,7 +48,7 @@ The definitions of homomorphisms and (induced) subgraphs isomorphisms can be nat
 
 \paragraph*{Relational structures.} We use the standard notion of relational structures considered in finite model theory. A \emph{signature} is a finite set $\Sigma$ of relation names, with each relation name $R\in \Sigma$ having a prescribed \emph{arity} $\ar(R)\in \N$. A \emph{$\Sigma$-structure} $\Af$ consists of a finite universe $U=U(\Af)$ and, for every relation name $R\in \Sigma$, its \emph{interpretation} $R^\Af\subseteq U^{\ar(R)}$. 
 
-Here are some examples of modelling (variations of) graphs as relational structures, which will be used in this paper.
+Here are some examples of modeling (variations of) graphs as relational structures, which will be used in this paper.
 \begin{itemize}
 	\item An undirected graph $G$ is modelled as a $\Sigma$-structure whose universe is the vertex set $U=V(G)$, and $\Sigma=\{ R \}$ consists of a single binary (arity-$2$) relation $R$ that is always irreflexive and symmetric. We let $(u,v),(v,u) \in R$ iff $\{u,v\} \in E(G)$.  To model directed graphs, we drop the symmetricity requirement.
 	\item For a finite set of colors $C$, a \emph{$C$-colored graph} is an undirected graph $G$ together with a function $\mathrm{col}\colon E(G)\to C$ assigning every edge its color. We model $C$-colored graph $G$ by letting the universe be the vertex set, $U=V(G)$, and making $\Sigma$ consist of $|C|$ relational symbols, one for each color, $\Sigma = \{ R_c  \colon c \in C\}$.
