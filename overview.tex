@@ -189,17 +189,17 @@ So from now on we assume that we maintain the augmentation $\vec G_r$ in our dat
 		\draw[->, very thick, blue] (z13) edge[bend right] (z10);
 		\draw[->, very thick, blue] (z10) edge[bend right] (z8);
 		
-		\node at (0,-0.5) {$s=w_{\alpha_0}$};
+		\node at (0,-0.5) {$a=w_{\alpha_0}$};
 		\node at (3,-0.5) {$w_{\alpha_1}$};
 		\node at (5,-0.5) {$w_{\alpha_2}$};
 		\node at (6,-0.5) {$w_{\alpha_3}$};
 		\node at (8,-0.5) {$w_{\alpha_4}=w_{\beta_3}$};
 		\node at (10,-0.5) {$w_{\beta_2}$};
 		\node at (13,-0.5) {$w_{\beta_1}$};
-		\node at (15,-0.5) {$w_{\beta_0}=u$};
+		\node at (15,-0.5) {$w_{\beta_0}=b$};
 		
 	\end{tikzpicture}
-	\caption{An $s$-$u$-path with a shortcut. The directed paths $Q,R$ of the shortcut are resp. red and blue.}\label{fig:shortcut}
+	\caption{An $a$-$b$-path with a shortcut. The directed paths $Q,R$ of the shortcut are resp. red and blue.}\label{fig:shortcut}
 \end{figure}
 
 
@@ -223,6 +223,8 @@ Based on the above discussion, the following is now clear.
 		\item In $\vec G^r$, there exists a shortcut between $a$ and $b$ with some pattern $\pi\in \Pi$.
 	\end{itemize}
 \end{claim}
+
+We remark that the concept of path shortcuts in the context of fraternal augmentations that we describe above actually dates back to the 2006 work of Kowalik and Kurowski~\cite{KowalikK06}.
 
 \paragraph*{Counting far vertices.} We may now come back to our initial goal of maintaining the cardinality of the set $V_\fr$, which consists of vertices $u$ with $\dist(s,u)>r$. For a vertex $u$ and a pattern $\pi\in \Pi$, call $\pi$ \emph{realized} at $u$ if in $\vec G_r$ there is a shortcut between $s$ and $u$ with pattern $\pi$. By \cref{cl:overview-shortcuts}, $V_\fr$ consists of those vertices $u$ at which no pattern of $\Pi$ is realized. Now, if for $\Gamma\subseteq \Pi$ we define $V_\Gamma$ as the set of those $u\in V(G)$ at which all the patterns of $\Gamma$ are realized, then by the Inclusion-Exclusion principle, we have
 \[|V_\fr|=\sum_{\Gamma\subseteq \Pi} (-1)^{|\Gamma|}\cdot |V_\Gamma|.\]

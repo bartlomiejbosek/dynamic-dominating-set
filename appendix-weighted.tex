@@ -2,7 +2,7 @@
 
 %\wninline{Poprzeglądać te sekcję w kwestii jakichś spójności itd, bo się tym za bardzo nie przejmowałem. Zdaje się, że trzeba dodać założenie o spójności do AHom i WHom i do dowodu WSub dodać przypadek, że H jest niespójny (i wtedy homomorfizmy się mnożą)}
 
-The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. Incorporating weights into it requires closely following the original proof and plugging weights wherever required. The original proof goes through a number of reductions --- reducing counting induced subgraph isomorphisms to counting subgraph isomorphisms, reducing counting subgraph isomorphisms to counting homomorphisms, reducing counting homomorphisms to counting homomorphisms from an elder graph, and finally solving that last problem in a dynamic setting. In this section we are going to outline that process in reverse, explaining how to add weights in all necessary places.
+The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. (Note that~\cite{DvorakT13} is the conference version of this work, throughout this section we will mostly rely on the full version available on arXiv~\cite{DvorakTumaArxiv}.) Incorporating weights into it requires closely following the original proof and plugging weights wherever required. The original proof goes through a number of reductions --- reducing counting induced subgraph isomorphisms to counting subgraph isomorphisms, reducing counting subgraph isomorphisms to counting homomorphisms, reducing counting homomorphisms to counting homomorphisms from an elder graph, and finally solving that last problem in a dynamic setting. In this section we are going to outline that process in reverse, explaining how to add weights in all necessary~places.
 
 \subsection{Counting weighted augmented homomorphisms}
 
@@ -39,7 +39,7 @@ Before proceeding with the rest of the proof, we are going to recall an importan
 	Let $F''$ be the directed graph with edges colored by $\{0, 1, \ldots, k\}$, such that $V(F'') = P$ and $(p_1, p_2) \in E(F'')$ if and only if $(v_1, v_2) \in E(F')$ for some $v_1 \in p_1$ and $v_2 \in p_2$; and in this case, $(p_1, p_2)$ and $(v_1, v_2)$ have the same color. That is, $F''$ is obtained from $F'$ by identifying the vertices in each part of $P$ and suppressing the parallel edges and loops, and we also remember which vertices of $F'$ correspond to each vertex of $F''$. We say that $F''$ is a \textit{$0$-contraction} of $F'$.
 \end{definition}
 
-We also recall the rephrased version of maintaining iterated fraternal augmentations from the original work \cite{DvorakTumaArxiv}:
+We also recall the rephrased version of maintaining iterated fraternal augmentations from~\cite{DvorakTumaArxiv}:
 \begin{theorem}[{\cite[Theorem 4]{DvorakTumaArxiv}}] \label{thm:maintaining-augmentation}
 	Let $\Cc$ be a graph class of bounded expansion and $h \in \N$. For a graph $G$, let its \emph{$h$-th augmentation} be any directed graph obtained by taking any orientation $\vec G$ of $G$ and iterating fraternal augmentation on it $h$ times. There exists $C \in \N$ dependent only on $\Cc$ and $k$ such that there is a data structure maintaining some $h$-th augmentation $\tilde{G}_h$ of a dynamic graph $G \in \Cc$ such that:
 	\begin{itemize}
@@ -75,7 +75,7 @@ With the above statement, we are able to conclude the following lemma:
 
 \begin{lemma} \label{lem:weighted-hom}
 	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$ that is able to determine $\val_\wei(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
-	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$,  where $h = {|H| \choose 2} - 1$, it is initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\michal{init?}
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$,  where $h = {|H| \choose 2} - 1$, it can be initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time and its space complexity is~$\Oh_{\G, H, k}(|G|)$.%\michal{init?}
 	%If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
@@ -145,7 +145,7 @@ Based on this, we are able to conclude the last required statement:
 \begin{lemma} \label{lem:weighted-isub-to-sub}
 	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedIndSub}_{H, k, \wei}(G)$, which is able to determine $\val_\wei(\ISub(H, G))$ after each update.
 %	If $\G$ is a class of bounded expansion, then
-	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$, it is initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time, and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\todo{init}
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$, it can be initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time, and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\todo{init}
 %	If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 \begin{proof}
