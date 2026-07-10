@@ -110,12 +110,22 @@ We aim to show that in any class $\Cc$ of bounded expansion, faithful augmentati
 In preparation for the description of the data structure maintaining the faithful augmentation, let us describe a sequence of graph classes of bounded expansion. Let $\Cc$ be a graph class of bounded expansion. We define a sequence of graph classes $\Cc_1, \ldots, \Cc_r$ inductively in the following way:
 \begin{itemize}
 	\item $\Cc_1 \coloneqq \Cc$; and
-	\item for $i\in [r-1]$, we set $\Cc_{i+1} \coloneqq \Fra(\Cc_i, 4 \cdot i \cdot \nabla_0(\Cc_i))$.
+	\item for $i\in [r-1]$, we set $\Cc_{i+1} \coloneqq \Fra(\Cc_i, 4 \cdot i \cdot d_i)$ for some chosen constants $d_i \geq \nabla_0(\Cc_i)$.
 	%. that stems from the unraveled proof of \cref{lem:fraternal}, which can be applied here as it is easily seen that based on \cref{lem:fraternal} each $\Cc_i$ is a class of graphs of bounded expansion.
 \end{itemize}
-Note that a straightforward induction using \cref{lem:fraternal} shows that the consecutive classes $\Cc_1,\Cc_2,\Cc_3,\ldots$ have bounded expansion, hence $\nabla_0(\Cc_i)$ is finite and can be used to define $\Cc_{i+1}$. We also note that the proof of \cref{lem:fraternal} is effective and gives a computable upper bounds on the parameters $\nabla_r(\Fra(\Cc_i,d))$ based on $d$ and the parameters $\nabla_r(\Cc)$.
+Note that a straightforward induction using \cref{lem:fraternal} shows that the consecutive classes $\Cc_1,\Cc_2,\Cc_3,\ldots$ have bounded expansion, hence $\nabla_0(\Cc_i)$ is finite and can be used to define $\Cc_{i+1}$.
+
+Our data structure then needs access to parameters $d_1,\ldots , d_n$
+to maintain orientations on $r$ levels of fraternal augmentations using
+the data structure of Brodal and Fagerberg (Theorem~\ref{thm:bf}).
+We note that given parameters
+$\nabla_0(\Cc),\nabla_1(\Cc),\nabla_2(\Cc),\ldots$, we can compute the
+upper bounds $d_1\le d_2\leq \ldots\le d_r$ on
+$\nabla_0(\Cc_1)\le \nabla_0(\Cc_2)\leq \ldots \leq \nabla_0(\Cc_r)$.
+This is because
+the proof of \cref{lem:fraternal} is effective and
+gives computable upper bounds on the parameters $\nabla_r(\Fra(\Cc_i,d))$ based on $d$ and the parameters $\nabla_r(\Cc)$.
  %\wninline{Chyba ,,on the parameters $\nabla_0(\Fra(\Cc_i, d))$'', a nie $\nabla_r(\Fra(\Cc,d))$, tak?}
-Hence, if we are given access to the values of parameters $\nabla_0(\Cc),\nabla_1(\Cc),\nabla_2(\Cc),\ldots$, then in the construction we can compute a sequence of finite upper bounds $d_1\le d_2\leq \ldots\le d_r$ on $\nabla_0(\Cc_1)\le \nabla_0(\Cc_2)\leq \ldots \leq \nabla_0(\Cc_r)$, and to define $\Cc_{i+1}$ use the upper bound $d_i$ instead of $\nabla_0(\Cc_i)$.
 
 %Additionally, note that we can assume that $d_1 \le d_2 \le \ldots \le d_r$ and that the values of $d_i$ can be effectively computed given access to the values of the function bounding the expansion of $\Cc$. 
 With that, let us state the main lemma of this section.
@@ -144,14 +154,21 @@ With that, let us state the main lemma of this section.
 
 
 \begin{proof} %[Proof of \cref{lem:dyn-augmentation}]
-	For $i\in [r]$, we denote $d_i\coloneqq \nabla_0(\Cc_i)$. Thus, every graph in $\Cc_i$ admits an orientation with maximum outdegree at most $d_i$.
+	Since $d_i \geq \nabla_0(\Cc_i)$ for $i \in [r]$, every graph in $\Cc_i$ admits an orientation with maximum outdegree at most $d_i$.
+	Moreover, knowing $d_i$, we can efficiently maintain this orientation.
 %	\wninline{Noooo, nie. Brodal potrzebuje znać te upper boundy, stąd ta cała zabawa w definiowanie tych klas używając tych upper boundów $d_i$ zamiast nieznanych mi dokładnie $\nabla_0(\Cc_i)$. Zakładałem, że te $d_i$ w tym dowodzie to te same co zdefiniowane tuż przed postawieniem lematu.}
 %	\michalin{Sformułowania twierdzeń pozwalają na robienie non-uniform, więc te stałe mogą być whardkodowane.}
 	
 	For each $i\in [r]$,
 	let us define dynamic graphs $G_i, G_i', D_i$ and $D_i'$, all on the same vertex set $V(G)$. All of them are going to be $r$-decorated, except for $D_r$, which will be $(\Lambda, r)$-decorated. The graphs $G_i$ and $G_i'$ will be undirected, while $D_i$ and $D_i'$ will be orientations of $G_i$ and $G_i'$, respectively. For convenience, we also define $G_0$ and $D_0$ to be edgeless graphs on the same vertex set too. We set $G_1' \coloneqq G$, where $\length_{G_1'}(e) \coloneqq 1$ for each $e \in E(G_1')$. The graphs $G_1', \ldots, G_r'$ will be edge-disjoint, so we can inductively define $G_1,\ldots,G_r$ and $D_1,\ldots,D_r$ from $G_1', \ldots, G_r'$ and $D_1', \ldots, D_r'$ by setting \[G_i \coloneqq G_{i-1} \cup G_i'\qquad\textrm{and}\qquad D_i \coloneqq D_{i-1} \cup D_i'.\] We want to maintain that $D_i'$ is a $4d_i$-orientation of $G_i'$. Consequently, $D_i$ will have maximum outdegree at most $\Delta_i \coloneqq 4(d_1+\ldots+d_i)$. Note that $\Delta_i \le 4 \cdot i \cdot d_i$. From the construction it will become apparent that $G_i' \in \Cc_i$, which is why a $4d_i$-orientation of $G_i'$ exists and can be effectively maintained using the data structure of \cref{thm:bf}.
 	
-	We now inductively define the graphs $G_2',\ldots,G'_r,D_1',\ldots,D_r'$. To define $G_{i+1}'$ for $i\in [r-1]$, consider a triple of distinct vertices $u, v, w \in V(G)$ such that $(w, u), (w, v) \in E(D_i)$, $uv \not\in G_i$ and $\length_{D_i}(w, u) + \length_{D_i}(w, v) =i+1$. For each such triple, we add the edge $uv$ to $G_{i+1}'$ and there are no other edges in $G_{i+1}'$. Note that this specification ensures that $G_{i+1}'$ will be edge-disjoint from $G_1', \ldots, G_i'$, as desired. Also note that $G_{i+1}$ defined in this way belongs to $\Fra(G_i, \Delta_i)$, so if $G_i \in \Cc_i$ and $\Delta_i \le 4 \cdot i \cdot d_i$, we have that $G_{i+1} \in \Cc_{i+1}$, as desired. Then $D_{i+1}'$ is a $4d_{i+1}$-orientation of $G_{i+1}'$, which will be eventually maintained using the data structure of \cref{thm:bf}. %\michal{Czy krawędź w $R_{i+1}$ może zmniejszyć swoją długość, jeśli okaże się, że jest podparta czymś krótszym?}
+	We now inductively define the graphs
+	$G_2',\ldots,G'_r,D_1',\ldots,D_r'$.
+	To define $G_{i+1}'$ for $i\in [r-1]$, consider a triple of distinct
+	vertices $u, v, w \in V(G)$ such that
+	$(w, u), (w, v) \in E(D_i)$, $uv \not\in G_i$ and
+	$\length_{D_i}(w, u) + \length_{D_i}(w, v) =i+1$. For each such triple,
+	we add the edge $uv$ to $G_{i+1}'$ with $\length_{G_{i+1}'}(u,v)=i+1$ and there are no other edges in $G_{i+1}'$. Note that this specification ensures that $G_{i+1}'$ will be edge-disjoint from $G_1', \ldots, G_i'$, as desired. Also note that $G_{i+1}$ defined in this way belongs to $\Fra(G_i, \Delta_i)$, so if $G_i \in \Cc_i$ and $\Delta_i \le 4 \cdot i \cdot d_i$, we have that $G_{i+1} \in \Cc_{i+1}$, as desired. Then $D_{i+1}'$ is a $4d_{i+1}$-orientation of $G_{i+1}'$, which will be eventually maintained using the data structure of \cref{thm:bf}. %\michal{Czy krawędź w $R_{i+1}$ może zmniejszyć swoją długość, jeśli okaże się, że jest podparta czymś krótszym?}
 	Note that such definition ensures that $\dist_{G_{i+1}}(u,v)\leq \length_{D_{i+1}}(u,v)$, which is easily seen through an induction argument. That concludes the definitions of $G_i, G_i', D_i$ and $D_i'$. The resulting $D_r$ will be our faithful $(\Lambda, r)$-augmentation of $G$ (for some $\Lambda$ to be defined later).
 %	\michal{What is $\Lambda$?}
 	
@@ -168,7 +185,8 @@ With that, let us state the main lemma of this section.
 	We now show how to effectively maintain the constructed graphs.
 	
 	\begin{claim}\label{cl:maintain}
-		The graphs $G_i, G_i', D_i$ and $D_i'$ can all be maintained with amortized update time bounded by $\Oh_r(\log^{r-1}n \Delta_1 \Delta_2 \ldots \Delta_r)$ per edge addition or removal in $G$. Moreover, every update to $G$ triggers that many updates to $G_i, G_i', D_i$, and $D_i'$ in the amortized sense.
+		The graphs $G_i, G_i', D_i$ and $D_i'$ can all be maintained
+		with amortized update time bounded by $\Oh_r(\log^{r-1}n \cdot \Delta_1 \Delta_2 \ldots \Delta_r)$ per edge addition or removal in $G$. Moreover, every update to $G$ triggers that many updates to $G_i, G_i', D_i$, and $D_i'$ in the amortized sense.
 	\end{claim}
 	
 	\begin{claimproof}
@@ -194,7 +212,9 @@ With that, let us state the main lemma of this section.
 	\begin{proof}
 		Let us say that an edge $e \in G_r$ is \emph{useful} if it is of the form $u_{i}u_{j}$ and $\length_{G_r}(e) \le |j-i|$. 
 		
-		Let us take a subset $S=\{s_0, \ldots, s_c\} \subseteq \{0, \ldots, r'\}$ of smallest possible size such that $s_0=0, s_c=r$ and for each $0 \le i \le c-1$ we have that $u_{s_i}u_{s_{i+1}}$ is a useful edge. There exists at least one feasible subset $S$ with that property as $\{0, \ldots, r'\}$ clearly fulfills the condition. We claim that these edges form a shortcut of $P$ in $D_r$.
+		Let us take a subset
+		$S=\{s_0, \ldots, s_c\} \subseteq \{0, \ldots, r'\}$ of smallest
+		possible size such that $s_0=0, s_c=r'$ and for each $0 \le i \le c-1$ we have that $u_{s_i}u_{s_{i+1}}$ is a useful edge. There exists at least one feasible subset $S$ with that property as $\{0, \ldots, r'\}$ clearly fulfills the condition. We claim that these edges form a shortcut of $P$ in $D_r$.
 		
 		Let us assume that this is not the case. Then, there exists $1 \le i \le c-1$ such that both $s_{i}s_{i-1}$ and $s_is_{i+1}$ are directed outwards from $s_i$. We have that $\length_{D_r}(s_i, s_{i+1}) \le s_{i+1}-s_i$ and $\length_{D_r}(s_i, s_{i-1}) \le s_i - s_{i-1}$, so $L \coloneqq \length_{D_r}(s_i, s_{i+1})+\length_{D_r}(s_i, s_{i-1}) \le s_{i+1}-s_{i-1} \le r$.
 	Hence, the graph $G_L$ is defined and at the moment of constructing it, we put the edge $s_{i-1}s_{i+1}$ into it, unless it was already present in $G_{L-1}$. In either case, we have that $\length_{G_r}(s_{i-1}s_{i+1}) \le L \le s_{i+1}-s_{i-1}$, so it is a useful edge as well, contradicting the minimality of $S$. 
@@ -218,7 +238,7 @@ We now move on to the implementation of the $\farVertexDS{G}{r,k,\eps}$ data str
 	The amortized time complexity of updates and queries is $\log^{\Oh_{\Cc,r,k}(1)} n\cdot \log \tfrac{1}{\eps}$. The data structure can be initialized for an edgeless $G$ in time $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$, and it uses $\Oh_{\Cc,r,k}(n\log n\log \tfrac{1}{\eps})$ space at all times.
 \end{theorem}
 
-The following statement follows from \cref{thm:homcounts-relational}.\michal{Make sure this is true and proved.}
+The following statement follows from \cref{thm:homcounts-relational}.%\michal{Make sure this is true and proved.}
 
 \begin{lemma}\label{lem:dyn-rooted-homs}
 	Fix a graph class $\Cc$ of bounded expansion, a finite set of labels $\Lambda$, $r\in \N$, and a rooted $(\Lambda,r)$-oriented graph $\rt{H}{x,y}$. Let $D$ be a dynamic $(\Lambda,r)$-oriented graph on $n$ vertices whose underlying undirected graph belongs at all times to $\Cc$. Further, let $u$ be a fixed vertex of $D$ and $\wei\colon V(D)\to \Z$ be a weight function; these do not change over time. Then there exists a data structure that maintains the value
@@ -286,7 +306,7 @@ The next lemma is the combinatorial core of our approach. We show that using the
 		\end{itemize}
 		Note that $\rt{H_\pi}{x,y}$ is anchored and has at most $r-1$ vertices apart from $x$ and $y$. 
 		
-		Now, $\rt{H_\Gamma}{x,y}$ can be obtained by taking the disjoint union of graphs $\rt{H_\pi}{x,y}$ for all $\pi\in \Gamma$ and identifying all their vertices $x$ into a single vertex $x$, and similarly for $y$. It is straightforward to see that $\rt{H_\Gamma}{x,y}$ constructed in this way has the desired properties.
+		Now, $\rt{H_\Gamma}{x,y}$ can be obtained by taking the disjoint union of graphs $\rt{H_\pi}{x,y}$ for all $\pi\in \Gamma$ and identifying all their vertices $x$ into a single vertex $x$, and similarly for $y$ (see Figure~\ref{fig:HGamma} for the reference). It is straightforward to see that $\rt{H_\Gamma}{x,y}$ constructed in this way has the desired properties.
 	\end{claimproof}
 	
 	For $\Gamma\subseteq \Pi$, let $V_\Gamma$ be the set of those vertices $v$ of $G$ for which every pattern of $\Gamma$ is realized in $\rt{D}{u,v}$. Also, let $V_\mathsf{far}$ be the set of vertices $v\in V(G)$ satisfying $\dist_G(u,v)>r$. By \cref{cl:dist-pattern}, $V_\mathsf{far}$ can be equivalently defined the set of those vertices $v$ for which none of the patterns of $\Pi$ is realized in $\rt{D}{u,v}$. Therefore, by the Inclusion--Exclusion Principle,
