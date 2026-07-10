@@ -2,16 +2,17 @@
 
 %\wninline{Poprzeglądać te sekcję w kwestii jakichś spójności itd, bo się tym za bardzo nie przejmowałem. Zdaje się, że trzeba dodać założenie o spójności do AHom i WHom i do dowodu WSub dodać przypadek, że H jest niespójny (i wtedy homomorfizmy się mnożą)}
 
-The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. Incorporating weights into it requires closely following the original proof and plugging weights wherever required. In this section we are going to outline that process step by step.
+The proof of \cref{lem:weighted-dvorak} is heavily based on the proof of its original unweighted version from \cite{DvorakTumaArxiv}. Incorporating weights into it requires closely following the original proof and plugging weights wherever required. The original proof goes through a number of reductions --- reducing counting induced subgraph isomorphisms to counting subgraph isomorphisms, reducing counting subgraph isomorphisms to counting homomorphisms, reducing counting homomorphisms to counting homomorphisms from an elder graph, and finally solving that last problem in a dynamic setting. In this section we are going to outline that process in reverse, explaining how to add weights in all necessary places.
 
 \subsection{Counting weighted augmented homomorphisms}
 
-In \cite[Theorem~14]{DvorakTumaArxiv} Dvo\v{r}\'ak and T\r{u}ma prove that for a fixed directed connected elder graph $H$ and dynamic directed graph $G$ with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$, it is possible to maintain the number of homomorphisms from $H$ to $G$ in $\Oh(f(|H|, D))$ time complexity per update.\michal{Co to jest $f$? Gdzie tu są logi? Czy to jest amortized?} A directed graph $H$ is called an \textit{elder graph} if it has the property that $(u, w), (v, w) \in E(H)$ imply that $u$ and $v$ are adjacent as well, that is, either $(u, v) \in E(H)$ or $(v, u) \in E(H)$.
+In \cite[Theorem~14]{DvorakTumaArxiv} Dvo\v{r}\'ak and T\r{u}ma prove that for a fixed directed connected elder graph $H$ and dynamic directed graph $G$ with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$, it is possible to maintain the number of homomorphisms from $H$ to $G$ in $\Oh(f(|H|, D))$ time complexity per update, for some function $f$. It will turn out that the value of $D$ in our application will be $\Oh_\Cc(1)$, so $f(|H|, D) = \Oh_{\Cc, H}(1)$. %\michal{Co to jest $f$? Gdzie tu są logi? Czy to jest amortized?} 
+A directed graph $H$ is called an \textit{elder graph} if it has the property that $(u, w), (v, w) \in E(H)$ imply that $u$ and $v$ are adjacent as well, that is, either $(u, v) \in E(H)$ or $(v, u) \in E(H)$.
 
 We generalize their statement to the following weighted version:
 
 \begin{lemma} \label{lem:weighted-ahom}
-	Let $D$ be an integer, $H$ be a fixed directed connected elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $\wei \colon V(H) \times V(G) \to \Z$ is a fixed weight function. There exists a data structure $\mathsf{WeightedAHom}_{H, k, D, \wei}(G)$ that maintains $\val_\wei(\Hom(H, G))$. Each update to the data structure takes $f(|H|, D)$ time complexity and the space complexity of is $\Oh(f(|H|, D) \cdot |G|)$ for some function $f$.\michal{init?}
+	Let $D$ be an integer, $H$ be a fixed directed connected elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $\wei \colon V(H) \times V(G) \to \Z$ is a fixed weight function. There exists a data structure $\mathsf{WeightedAHom}_{H, k, D, \wei}(G)$ that maintains $\val_\wei(\Hom(H, G))$. Each update to the data structure takes $f(|H|, D)$ time complexity, it is initialized in $\Oh(n)$ time and the space complexity of it is $\Oh(f(|H|, D) \cdot |G|)$, for some function $f$.%\michal{init?}
 \end{lemma}
 
 \begin{proof}
@@ -48,9 +49,11 @@ We also recall the rephrased version of maintaining iterated fraternal augmentat
 	\end{itemize}
 \end{theorem}
 
+We assume that the edges of non-augmented graphs are colored with colors $\{1, \ldots, k\}$ and edges introduced during the augmentations are colored with a new color $0$.
+
 We say that a graph $G_2$ can be obtained from $G_1$ by \emph{recoloring zeros} if and only if $V(G_1) = V(G_2)$, $E(G_1) = E(G_2)$, however for every edge $(u, v) \in E(G_1)$ such that its colors in $G_1$ and $G_2$ are different, we have that its color in $G_1$ is $0$.
 
-Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all contractions of graphs obtained by recoloring zeros from all possible $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.\michal{Jak są krawędzie pokolorowane w $h$-tej augmentacji?}
+Moreover, for a graph $H$ with edges colored by $\{1, \ldots, k\}$, let $\mathcal{H}^e$ denote the set of all possible $0$-contractions of graphs obtained by recoloring zeros from all possible $h$-th augmentations of $H$, where $h = {|H| \choose 2} - 2$.%\michal{Jak są krawędzie pokolorowane w $h$-tej augmentacji?}
 
 Dvo\v{r}\'ak and T\r{u}ma prove the following:
 
