@@ -12,7 +12,7 @@ A directed graph $H$ is called an \textit{elder graph} if it has the property th
 We generalize their statement to the following weighted version:
 
 \begin{lemma} \label{lem:weighted-ahom}
-	Let $D$ be an integer, $H$ be a fixed directed connected elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $\wei \colon V(H) \times V(G) \to \Z$ is a fixed weight function. There exists a data structure $\mathsf{WeightedAHom}_{H, k, D, \wei}(G)$ that maintains $\val_\wei(\Hom(H, G))$. Each update to the data structure takes $f(|H|, D)$ time complexity, it is initialized in $\Oh(n)$ time and the space complexity of it is $\Oh(f(|H|, D) \cdot |G|)$, for some function $f$.%\michal{init?}
+	Let $D$ be an integer, $H$ be a fixed directed connected elder graph, $G$ be a dynamic directed graph with maximum in-degree at most $D$, where both have edges colored by $\{0, 1, \ldots, k\}$ and $\wei \colon V(H) \times V(G) \to \Z$ is a fixed weight function. There exists a data structure $\mathsf{WeightedAHom}_{H, k, D, \wei}(G)$ that maintains $\val_\wei(\Hom(H, G))$. Each update to the data structure takes $f(|H|, D)$ time complexity, it is initialized for an edgeless graph in $\Oh(n)$ time and the space complexity of it is $\Oh(f(|H|, D) \cdot |G|)$, for some function $f$.%\michal{init?}
 \end{lemma}
 
 \begin{proof}
@@ -75,7 +75,7 @@ With the above statement, we are able to conclude the following lemma:
 
 \begin{lemma} \label{lem:weighted-hom}
 	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedHom}_{H, k, \wei}(G)$ that is able to determine $\val_\wei(\Hom(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
-	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\michal{init?}
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$,  where $h = {|H| \choose 2} - 1$, it is initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\michal{init?}
 	%If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
@@ -125,7 +125,7 @@ Armed with this statement, we are able to prove the following:
 
 \begin{lemma}
 	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G\in \Cc$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedSub}_{H, k, \wei}(G)$, which is able to determine $\val_\wei(\Sub(H, G))$ after each update. %If $\G$ is a class of bounded expansion, then
-	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\todo{init?}
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$, it is initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\todo{init?}
 %	If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 
@@ -145,7 +145,7 @@ Based on this, we are able to conclude the last required statement:
 \begin{lemma} \label{lem:weighted-isub-to-sub}
 	Let $H$ be a fixed graph, $\G$ be a class of graphs of bounded expansion, and $G \in \G$ be a dynamic graph, where edges of $H$ and $G$ are colored with colors $\{1, \ldots, k\}$. Let also $\wei \colon V(H) \times V(G) \to \Z$ be a fixed weight function. Then, there exists a data structure $\mathsf{WeightedIndSub}_{H, k, \wei}(G)$, which is able to determine $\val_\wei(\ISub(H, G))$ after each update.
 %	If $\G$ is a class of bounded expansion, then
-	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$ and its space complexity is $\Oh_{\G, H, k}(|G|)$.\todo{init}
+	The data structure processes each update in $\Oh_{\G, H, k}(\log^h |G|)$, where $h = {|H| \choose 2} - 1$, it is initialized for an edgeless graph in $\Oh_{\G, H, k}(|G|)$ time, and its space complexity is $\Oh_{\G, H, k}(|G|)$.%\todo{init}
 %	If $\G$ is a nowhere-dense class, then each update takes $\Oh_{\G, H, k}(|G|^\delta)$ time and its space complexity is $\Oh_{\G, H, k}(|G|^{1 + \delta})$.
 \end{lemma}
 \begin{proof}
