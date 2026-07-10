@@ -384,6 +384,7 @@ We are now in position to implement the data structure for $\far{S,1}$ queries.
 	Note that $f$ is binary, so there is no need to provide a data structure $\Ver_{f}[G]$.
 	
 	We may therefore apply the extended \cref{lem:restore-by-sampling} and obtain the data structure $\RetVer_{f,\eps}[G]$, which may serve as the output data structure $\farVertexDS{G}{\eps}$. The complexity guarantees follow directly from the extended \cref{lem:restore-by-sampling} combined with the guarantees provided by \cref{lem:wei-sums-far-deg}.
+\end{proof}
 	
 	
 %	We first remark that the formulation of \cref{lem:restore-by-sampling} never requires an explicit representation of $f$. The claim works for any implicitly defined $f$, as long as we are able to design a corresponding $\WeiSum_{f, \wei}[G]$ data structure, and possibly $\Ver_{f}[G]$ if needed. Hence, we may consider a generalized version of that statement where we consider a function $f(G, S, v)$ taking one additional argument --- a subset $S \subseteq V(G)$. The data structure $\WeiSum_{f, \wei}[G]$ should be able to additionally take $S$ as an argument to its query and report the quantity $\sum_{v \in V(G)} f(G,S, v)\cdot \wei(v)$.
@@ -397,7 +398,6 @@ We are now in position to implement the data structure for $\far{S,1}$ queries.
 %	
 %	We may therefore apply the extended \cref{lem:restore-by-sampling} and obtain the data structure $\RetVer_{f,\eps}[G]$, which may serve as the output data structure $\farVertexDS{G}{\eps}$. The complexity guarantees follow directly from the extended \cref{lem:restore-by-sampling} combined with the guarantees provided by \cref{lem:wei-sums-far-deg}.
 	
-\end{proof}
 
 
 \subsection{Dynamic domination in degenerate graphs}
