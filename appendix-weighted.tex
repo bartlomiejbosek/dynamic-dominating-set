@@ -138,7 +138,7 @@ is bounded by a function of $|H|$, so we consider it to be a constant. For each 
 
 \subsection{Counting weighted induced subgraph isomorphisms}
 And finally, let us analyze $\val_\wei(\ISub(H, G))$. 
-A direct application of the Inclusion-Exclusion principle shows that \[\val_\wei(\ISub(H, G)) = \sum_{i=0}^{{|H| \choose 2} - ||H||} (-1)^i \sum_{H' \in H(+, i, k)} \val_\wei(\Sub(H', G)),\] where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from~$\{1, \ldots, k\}$.
+A direct application of the Inclusion-Exclusion principle shows that \[\val_\wei(\ISub(H, G)) = \sum_{i=0}^{{|H| \choose 2} - \|H\|} (-1)^i \sum_{H' \in H(+, i, k)} \val_\wei(\Sub(H', G)),\] where $H(+, i, k)$ is the set of all supergraphs of $H$ obtained by adding exactly $i$ new edges and assigning them colors from~$\{1, \ldots, k\}$.
 
 Based on this, we are able to conclude the last required statement:
 
