@@ -180,7 +180,7 @@ Only the sets labelled with endpoints of changed oriented edges are modified, he
 Since the packing component is updated after every modification of $\mathcal{S}_t$, at the end it stores a maximal packing in the updated set system.
 The amortized number of updates to $\mathcal{S}_t$ is $\Oh(\log n)$.
 Each of them touches a set of size at most $4d+1$, hence, by \cref{thm:AS}, it costs an expected amortized time of $\Oh((4d+1)^2)=\Oh(d^2)$.
-Therefore $\add{xy}$ runs in expected amortized time $d^{\O(1)}\cdot \log n$.
+Therefore $\add{xy}$ runs in expected amortized time $d^{\Oh(1)}\cdot \log n$.
 
 \paragraph{Method $\remove{xy}$} is implemented as follows:
 \begin{enumerate}
