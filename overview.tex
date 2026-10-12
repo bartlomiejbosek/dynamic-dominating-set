@@ -25,13 +25,13 @@ See also \cref{thm:ladder-bound,thm:termination} for a more precise formulation,
 
 Consider then the $i$th round of the algorithm. The task in Step~2 boils down to a single application of the following query in $G$, with $S=D_i$ (so $|S|\leq k$):
 \begin{itemize}
-	\item $\far{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)>r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
+	\item $\far{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,s)>r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
 On the other hand, Step~1 can be implemented using at most $k^i$ queries of the following kind, with $|S|<i$:
 %\wninline{To $k^i$ jest trochę konfundujące. Może zmienić jednak na bardziej naturalne $2^i$? Podobnie w lemacie 4.4}
 %\michalin{Mh, słusznie :D. Zaimplementujesz?}
 \begin{itemize}
-	\item $\near{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,S)\leq r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
+	\item $\near{S,r}$: Given a set $S\subseteq V(G)$, find a vertex $v$ such that $\dist(v,s)\leq r$ for all $s\in S$, or return $\bot$ if no such vertex exists.
 \end{itemize}
 Indeed, we may iterate through all the partitions of the set of witnesses $\{w_1,\ldots,w_{i-1}\}$ into $k$ sets, and for each partition $\Pp$, invoke $\near{S,r}$ on each part $S$ of $\Pp$ to verify whether $S$ can be \mbox{distance-$r$} dominated by a single vertex $v_S$. Note that if for some partition $\Pp$ all these checks go through, then $D_i\coloneqq \{v_S\colon S\in \Pp\}$ is a $k$-vertex set that distance-$r$ dominates $\{w_1,\ldots,w_{i-1}\}$; and otherwise, if the checks for all the partitions fail, then $\{w_1,\ldots,w_{i-1}\}$ cannot be distance-$r$ dominated by $k$ vertices. There are at most $k^{i-1}$ partitions to check, and checking each requires $k$ applications of the $\near{S,r}$~query.
 
@@ -206,8 +206,8 @@ So from now on we assume that we maintain the augmentation $\vec G_r$ in our dat
 \paragraph*{Shortcuts.}
 Suppose now that in $G$ we have two vertices $a$ and $b$ that can be connected by a path $P=(a=w_0,w_1,\ldots,w_{r'}=b)$ of some length $r'\leq r$. If we trace what happens with $P$ during the consecutive augmentations, then it is not hard to see that in $\vec G_r$, $P$ will have an oriented ``shortcut'' consisting of:
 \begin{itemize}
-	\item a directed path $Q$ of the form $w_{\alpha_0}\to w_{\alpha_1}\to \ldots \to w_{\alpha_p}$, where $0=\alpha_1<\alpha_2<\ldots<\alpha_p$, so that each edge $(w_{\alpha_j},w_{\alpha_{j+1}})$ has length at most $\alpha_{j+1}-\alpha_j$; and
-	\item a directed path $R$ of the form $w_{\beta_0}\to w_{\beta_1}\to \ldots \to w_{\beta_q}$, where $r'=\beta_1>\beta_2>\ldots>\beta_q=\alpha_p$, so that each edge $(w_{\beta_j},w_{\beta_{j+1}})$ has length at most $\beta_j-\beta_{j+1}$.
+	\item a directed path $Q$ of the form $w_{\alpha_0}\to w_{\alpha_1}\to \ldots \to w_{\alpha_p}$, where $0=\alpha_0<\alpha_1<\ldots<\alpha_p$, so that each edge $(w_{\alpha_j},w_{\alpha_{j+1}})$ has length at most $\alpha_{j+1}-\alpha_j$; and
+	\item a directed path $R$ of the form $w_{\beta_0}\to w_{\beta_1}\to \ldots \to w_{\beta_q}$, where $r'=\beta_0>\beta_1>\ldots>\beta_q=\alpha_p$, so that each edge $(w_{\beta_j},w_{\beta_{j+1}})$ has length at most $\beta_j-\beta_{j+1}$.
 \end{itemize}
 See \cref{fig:shortcut}. If we now record the lengths and the labels of the consecutive edges of the shortcut paths $Q$ and $R$, we obtain two sequences of pairs from $\{1,\ldots,d\}\times \{1,\ldots,r\}$ such that the sum of all the second coordinates is at most $r$; we call such a pair of sequences the \emph{pattern} of a shortcut. At this point, two observations are crucial:
 \begin{enumerate}[label=(O\arabic*)]
