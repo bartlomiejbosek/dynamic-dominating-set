@@ -1,0 +1,350 @@
+\documentclass[twoside,leqno]{article}
+\usepackage[letterpaper]{geometry}
+\makeatletter
+\def\input@path{{./}{soda/}}
+\makeatother
+\usepackage{siamproceedings}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+%\usepackage{authblk}
+\usepackage{tabularx}
+\usepackage{mdframed}
+% SIAM supplies the default 10pt font, amsmath, and ntheorem.
+\DeclareMathOperator{\symdiff}{\triangle}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{mathrsfs} 
+\usepackage{mathtools}
+\usepackage{thm-restate}
+% hyperref and cleveref are configured by siamproceedings.
+\usepackage{url}
+\usepackage{todonotes}
+\usepackage{mathrsfs} 
+\usepackage{soul}
+\usepackage{relsize}
+%\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage[all,defaultlines=3]{nowidow}
+\usepackage[mathlines]{lineno}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{lineno}
+\usepackage{nicefrac}
+\usepackage{wasysym}
+\usepackage{comment}
+%\usepackage{bbold}
+%\linenumbers
+\usepackage[algo2e,linesnumbered,ruled]{algorithm2e}
+% Preserve algorithm2e despite SIAM loading the algorithm package.
+\expandafter\let\expandafter\algorithm\csname algorithm2e\endcsname
+\expandafter\let\expandafter\endalgorithm\csname endalgorithm2e\endcsname
+\usepackage{textpos}
+\setlist[itemize]{topsep=4pt,itemsep=3pt,parsep=0pt} 
+\setlist[enumerate]{topsep=4pt,itemsep=3pt,parsep=0pt} 
+ %\linenumbers
+
+
+\usetikzlibrary{decorations.markings}
+
+\crefname{algocf}{Algorithm}{Algorithms}
+\crefname{claim}{Claim}{Claims}
+\crefname{figure}{Figure}{Figures}
+\renewcommand{\preceq}{\preccurlyeq}
+\renewcommand{\succeq}{\succcurlyeq}
+\renewcommand{\subset}{\subseteq}
+% SIAM supplies theorem, lemma, corollary, proposition and definition.
+% Preserve the manuscript's shared section counter and independent counters.
+\renewtheorem*{theorem*}{Theorem}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{remark}{Remark}
+\newsiamthm{observation}{Observation}
+\newtheorem{case}{Case}
+\newsiamthm{claim}{Claim}
+\newsiamthm{fact}{Fact}
+\newtheorem{property}{Property}
+\theorembodyfont{\normalfont}
+\renewtheorem{definition}[theorem]{Definition}
+\newtheorem{example}{Example}
+\renewtheorem*{example*}{Example}
+\theorembodyfont{\normalfont\itshape}
+
+% Global figure/table numbers, as required by the official SIAM example.
+\counterwithout{figure}{section}
+\counterwithout{table}{section}
+% ntheorem places proof marks automatically, including terminal displays.
+\qedsymbol{\proofbox}
+\newcommand{\qedhere}{\qed}
+
+\numberwithin{equation}{section}
+
+\renewcommand{\cal}{\mathcal}
+
+\newenvironment{claimproof}[1][Proof of the claim]{%
+  \renewcommand{\proofSymbol}{$\lrcorner$}%
+  \begin{proof}[#1]%
+}{%
+  \end{proof}%
+}
+
+\DeclareRobustCommand{\stirling}{\genfrac\{\}{0pt}{}}
+
+\newcommand{\drds}[1]{\textsc{Distance-}$#1$ \textsc{Dominating Set}}
+\newcommand{\dris}[1]{\textsc{Distance-}$#1$ \textsc{Independent Set}}
+\newcommand{\notDominated}[1]{\mathtt{witnessNotDom}(#1)}
+\newcommand{\candidate}[1]{\mathtt{candidateDom}(#1)}
+\newcommand{\witnessInd}[1]{\mathtt{witnessNotInd}(#1)}
+\newcommand{\candidateInd}[1]{\mathtt{candidateInd}(#1)}
+\newcommand{\add}[1]{\mathtt{insert}(#1)}
+\newcommand{\remove}[1]{\mathtt{remove}(#1)}
+\newcommand{\near}[1]{\mathtt{nearVertex}(#1)}
+\newcommand{\far}[1]{\mathtt{farVertex}(#1)}
+\newcommand{\init}[1]{\mathtt{init}(#1)}
+\newcommand{\farVertexDS}[2]{\mathsf{FarVertex}_{#2}[#1]}
+\newcommand{\farVertexDSS}[3]{\mathsf{FarVertex}_{#2}^{#3}[#1]}
+\newcommand{\nearVertexDS}[2]{\mathsf{NearVertex}_{#2}[#1]}
+\newcommand{\nearVertexDSS}[3]{\mathsf{NearVertex}_{#2}^{#3}[#1]}
+\newcommand{\dominatingSetDS}[2]{\mathsf{DominatingSet}_{#2}[#1]}
+\newcommand{\independentSetDS}[2]{\mathsf{IndependentSet}_{#2}[#1]}
+\newcommand{\ds}[1]{\mathtt{domSet}(#1)}
+\newcommand{\is}[1]{\mathtt{indSet}(#1)}
+\newcommand{\FO}{\mathsf{FO}}
+\newcommand{\poly}{\mathrm{poly}}
+
+\newcommand{\avgdeg}{\mathsf{avgdeg}}
+
+\newcommand{\Minors}{\mathsf{Minors}}
+\newcommand{\Fra}{\mathsf{Fraternal}}
+\newcommand{\fra}{\mathsf{fraternal}}
+
+
+\newcommand{\ar}{\mathsf{ar}}
+\newcommand{\Af}{\mathbb{A}}
+\newcommand{\Bf}{\mathbb{B}}
+
+\newcommand{\cc}{\mathsf{cc}}
+\newcommand{\bd}{\partial}
+
+\newcommand{\bn}{\mathsf{bn}}
+\newcommand{\tw}{\mathsf{tw}}
+\newcommand{\wtw}{\mathsf{wtw}}
+\newcommand{\bw}{\mathsf{bw}}
+\newcommand{\wbw}{\mathsf{wbw}}
+
+\newcommand{\wei}{\mathbf{w}}
+
+\newcommand{\Pp}{\mathcal{P}}
+\newcommand{\Qq}{\mathcal{Q}}
+\newcommand{\Ww}{\mathcal{W}}
+
+\newcommand{\tup}[1]{{\bar{#1}}}
+
+\newcommand{\Prob}{\mathbb{P}}
+\renewcommand{\Pr}{\Prob}
+\newcommand{\Exp}{\mathbb{E}}
+
+
+\newcommand{\clos}{\mathrm{cl}}
+\newcommand{\bnd}{\partial}
+
+%\newcommand{\tup}{\bar}
+\newcommand{\rt}[2]{#1\langle #2\rangle}
+
+
+\def\phi{\varphi}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Zp}{\Z^+}
+\newcommand{\wh}{\widehat}
+
+\newcommand{\Leaves}{\mathrm{Leaves}}
+\newcommand{\Ball}{\mathrm{Ball}}
+\newcommand{\dist}{\mathrm{dist}}
+\newcommand{\cw}{\mathsf{cvw}}
+\newcommand{\wcw}{\mathsf{wcvw}}
+\newcommand{\ct}{\mathsf{cut}}
+\newcommand{\md}{\mathsf{mid}}
+\newcommand{\sli}{\mathsf{sli}}
+
+\newcommand{\Aa}{\mathcal{A}}
+\newcommand{\Bb}{\mathcal{B}}
+\newcommand{\Ee}{\mathcal{E}}
+
+\newcommand{\Tt}{\mathcal{T}}
+\newcommand{\Ll}{\mathcal{L}}
+\newcommand{\Ff}{\mathcal{F}}
+\newcommand{\Ss}{\mathcal{S}}
+
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\Cc}
+\newcommand{\val}{\mathrm{val}}
+\newcommand{\col}{\mathrm{col}}
+
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\Sub}{\mathrm{Sub}}
+\newcommand{\ISub}{\mathrm{ISub}}
+
+
+\newcommand{\from}{\colon}
+\newcommand{\Cc}{\mathscr C}
+\newcommand{\Dd}{\mathscr D}
+\def\epsilon{\varepsilon}
+\def\eps{\varepsilon}
+\newcommand{\Oh}{\mathcal{O}}
+
+\newcommand{\id}{\mathrm{id}}
+\renewcommand{\emptyset}{\varnothing}
+
+\newcommand{\michal}[1]{\todo[color=pink!40]{Micha\l{}: #1}}
+\newcommand{\michalin}[1]{\todo[size=\normalsize,inline,color=pink!40]{Micha\l{}: #1}}
+
+\newcommand{\wn}[1]{\todo[color=green!501]{{\textbf{W:} #1}}}
+\newcommand{\wninline}[2][inline]{\todo[color=green!50,#1]{{\textbf{W:} #2}}}
+\newcommand{\bbinline}[2][inline]{\todo[color=blue!50,#1]{{\textbf{B:} #2}}}
+\newcommand{\azinline}[2][inline]{\todo[color=yellow!50,#1]{{\textbf{A:} #2}}}
+\newcommand{\mpinline}[2][inline]{\todo[color=pink!40,#1]{{\textbf{M:} #2}}}
+
+\newcommand{\WReach}{\textrm{WReach}}
+\newcommand{\wcol}{\textrm{wcol}}
+
+\newcommand{\UnMaps}{\mathsf{UnweightedMappings}}
+\newcommand{\WeiMaps}{\mathsf{WeightedMappings}}
+\newcommand{\MapEx}{\mathsf{MappingExample}}
+\newcommand{\RetVer}{\mathsf{RetrieveVertex}}
+\newcommand{\WeiSum}{\mathsf{WeightedSum}}
+\newcommand{\Ver}{\mathsf{Verify}}
+\newcommand{\MapVer}{\mathsf{MapVertex}}
+
+
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\le}{\leq}
+\renewcommand{\ge}{\geq}
+
+\renewcommand{\setminus}{-}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\setof}[2]{\{#1 \colon#2\}}
+
+\newcommand{\cnst}[3]{{#1}_{#2}^{\ref{#3}}}
+
+\newcommand{\aff}[1]{\normalsize\textcolor{black!60}{#1}}
+
+\usepackage{tikz}
+
+\SetKwBlock{Repeat}{repeat}{}
+\let\oldnl\nl% Store \nl in \oldnl
+\newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}
+
+\newcommand{\affi}[1]{\textcolor{black!50}{#1}}
+
+\tikzstyle{vertex}=[circle,draw=black,fill=gray,minimum size=0.15cm,inner sep=0pt]
+
+\tikzstyle{svertex}=[circle,draw=black,fill=black,minimum size=0.11cm,inner sep=0pt]
+
+% Keep only the first URL printed by siamplain (DOI takes precedence).
+% Restrict the change to bibliography formatting; retain the BibTeX data.
+\makeatletter
+\newcommand{\SODAfirstbiburl}[1]{%
+  \SODAoriginalurl{#1}%
+  \@ifnextchar,{\SODAcheckbiburlcomma}{}%
+}
+\def\SODAcheckbiburlcomma,{%
+  \@ifnextchar\url{\SODAskipbiburl}{,\space}%
+}
+\def\SODAskipbiburl\url#1{%
+  \@ifnextchar,{\SODAcheckbiburlcomma}{}%
+}
+\AddToHook{env/thebibliography/begin}{%
+  \let\SODAoriginalurl\url
+  \let\url\SODAfirstbiburl
+}
+\makeatother
+
+\begin{document}
+
+\newcommand{\funding}{
+	\begin{minipage}[t]{0.30\textwidth}
+		\includegraphics[scale=0.15]{LOGO_ERC-FLAG_EU.png}
+	\end{minipage}\hfill
+	\begin{minipage}[b]{0.65\textwidth}\footnotesize
+		All the authors were supported by the project BOBR that received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme, grant agreement No. 948057. In particular, a majority of the work on this project was done while B. Bosek was also affiliated with the University of Warsaw.
+	\end{minipage}}
+
+
+
+\title{\Large Dynamic domination and independence in sparse graphs\thanks{\funding}}
+%\date{\today}
+\date{}
+\author{
+	Bart\l{}omiej Bosek\thanks{Jagiellonian University, Kraków (\email{bartlomiej.bosek@uj.edu.pl}).}
+	\and
+	Wojciech Nadara\thanks{University of Warsaw (\email{w.nadara@mimuw.edu.pl}).}
+	\and
+	Michał Pilipczuk\thanks{University of Warsaw (\email{michal.pilipczuk@mimuw.edu.pl}).}
+	\and
+	Anna Zych-Pawlewicz\thanks{University of Warsaw (\email{anka@mimuw.edu.pl}).}
+}
+%\author[1]{Anonymous authors}
+%	\author[1,2]{Bart\l{}omiej Bosek}
+%	\author[1]{Wojciech Nadara}
+%	\author[1]{Micha\l{} Pilipczuk}
+%	\author[1]{Anna Zych-Pawlewicz}
+%	\affil[1]{\aff{University of Warsaw, Poland}}
+%	\affil[2]{\aff{Jagiellonian University, Cracow, Poland}}
+\maketitle
+
+% Copyright mode: 0 = unresolved, 1 = SIAM, 2 = authors, 3 = organization.
+% Set this only after the authors select the corresponding copyright agreement.
+\newcommand{\SODAcopyrightmode}{0}
+\fancyfoot[R]{\scriptsize
+  \ifcase\SODAcopyrightmode
+    SODA 2027: copyright selection pending
+  \or
+    Copyright \textcopyright\ 2027 by SIAM\\
+    Unauthorized reproduction of this article is prohibited
+  \or
+    Copyright \textcopyright\ 2027\\
+    Copyright for this paper is retained by authors
+  \or
+    Copyright \textcopyright\ 2027\\
+    Copyright retained by principal author's organization
+  \else
+    \PackageError{SODA}{Invalid copyright mode}{Use 0, 1, 2, or 3.}
+  \fi
+}
+
+\input{abstract}
+
+% \begin{textblock}{20}(-1.75, 3.6)
+% \includegraphics[width=40px]{logo-erc}%
+% \end{textblock}
+% \begin{textblock}{20}(-1.75, 4.6)
+% \includegraphics[width=40px]{logo-eu}%
+% \end{textblock}
+
+% Continuous proceedings layout: no separate title page or contents page.
+
+\input{intro}
+\input{overview}
+\input{prelims}
+\input{ladders}
+\input{dvorak}
+\input{oracles}
+\input{distone}
+\input{apx}
+\input{conclusions}
+
+%\wninline{Czemu referencja do Dvoraka z WADS wygląda tak biednie?}
+\bibliographystyle{soda/siamplain}
+\bibliography{references}
+
+
+\appendix
+\input{appendix-weighted}
+%\input{appendix-relations}
+%\input{appendix-restore-by-sampling-hash}
+
+\end{document}
