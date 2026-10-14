@@ -19,7 +19,7 @@ Somewhat surprisingly, Fabia\'nski et al. proved that on sparse graphs, more pre
 	For every $r\in \N$ and every nowhere dense class of graphs $\Cc$, there exists a constant $c$ such that the semi-ladder algorithm deployed on any graph $G\in \Cc$ with parameters $r$ and $k$, terminates after performing at most $k^c$ rounds.
 \end{theorem}
 
-See also \cref{thm:ladder-bound,thm:termination} for a more precise formulation, and recall that bounded expansion classes are in particular nowhere dense. We remark that the proof of \cref{thm:overview-semiladder} requires deep tools from the theory of Sparsity, in particular the equivalent characterization of nowhere denseness through the notion of \emph{flatness} (also known as \emph{uniform quasi-wideness}).
+See also~\cite{FabianskiPST19} for a more precise formulation, and recall that bounded expansion classes are in particular nowhere dense. We remark that the proof of \cref{thm:overview-semiladder} requires deep tools from the theory of Sparsity, in particular the equivalent characterization of nowhere denseness through the notion of \emph{flatness} (also known as \emph{uniform quasi-wideness}).
 
 \cref{thm:overview-semiladder} makes the semi-ladder algorithm perfect for lifting to the dynamic setting. Namely, since the number of rounds executed by the algorithm is bounded by a constant depending only on the class $\Cc$ and the parameters $r$ and $k$, we can just run the semi-ladder algorithm after every update to the graph, provided we are able to maintain data structures that allow efficient implementation of every~round.
 

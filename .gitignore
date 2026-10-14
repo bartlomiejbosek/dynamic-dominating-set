@@ -2,6 +2,7 @@ syntax: glob
 main.pdf
 main-soda.pdf
 dom-one.pdf
+soda/main-soda-short.pdf
 *.bbl
 *.blg
 *.log
